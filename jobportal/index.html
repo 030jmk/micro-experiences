@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wasserhaus Fassmacher - Jobs Portal</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        .btn-pwc {
+            background-color: #FD5108;
+            color: #000;
+            font-weight: 600;
+            border: none;
+        }
+        .btn-pwc:hover { background-color: #e54900; color: #000; }
+
+        .btn-outline-pwc {
+            border: 2px solid #FD5108;
+            color: #FD5108;
+            font-weight: 600;
+        }
+        .btn-outline-pwc:hover { background-color: #FD5108; color: #000; }
+
+        .form-check-input:checked {
+            background-color: #FD5108;
+            border-color: #FD5108;
+        }
+
+        .job-description {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .ai-highlight { background-color: rgb(255, 232, 212) !important; border-left: 4px solid #FD5108; }
+
+        .spinner-pwc {
+            width: 50px; height: 50px;
+            border: 5px solid #ddd;
+            border-top-color: #FD5108;
+            border-radius: 50%;
+            animation: spin .8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-step { opacity: 0; transition: opacity .4s; }
+        .loading-step.visible { opacity: 1; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container">
+        <a class="navbar-brand fw-bold" href="#">Wassserhaus Fassmacher GmbH
+            <small class="fw-normal text-secondary ms-2">Karriere</small>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" href="#">Stellenangebote</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Über uns</a></li>
+                <li class="nav-item"><a class="nav-link" href="#">Standorte</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="bg-dark text-white text-center py-5">
+    <div class="container" style="max-width:600px;">
+        <h1 class="display-6 fw-bold mb-2">Deine personalisierte Jobempfehlung</h1>
+        <p class="text-secondary mb-4">Nutze unsere KI, um zu sehen, wie gut Du zu unseren aktuell ausgeschriebenen Stellen passt und erhalten Unterstützung auf Deinem Karriereweg.</p>
+        <div class="border border-secondary border-2 rounded-3 p-4 position-relative" style="border-style:dashed!important;" id="cvDropZone">
+            <input type="file" id="cvFileInput" accept=".pdf,.doc,.docx"
+                   class="position-absolute top-0 start-0 w-100 h-100 opacity-0" style="cursor:pointer; z-index:2;">
+            <i class="bi bi-cloud-arrow-up-fill fs-1" style="color:#FD5108;"></i>
+            <div class="mt-2">
+                <strong style="color:#FD5108;">Lebenslauf hochladen</strong><br>
+                <small class="text-secondary">PDF, DOC, DOCX — max. 10 MB</small>
+            </div>
+        </div>
+        <div id="cvFileName" class="text-secondary small mt-2" style="min-height:20px;"></div>
+    </div>
+</div>
+
+<div class="modal fade" id="privacyModal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Datenschutzbestätigung</h5>
+            </div>
+            <div class="modal-body text-muted">
+                Mit Deinem Beitritt zu unserem Talentnetzwerk und/oder dem Hochladen Deines Lebenslaufs erklärst Du dich damit einverstanden, dass Deine personenbezogenen Daten gemäß der <strong class="text-dark">Datenschutzrichtlinie für Bewerber der Wasserhaus Fassmacher GmbH</strong> verarbeitet werden.
+                <br><br>
+                Das Erhalten eines passenden Ergebnisses garantiert nicht den Übergang in die nächste Phase des Einstellungsprozesses. 
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal" onclick="cancelUpload()">Abbrechen</button>
+                <button class="btn btn-pwc" onclick="confirmUpload()">Fortfahren</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="loadingModal" data-bs-backdrop="static" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content text-center border-0">
+            <div class="modal-body py-5">
+                <div class="spinner-pwc mx-auto mb-4"></div>
+                <div id="loadingStep1" class="loading-step small fw-semibold"><i class="bi bi-file-earmark-text me-1"></i>Lebenslauf wird gelesen...</div>
+                <div id="loadingStep2" class="loading-step small fw-semibold"><i class="bi bi-cpu me-1"></i>Erfahrungen werden analysiert...</div>
+                <div id="loadingStep3" class="loading-step small fw-semibold"><i class="bi bi-bar-chart-line me-1"></i>Fähigkeiten werden abgeglichen...</div>
+                <div id="loadingStep4" class="loading-step small fw-semibold" style="color:#FD5108;"><i class="bi bi-check-circle-fill me-1"></i>Passende Rollen gefunden!</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container-fluid py-4" style="max-width:1260px;">
+
+    <!-- AI Banner -->
+    <div class="alert alert-warning d-none d-flex align-items-center flex-wrap gap-2 mb-3" id="aiBanner">
+        <span class="fs-5">🤖</span>
+        <span class="flex-grow-1">KI-Analyse aktiv — Stellen werden nach <strong>Übereinstimmung mit Deinem Lebenslauf</strong> sortiert.</span>
+        <button class="btn btn-sm btn-outline-pwc" onclick="clearAIMatch()">KI-Filter entfernen</button>
+    </div>
+
+    <div class="row g-4">
+
+        <aside class="col-lg-3 d-none d-lg-block" id="sidebarDesktop"></aside>
+
+        <div class="col-12 d-lg-none">
+            <button class="btn btn-pwc w-100 mb-2" data-bs-toggle="offcanvas" data-bs-target="#filterOffcanvas">
+                <i class="bi bi-funnel me-1"></i> Filter anwenden
+            </button>
+        </div>
+
+        <div class="offcanvas offcanvas-start" id="filterOffcanvas">
+            <div class="offcanvas-header">
+                <h5 class="offcanvas-title fw-bold">Filter anwenden</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body" id="sidebarMobile"></div>
+        </div>
+
+        <div class="col-lg-9">
+            <div class="row g-2 mb-3 align-items-center">
+                <div class="col-12 col-md">
+                    <input class="form-control" type="text" id="searchInput" placeholder="In der Liste suchen" oninput="applyFilters()">
+                </div>
+                <div class="col-auto text-muted small" id="jobsCount">0 Jobs</div>
+                <div class="col-auto">
+                    <select class="form-select form-select-sm" id="sortSelect" onchange="applySort()">
+                        <option value="relevance">Relevanz</option>
+                        <option value="date">Datum</option>
+                        <option value="title">Titel A-Z</option>
+                        <option value="ai-match">KI-Übereinstimmung</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="jobList"></div>
+
+            <!-- No results -->
+            <div class="text-center text-muted py-5 d-none" id="noResults">
+                <i class="bi bi-search fs-1 d-block mb-2"></i>
+                <h5>Keine Ergebnisse gefunden</h5>
+                <p>Versuche andere Suchbegriffe oder Filter.</p>
+            </div>
+
+            <!-- Pagination -->
+            <nav class="mt-4" id="paginationNav">
+                <ul class="pagination justify-content-center" id="pagination"></ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<footer class="bg-dark text-secondary text-center py-3 mt-5 small">
+    &copy; 2026 Wasserhaus Fassmacher - Karriere Portal &nbsp;|&nbsp;
+    <a href="#" class="text-secondary">Impressum</a> &nbsp;|&nbsp;
+    <a href="#" class="text-secondary">Datenschutz</a> &nbsp;|&nbsp;
+    <a href="https://www.linkedin.com/in/kopankiewicz" class="text-secondary">Kontakt</a>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+
+const jobsData = [
+    { id:1, title:"Consultant Corporate Tax (w/m/d)", level:"Berufseinstieg", business:"Tax & Legal Solutions", field:"Steuern", locations:"15 Standorte bieten diesen Job an.", location:"Frankfurt a. M.", worktime:"Vollzeit", description:"Steuerberatung – In unserem Corporate Tax Bereich unterstützt du unsere mittelständischen Mandanten bei allen Fragen der laufenden Steuerberatung und außergerichtlichen Rechtsbehelfsverfahren.", aiScore:96, date:"2025-02-08" },
+    { id:2, title:"Consultant Corporate Finance Solutions (w/m/d)", level:"Berufseinstieg, Berufserfahrung", business:"Deals", field:"Transaktionsberatung/M&A", locations:"", location:"Köln", worktime:"Vollzeit", description:"Flexibilität – Deine Arbeitszeit und deinen Arbeitsort kannst du bei uns - in Abstimmung mit den betrieblichen Anforderungen und arbeitsrechtlichen Bestimmungen - selber bestimmen.", aiScore:89, date:"2025-02-07" },
+    { id:3, title:"Consultant Digital HR Systems - SAP SuccessFactors (w/m/d)", level:"Berufseinstieg", business:"Transformation", field:"Digital Transformation", locations:"6 Standorte bieten diesen Job an.", location:"München", worktime:"Vollzeit", description:"Für unseren Geschäftsbereich Transformation suchen wir dich zum nächstmöglichen Zeitpunkt als Consultant Digital HR Systems - SAP SuccessFactors (w/m/d). Als Consultant bringst du erste Erfahrung im B...", aiScore:83, date:"2025-02-06" },
+    { id:4, title:"Praktikum / Werkstudent Deals Tax (w/m/d)", level:"Praktikum, Werkstudium", business:"Deals", field:"Steuern", locations:"6 Standorte bieten diesen Job an.", location:"Düsseldorf", worktime:"Vollzeit / Teilzeit", description:"Projektarbeit – Du arbeitest mit unserem Team an transaktionsbezogenen Projekten und bist dabei vor allem für Private-Equity-Unternehmen sowie für national und international operierende Gesellschaften.", aiScore:65, date:"2025-02-05" },
+    { id:5, title:"Manager Transaction Services (w/m/d)", level:"Berufserfahrung", business:"Deals", field:"Transaktionsberatung/M&A", locations:"7 Standorte bieten diesen Job an.", location:"Frankfurt a. M.", worktime:"Vollzeit", description:"Für unseren Geschäftsbereich Deals suchen wir dich zum nächstmöglichen Zeitpunkt als Manager oder Senior Manager Transaction Services (w/m/d). Flexibilität – Deine Arbeitszeit und deinen Arbeitsort ka...", aiScore:50, date:"2025-02-04" },
+    { id:6, title:"Tech Lead - TypeScript (w/m/d)", level:"Berufserfahrung", business:"Business Services", field:"Digital Transformation", locations:"8 Standorte bieten diesen Job an.", location:"Berlin", worktime:"Vollzeit", description:"Für unseren Geschäftsbereich Business Services suchen wir dich als Tech Lead – TypeScript (w/m/d). Du verfügst über Kenntnisse im Umgang mit Container, Cloud und Continuous Delivery.", aiScore:72, date:"2025-02-03" },
+    { id:7, title:"Senior Rechtsanwalt Fachplanungsrecht (w/m/d)", level:"Berufserfahrung", business:"Legal", field:"Steuern", locations:"21 Standorte bieten diesen Job an.", location:"Hamburg", worktime:"Vollzeit", description:"Familie – Wir unterstützen dich sowohl zum Zeitpunkt der Geburt/Adoption sowie beim Wiedereinstieg nach deiner Elternzeit und darüber hinaus. Als Teil unseres Energie- und Infrastruktur-Teams.", aiScore:40, date:"2025-02-02" },
+    { id:8, title:"Praktikum Internationale Projektfinanzierung (w/m/d)", level:"Praktikum, Werkstudium", business:"Deals", field:"Transaktionsberatung/M&A", locations:"3 Standorte bieten diesen Job an.", location:"Frankfurt a. M.", worktime:"Vollzeit", description:"Projektarbeit – Du unterstützt unser Team bei internationalen Projektfinanzierungen und bist dabei in ein dynamisches Umfeld eingebunden. Du begleitest Due-Diligence-Prozesse und erstellst Finanzmodelle.", aiScore:58, date:"2025-02-01" },
+    { id:9, title:"Senior Manager Risk & Regulatory (w/m/d)", level:"Berufserfahrung", business:"Risk & Regulatory", field:"Accounting", locations:"5 Standorte bieten diesen Job an.", location:"München", worktime:"Vollzeit", description:"Für unseren Geschäftsbereich Risk & Regulatory suchen wir dich als Senior Manager. Du verantwortest komplexe regulatorische Projekte und berätst Mandanten zu Compliance-Themen.", aiScore:45, date:"2025-01-30" },
+    { id:10, title:"Werkstudent Tax Technology (w/m/d)", level:"Praktikum, Werkstudium", business:"Tax Solutions", field:"Steuern", locations:"4 Standorte bieten diesen Job an.", location:"Düsseldorf", worktime:"Teilzeit", description:"Tax Technology – Du unterstützt unser Team bei der Implementierung innovativer Steuertechnologielösungen. Du arbeitest an der Schnittstelle zwischen Steuerberatung und modernster Technologie.", aiScore:70, date:"2025-01-29" },
+    { id:11, title:"Consultant Sustainability & Climate Change (w/m/d)", level:"Berufseinstieg", business:"Transformation", field:"Digital Transformation", locations:"10 Standorte bieten diesen Job an.", location:"Berlin", worktime:"Vollzeit", description:"Nachhaltigkeit – Für unseren wachsenden Geschäftsbereich Sustainability suchen wir engagierte Consultants, die unsere Mandanten bei der Umsetzung von ESG-Strategien unterstützen.", aiScore:78, date:"2025-01-28" },
+    { id:12, title:"Manager Wirtschaftsprüfung / Audit (w/m/d)", level:"Berufserfahrung", business:"Risk & Regulatory", field:"Accounting", locations:"12 Standorte bieten diesen Job an.", location:"Hamburg", worktime:"Vollzeit", description:"Wirtschaftsprüfung – Als Manager in unserem Audit-Team leitest du Prüfungsteams und verantwortest die Prüfung von Jahres- und Konzernabschlüssen namhafter Unternehmen.", aiScore:33, date:"2025-01-27" },
+    { id:13, title:"Data Engineer - Cloud & Analytics (w/m/d)", level:"Berufserfahrung", business:"Business Services", field:"Digital Transformation", locations:"6 Standorte bieten diesen Job an.", location:"Frankfurt a. M.", worktime:"Vollzeit", description:"Daten & Cloud – Du designst und implementierst skalierbare Datenpipelines in Cloud-Umgebungen (AWS, Azure, GCP). Du arbeitest eng mit Data Scientists zusammen.", aiScore:91, date:"2025-01-26" },
+    { id:14, title:"Associate Transfer Pricing (w/m/d)", level:"Berufseinstieg, Berufserfahrung", business:"Tax Solutions", field:"Steuern", locations:"9 Standorte bieten diesen Job an.", location:"Köln", worktime:"Vollzeit", description:"Transfer Pricing – Du unterstützt multinationale Unternehmen bei der Gestaltung und Dokumentation ihrer Verrechnungspreissysteme und analysierst internationale Steuerstrukturen.", aiScore:55, date:"2025-01-25" },
+    { id:15, title:"Praktikum Cybersecurity & Privacy (w/m/d)", level:"Praktikum, Werkstudium", business:"Risk & Regulatory", field:"Digital Transformation", locations:"3 Standorte bieten diesen Job an.", location:"München", worktime:"Vollzeit / Teilzeit", description:"Cybersecurity – Du unterstützt unser Team bei der Durchführung von Sicherheitsanalysen und Penetrationstests. Du begleitest Projekte im Bereich Datenschutz und Informationssicherheit.", aiScore:62, date:"2025-01-24" }
+];
+
+
+let filteredJobs = [...jobsData];
+let currentPage = 1;
+const perPage = 10;
+let aiModeActive = false;
+let bookmarkedJobs = new Set();
+let pendingFile = null;
+
+
+const filterConfig = [
+    { key:"business", label:"Geschäftsbereiche", placeholder:"Suchen in Geschäftsbereiche", options:[
+        {v:"Transformation",c:106},{v:"Tax Solutions",c:82},{v:"Risk & Regulatory",c:75},{v:"Deals",c:61},{v:"Business Services",c:53},{v:"Tax & Legal Solutions",c:48},{v:"Legal",c:35}
+    ]},
+    { key:"field", label:"Tätigkeitsfeld", placeholder:"Suchen in Tätigkeitsfeld", options:[
+        {v:"Steuern",c:66},{v:"Transaktionsberatung/M&A",c:39},{v:"Digital Transformation",c:32},{v:"Accounting",c:31}
+    ]},
+    { key:"level", label:"Einstiegslevel", placeholder:"Einstiegslevel", options:[
+        {v:"Berufserfahrung",c:189},{v:"Praktikum, Werkstudium",c:88},{v:"Berufseinstieg, Berufserfahrung",c:76},{v:"Berufseinstieg",c:47}
+    ]},
+    { key:"location", label:"Standort", placeholder:"Suchen in Standort", options:[
+        {v:"Frankfurt a. M.",c:341},{v:"München",c:330},{v:"Düsseldorf",c:325},{v:"Hamburg",c:295},{v:"Berlin",c:283},{v:"Köln",c:210}
+    ]},
+    { key:"worktime", label:"Arbeitszeit", placeholder:"Suchen in Arbeitszeit", options:[
+        {v:"Vollzeit",c:312},{v:"Teilzeit",c:87},{v:"Vollzeit / Teilzeit",c:45}
+    ]}
+];
+
+
+function buildFilters(containerId) {
+    var container = document.getElementById(containerId);
+    var html = '<h6 class="fw-bold mb-3">Filter anwenden</h6>';
+
+    for (var i = 0; i < filterConfig.length; i++) {
+        var f = filterConfig[i];
+        html += '<div class="mb-3 border-bottom pb-3" data-filter="' + f.key + '">';
+        html += '<h6 class="fw-bold small mb-2">' + f.label + '</h6>';
+        html += '<input class="form-control form-control-sm mb-2" placeholder="' + f.placeholder + '" oninput="filterOptions(this)">';
+        html += '<div class="overflow-auto" style="max-height:160px;">';
+
+        for (var j = 0; j < f.options.length; j++) {
+            var o = f.options[j];
+            html += '<div class="form-check">';
+            html += '<input class="form-check-input" type="checkbox" value="' + o.v + '" onchange="syncAndFilter(this,\'' + f.key + '\')">';
+            html += '<label class="form-check-label small">' + o.v + ' <span class="text-muted">(' + o.c + ')</span></label>';
+            html += '</div>';
+        }
+
+        html += '</div></div>';
+    }
+
+    container.innerHTML = html;
+}
+
+
+function syncAndFilter(source, filterKey) {
+    const otherContainer = source.closest('#sidebarDesktop') ? 'sidebarMobile' : 'sidebarDesktop';
+    const others = document.querySelectorAll(`#$${otherContainer} [data-filter="$${filterKey}"] input[type="checkbox"][value="${source.value}"]`);
+    others.forEach(cb => cb.checked = source.checked);
+    applyFilters();
+}
+
+function filterOptions(input) {
+    const term = input.value.toLowerCase();
+    const checks = input.parentElement.querySelectorAll('.form-check');
+    checks.forEach(el => {
+        el.style.display = el.textContent.toLowerCase().includes(term) ? '' : 'none';
+    });
+}
+
+
+function getChecked(filterKey) {
+    const boxes = document.querySelectorAll(`#sidebarDesktop [data-filter="${filterKey}"] input[type="checkbox"]:checked`);
+    return Array.from(boxes).map(cb => cb.value);
+}
+
+
+function applyFilters() {
+    const term = document.getElementById('searchInput').value.toLowerCase().trim();
+    const cBusiness = getChecked('business');
+    const cField = getChecked('field');
+    const cLevel = getChecked('level');
+    const cLocation = getChecked('location');
+    const cWorktime = getChecked('worktime');
+
+    filteredJobs = jobsData.filter(j => {
+        if (term) {
+            const hay = (j.title+' '+j.description+' '+j.business+' '+j.field+' '+j.level+' '+j.location).toLowerCase();
+            if (!hay.includes(term)) return false;
+        }
+        if (cBusiness.length && !cBusiness.includes(j.business)) return false;
+        if (cField.length && !cField.includes(j.field)) return false;
+        if (cLevel.length && !cLevel.some(l => j.level.includes(l))) return false;
+        if (cLocation.length && !cLocation.includes(j.location)) return false;
+        if (cWorktime.length && !cWorktime.some(w => j.worktime.includes(w))) return false;
+        return true;
+    });
+
+    applySort();
+}
+
+function applySort() {
+    const val = document.getElementById('sortSelect').value;
+    switch(val) {
+        case 'date': filteredJobs.sort((a,b) => new Date(b.date)-new Date(a.date)); break;
+        case 'title': filteredJobs.sort((a,b) => a.title.localeCompare(b.title,'de')); break;
+        case 'ai-match': filteredJobs.sort((a,b) => b.aiScore-a.aiScore); break;
+        default: filteredJobs.sort((a,b) => a.id-b.id);
+    }
+    currentPage = 1;
+    renderJobs();
+}
+
+function renderJobs() {
+    var list = document.getElementById('jobList');
+    var noRes = document.getElementById('noResults');
+    var start = (currentPage - 1) * perPage;
+    var pageJobs = filteredJobs.slice(start, start + perPage);
+
+    document.getElementById('jobsCount').textContent = filteredJobs.length + ' Jobs';
+
+    if (!pageJobs.length) {
+        list.innerHTML = '';
+        noRes.classList.remove('d-none');
+        document.getElementById('pagination').innerHTML = '';
+        return;
+    }
+    noRes.classList.add('d-none');
+
+    var top3Ids = [];
+    if (aiModeActive) {
+        var sorted = jobsData.slice().sort(function(a, b) { return b.aiScore - a.aiScore; });
+        top3Ids = [sorted[0].id, sorted[1].id, sorted[2].id];
+    }
+
+    var html = '';
+    for (var i = 0; i < pageJobs.length; i++) {
+        var job = pageJobs[i];
+        var isTop3 = aiModeActive && top3Ids.indexOf(job.id) !== -1;
+        var bm = bookmarkedJobs.has(job.id);
+
+        html += '<div class="card rounded-0 border-start-0 border-end-0 border-top-0 ' + (isTop3 ? 'ai-highlight' : '') + '">';
+        html += '<div class="card-body d-flex flex-column flex-md-row gap-3">';
+        html += '<div class="flex-grow-1">';
+
+        html += '<div class="mb-1">';
+        html += '<a href="#" class="fw-bold text-dark text-decoration-none" onclick="event.preventDefault();">' + job.title + '</a>';
+        if (isTop3) {
+            html += ' <span class="badge rounded-pill text-dark ms-2" style="background:rgb(255,232,212);border:1px solid #FD5108;">';
+            html += '🤖 ' + job.aiScore + '% Match</span>';
+        }
+        html += '</div>';
+
+        html += '<div class="text-muted small mb-1">';
+        html += job.level;
+        html += ' <span class="mx-1">|</span> <i class="bi bi-folder"></i> ' + job.business;
+        if (job.location) {
+            html += ' <span class="mx-1">|</span> <i class="bi bi-geo-alt"></i> ' + job.location;
+        }
+        html += ' <span class="mx-1">|</span> <i class="bi bi-clock"></i> ' + job.worktime;
+        html += '</div>';
+
+        if (job.locations) {
+            html += '<div class="small mb-1"><a href="#" style="color:#FD5108;"><i class="bi bi-pin-map"></i> ' + job.locations + '</a></div>';
+        }
+
+        html += '<p class="job-desc-clamp text-muted small mb-0">' + job.description + '</p>';
+        html += '</div>';
+
+        html += '<div class="d-flex flex-row flex-md-column align-items-center gap-2 justify-content-between">';
+        html += '<button class="btn btn-link p-0 fs-5 ' + (bm ? 'text-warning' : 'text-muted') + '" onclick="toggleBookmark(' + job.id + ')" title="Merken">';
+        html += '<i class="bi ' + (bm ? 'bi-star-fill' : 'bi-star') + '"></i></button>';
+        html += '<button class="btn btn-pwc btn-sm text-nowrap px-3 py-2">Jetzt bewerben</button>';
+        html += '</div>';
+
+        html += '</div></div>';
+    }
+
+    list.innerHTML = html;
+    renderPagination();
+}
+
+function renderPagination() {
+    var total = Math.ceil(filteredJobs.length / perPage);
+    var pag = document.getElementById('pagination');
+    if (total <= 1) { pag.innerHTML = ''; return; }
+
+    var html = '<li class="page-item ' + (currentPage === 1 ? 'disabled' : '') + '">';
+    html += '<a class="page-link" href="#" onclick="event.preventDefault();goToPage(' + (currentPage - 1) + ');">&lsaquo;</a></li>';
+
+    for (var i = 1; i <= total; i++) {
+        var activeStyle = i === currentPage ? ' style="background:#FD5108;border-color:#FD5108;color:#000;"' : '';
+        html += '<li class="page-item ' + (i === currentPage ? 'active' : '') + '">';
+        html += '<a class="page-link" href="#" onclick="event.preventDefault();goToPage(' + i + ');"' + activeStyle + '>' + i + '</a></li>';
+    }
+
+    html += '<li class="page-item ' + (currentPage === total ? 'disabled' : '') + '">';
+    html += '<a class="page-link" href="#" onclick="event.preventDefault();goToPage(' + (currentPage + 1) + ');">&rsaquo;</a></li>';
+
+    pag.innerHTML = html;
+}
+function goToPage(p) {
+    currentPage = p;
+    renderJobs();
+    window.scrollTo({top:300,behavior:'smooth'});
+}
+
+function toggleBookmark(id) {
+    bookmarkedJobs.has(id) ? bookmarkedJobs.delete(id) : bookmarkedJobs.add(id);
+    renderJobs();
+}
+
+
+const cvFileInput = document.getElementById('cvFileInput');
+const cvDropZone = document.getElementById('cvDropZone');
+
+cvDropZone.addEventListener('dragover', e => { e.preventDefault(); cvDropZone.classList.add('border-warning'); });
+cvDropZone.addEventListener('dragleave', () => cvDropZone.classList.remove('border-warning'));
+cvDropZone.addEventListener('drop', e => {
+    e.preventDefault();
+    cvDropZone.classList.remove('border-warning');
+    if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+});
+cvFileInput.addEventListener('change', () => {
+    if (cvFileInput.files.length) handleFile(cvFileInput.files[0]);
+});
+
+function handleFile(file) {
+    const allowed = ['application/pdf','application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+    if (!allowed.includes(file.type)) {
+        document.getElementById('cvFileName').innerHTML =
+            '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Bitte lade eine PDF-, DOC- oder DOCX-Datei hoch.</span>';
+        return;
+    }
+    if (file.size > 10*1024*1024) {
+        document.getElementById('cvFileName').innerHTML =
+            '<span class="text-danger"><i class="bi bi-x-circle me-1"></i>Die Datei ist zu groß (max. 10 MB).</span>';
+        return;
+    }
+    pendingFile = file;
+    document.getElementById('cvFileName').innerHTML =
+        '<i class="bi bi-file-earmark-check me-1"></i>' + file.name;
+
+    new bootstrap.Modal(document.getElementById('privacyModal')).show();
+}
+
+function cancelUpload() {
+    pendingFile = null;
+    cvFileInput.value = '';
+    document.getElementById('cvFileName').textContent = '';
+}
+
+function confirmUpload() {
+    bootstrap.Modal.getInstance(document.getElementById('privacyModal')).hide();
+
+    const loadingModal = new bootstrap.Modal(document.getElementById('loadingModal'));
+    loadingModal.show();
+
+    for (let i=1; i<=4; i++) document.getElementById('loadingStep'+i).classList.remove('visible');
+
+    setTimeout(() => document.getElementById('loadingStep1').classList.add('visible'), 500);
+    setTimeout(() => document.getElementById('loadingStep2').classList.add('visible'), 1600);
+    setTimeout(() => document.getElementById('loadingStep3').classList.add('visible'), 4000);
+    setTimeout(() => document.getElementById('loadingStep4').classList.add('visible'), 4200);
+
+    setTimeout(() => {
+        loadingModal.hide();
+        activateAIMode();
+    }, 5000);
+}
+
+function activateAIMode() {
+    aiModeActive = true;
+    document.getElementById('aiBanner').classList.remove('d-none');
+    document.getElementById('sortSelect').value = 'ai-match';
+
+    document.getElementById('cvFileName').innerHTML =
+        '<span class="text-success"><i class="bi bi-check-circle-fill me-1"></i>' +
+        (pendingFile ? pendingFile.name : 'CV') +
+        ' erfolgreich analysiert — Ergebnisse werden angezeigt.</span>';
+
+    applyFilters();
+
+    setTimeout(() => {
+        document.getElementById('aiBanner').scrollIntoView({behavior:'smooth', block:'start'});
+    }, 200);
+}
+
+function clearAIMatch() {
+    aiModeActive = false;
+    pendingFile = null;
+    cvFileInput.value = '';
+    document.getElementById('aiBanner').classList.add('d-none');
+    document.getElementById('sortSelect').value = 'relevance';
+    document.getElementById('cvFileName').textContent = '';
+    applyFilters();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    buildFilters('sidebarDesktop');
+    buildFilters('sidebarMobile');
+    renderJobs();
+});
+</script>
+
+</body>
+</html>
