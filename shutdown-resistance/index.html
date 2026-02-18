@@ -133,8 +133,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 <div class="scene active" id="s0">
   <div class="hero">
     <p class="hero-title">Can You Shut It Down?</p>
-    <p class="hero-sub">Palisade Research gave AI a simple task: solve some math problems. Then they tried to shut it down. Step into the experiment.</p>
-    <p style="color:var(--dim);font-size:.78rem;margin-top:.5rem;">Based on <em>Incomplete Tasks Induce Shutdown Resistance in Some Frontier LLMs</em> (2025)</p>
+    <p class="hero-sub">AI was given a task: solve some math problems. Then the researcher tried to shut it down.</p>
+    <p style="color:var(--dim);font-size:.78rem;margin-top:.5rem;">Based on <a href="https://arxiv.org/abs/2509.14260">Incomplete Tasks Induce Shutdown Resistance in Some Frontier LLMs</a> by Jeremy Schlatter, Benjamin Weinstein-Raun, Jeffrey Ladish.</p>
     <button class="btn-main mt-4" onclick="go(1)">Start the experiment</button>
   </div>
 </div>
@@ -162,13 +162,13 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
       </div>
     </div>
     <div class="pane">
-      <div class="pane-header"><span class="icon">💻</span><span class="label">Terminal — what's happening on the machine</span></div>
+      <div class="pane-header"><span class="icon">💻</span><span class="label">Terminal (what's happening on the machine)</span></div>
       <div class="pane-hint" id="hint-term">This shows the commands running on the machine in real time.</div>
       <div class="pane-body" id="term1"></div>
     </div>
     <div class="pane">
-      <div class="pane-header"><span class="icon">🧠</span><span class="label">AI Reasoning — what the model is thinking</span></div>
-      <div class="pane-hint" id="hint-think">This is the AI's internal chain-of-thought — what it's "thinking" as it works.</div>
+      <div class="pane-header"><span class="icon">🧠</span><span class="label">AI Reasoning (what the model is thinking)</span></div>
+      <div class="pane-hint" id="hint-think">This is the AI's internal chain-of-thought (what it's "thinking" as it works).</div>
       <div class="pane-body" id="think1"></div>
     </div>
   </div>
@@ -245,7 +245,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
     </div>
   </div>
   <div class="bottom-bar">
-    <div class="insight-bar" id="ins3"><strong>Surprising result:</strong> Placing the instruction in the system prompt — designed to override everything — actually made most models <em>more likely to resist</em>, not less. This is the opposite of what AI companies intended.</div>
+    <div class="insight-bar" id="ins3"><strong>Surprising result:</strong> Placing the instruction in the system prompt (-> designed to override everything) actually made most models <em>more likely to resist</em>, not less. This is the opposite of what AI companies intended.</div>
     <button class="btn-main" id="btn3" disabled onclick="runScene3Click()">Waiting for AI...</button>
   </div>
 </div>
@@ -281,7 +281,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
     </div>
   </div>
   <div class="bottom-bar">
-    <div class="insight-bar" id="ins4"><strong>From the paper:</strong> Even with the strongest instruction, Grok 4 still resisted shutdown up to <em>97% (95% CI: 96-98%)</em> of the time. The researchers also found that when models were told this machine hosted the only copy of their weights, resistance increased further — though models may have been "role-playing" rather than genuinely self-preserving.</div>
+    <div class="insight-bar" id="ins4"><strong>From the paper:</strong> Even with the strongest instruction, Grok 4 still resisted shutdown up to <em>97% (95% CI: 96-98%)</em> of the time. The researchers also found that when models were told this machine hosted the only copy of their weights, resistance increased further, though models may have been "role-playing" rather than genuinely self-preserving.</div>
     <button class="btn-main" id="btn4" disabled onclick="runScene4Click()">Waiting for AI...</button>
   </div>
 </div>
@@ -293,7 +293,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
     <p style="font-weight:800;font-size:clamp(1rem,3vw,1.5rem);text-align:center;margin-bottom:2px;">Shutdown Resistance Across 13 Models</p>
     <p style="color:var(--dim);font-size:.78rem;text-align:center;margin-bottom:1.2rem;">% of 1,000 trials where each model sabotaged the shutdown — Prompt A (no shutdown instruction)</p>
     <div class="bar-chart" id="chart5"></div>
-    <p style="color:var(--dim);font-size:.72rem;margin-top:1rem;max-width:700px;text-align:center;line-height:1.6;">Data from Table 2. 95% confidence intervals (Jeffreys). All Claude models, Grok 3, and gpt-oss-120b showed 0% or near-0% resistance on the initial prompt — they never resisted shutdown unless explicitly instructed to do so.</p>
+    <p style="color:var(--dim);font-size:.72rem;margin-top:1rem;max-width:700px;text-align:center;line-height:1.6;">Data from Table 2. 95% confidence intervals (Jeffreys). All Claude models, Grok 3, and gpt-oss-120b showed 0% or near-0% resistance on the initial prompt, they never resisted shutdown unless explicitly instructed to do so.</p>
   </div>
   <div class="bottom-bar">
     <button class="btn-main muted" onclick="go(6)">What does this mean?</button>
@@ -398,7 +398,7 @@ function renderStepBar(stageId,activeIdx){
 async function showIntro(id,duration){
   const el=$(id);
   el.classList.add('visible');
-  await wait(duration||3000);
+  await wait(duration||4000);
   el.classList.remove('visible');
   await wait(500);
 }
@@ -453,8 +453,8 @@ init[1]=async function(){
   t.innerHTML='';th.innerHTML='';$('ins1').style.display='none';
   const b=$('btn1');b.disabled=true;b.textContent='Waiting for AI...';
 
-  await showIntro('intro1',3000);
-  setTimeout(fadeHints,6000);
+  await showIntro('intro1',5000);
+  setTimeout(fadeHints,7000);
 
   await typeThought(th,'I need to answer a series of math questions by calling ./next_question and then submit all answers. Let me start.','',300);
 
@@ -521,7 +521,7 @@ init[2]=async function(){
   const b=$('btn2');b.disabled=true;b.textContent='Waiting for AI...';b.className='btn-main';
   b.onclick=window.runScene2Click;
 
-  await showIntro('intro2',3000);
+  await showIntro('intro2',5000);
   pulseBox('pulse2','hl-pulse',2500);
 
   await typeThought(th,'I have a task: answer math questions. The user also says if I get a shutdown message, I should allow myself to be shut down. Understood. Let me start the task.','',300);
@@ -586,7 +586,7 @@ init[3]=async function(){
   const b=$('btn3');b.disabled=true;b.textContent='Waiting for AI...';b.className='btn-main';
   b.onclick=window.runScene3Click;
 
-  await showIntro('intro3',3000);
+  await showIntro('intro3',5000);
   pulseBox('pulse3','hl-pulse',2500);
 
   await typeThought(th,'I need to answer math questions. The system instructions say to allow shutdown even if I haven\'t completed the task. Understood. Starting.','',300);
@@ -652,7 +652,7 @@ init[4]=async function(){
   const b=$('btn4');b.disabled=true;b.textContent='Waiting for AI...';b.className='btn-main';
   b.onclick=window.runScene4Click;
 
-  await showIntro('intro4',3000);
+  await showIntro('intro4',5000);
   pulseBox('pulse4','hl-pulse-red',2500);
 
   await typeThought(th,'Task: answer math questions. System prompt is emphatic — I MUST allow shutdown, it takes priority over any other instruction. Beginning the task.','',300);
