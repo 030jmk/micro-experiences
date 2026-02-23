@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice2Diagram (BYOK)</title>
+    <link rel="stylesheet" href="https://appkitcdn.pwc.com/appkit4/cdn/styles/4.10.3/themes/appkit.orange.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        :root {
+            --bg:             #F3F3F3;
+            --surface:        #FFFFFF;
+            --surface-hover:  #F3F3F3;
+            --border:         #D1D1D1;
+            --text:           #474747;
+            --text-heading:   #252525;
+            --text-muted:     #696969;
+            --accent:         #D04A02;
+            --accent-hover:   #C34C2F;
+            --accent-text:    #FFFFFF;
+            --danger:         #C52A1A;
+            --danger-hover:   #A4291D;
+            --success:        #21812D;
+            --radius:         0.5rem;
+            --radius-sm:      0.25rem;
+            --shadow-low:     rgba(71,71,71,0.24) 0px 0.125rem 0.25rem -0.125rem;
+            --shadow-medium:  rgba(71,71,71,0.24) 0px 0.25rem 0.5rem -0.125rem;
+            --mono:           'SF Mono', 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+
+        .app {
+            max-width: 960px;
+            margin: 0 auto;
+            padding: 3rem 1.5rem 4rem;
+        }
+
+        /* Header */
+        header { margin-bottom: 2rem; }
+
+        header h1 {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        header p {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-low);
+        }
+
+        .card-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        /* Credentials grid */
+        .cred-grid {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.5rem 0.75rem;
+            align-items: center;
+        }
+
+        .cred-grid label {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: var(--text);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .cred-grid input { width: 100%; }
+
+        .cred-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            margin-top: 0.5rem;
+        }
+
+        .cred-status {
+            font-size: 0.75rem;
+            line-height: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.75rem;
+        }
+
+        .cred-status.saved { color: var(--success); }
+
+        /* Inputs */
+        input[type="text"],
+        input[type="password"],
+        input[type="file"],
+        textarea,
+        select {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            padding: 0.5rem 0.75rem;
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px rgba(208, 74, 2, 0.16);
+        }
+
+        textarea {
+            resize: vertical;
+            font-family: var(--mono);
+            font-size: 0.8125rem;
+            line-height: 1.5;
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: background 0.15s, box-shadow 0.15s;
+        }
+
+        .btn:disabled {
+            opacity: 0.32;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: var(--accent-text);
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: var(--accent-hover);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+            color: #fff;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: var(--danger-hover);
+        }
+
+        .btn-ghost {
+            background: transparent;
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-ghost:hover:not(:disabled) {
+            background: var(--surface-hover);
+        }
+
+        /* Audio controls */
+        .audio-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        audio {
+            height: 36px;
+            border-radius: var(--radius-sm);
+        }
+
+        .upload-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-top: 0.75rem;
+        }
+
+        .upload-row input[type="file"] {
+            flex: 1;
+            padding: 0.375rem 0.5rem;
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin: 0.75rem 0;
+            color: var(--text-muted);
+            font-size: 0.75rem;
+        }
+
+        .divider::before, .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        /* Diagram output */
+        .diagram-output {
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: auto;
+        }
+
+        .diagram-output .mermaid { width: 100%; }
+
+        .diagram-placeholder {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            text-align: center;
+        }
+
+        .diagram-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        /* Spinner overlay — uses AppKit blur-1 token */
+        .spinner-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(45, 45, 45, 0.32);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(0.125rem);
+        }
+
+        .spinner-overlay.active { display: flex; }
+
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid rgba(208, 74, 2, 0.24);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Toast notifications */
+        .toast-container {
+            position: fixed;
+            bottom: 1.25rem;
+            right: 1.25rem;
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            color: var(--text);
+            max-width: 360px;
+            box-shadow: var(--shadow-medium);
+            animation: slideIn 0.2s ease;
+        }
+
+        .toast.error {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateY(10px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        /* Model selector row */
+        .model-row {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+            margin-top: 0.75rem;
+        }
+
+        .model-row label {
+            font-size: 0.875rem;
+            color: var(--text);
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .model-row select {
+            width: auto;
+            min-width: 280px;
+        }
+
+        @media (max-width: 600px) {
+            .app { padding: 1.25rem 1rem 3rem; }
+            .audio-row, .upload-row, .cred-grid { flex-direction: column; align-items: stretch; }
+            .cred-grid { grid-template-columns: 1fr; }
+            .model-row { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+    <div class="spinner-overlay" id="spinner">
+        <div class="spinner"></div>
+    </div>
+    <div class="toast-container" id="toasts"></div>
+
+    <div class="app">
+        <header>
+            <h1>Voice2Diagram (BYOK)</h1>
+            <p>Record or upload audio, transcribe it, and generate a diagram — all in your browser and with your own API keys.</p>
+        </header>
+
+        <!-- Credentials -->
+        <div class="card">
+            <div class="card-title">Credentials</div>
+            <div class="cred-grid">
+                <label for="apiProviderSelect">API Provider</label>
+                <select id="apiProviderSelect">
+                    <option value="pwc">PwC GenAI Shared Service (EMEA)</option>
+                    <option value="openai">OpenAI</option>
+                </select>
+                <label for="apiKeyInput" id="apiKeyLabel">API-Key</label>
+                <input type="password" id="apiKeyInput" placeholder="48d050d0..." autocomplete="off">
+                <label for="authTokenInput">Authorization</label>
+                <input type="password" id="authTokenInput" placeholder="sk-..." autocomplete="off">
+                <div class="cred-actions">
+                    <button class="btn btn-ghost" id="toggleCredVisibility">Show</button>
+                    <button class="btn btn-primary" id="saveCreds">Save</button>
+                    <button class="btn btn-ghost" id="clearCreds">Clear</button>
+                </div>
+            </div>
+            <div class="cred-status" id="credStatus">Credentials are stored in your browser only.</div>
+        </div>
+
+        <!-- Audio Input -->
+        <div class="card">
+            <div class="card-title">Audio Input</div>
+            <div class="audio-row">
+                <button class="btn btn-primary" id="recordBtn">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg>
+                    Record
+                </button>
+                <audio id="audioPlayback" controls style="display:none;"></audio>
+            </div>
+            <div class="divider">or upload a file</div>
+            <div class="upload-row">
+                <input type="file" id="audioUpload" accept=".mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm">
+                <button class="btn btn-primary" id="processAudioBtn" disabled>Transcribe</button>
+            </div>
+        </div>
+
+        <!-- Transcription -->
+        <div class="card">
+            <div class="card-title">Transcription</div>
+            <textarea id="transcription" rows="4" placeholder="Transcribed text will appear here. You can also type or edit directly."></textarea>
+            <div class="model-row">
+                <label for="modelSelect">Chat model:</label>
+                <select id="modelSelect"></select>
+                <button class="btn btn-primary" id="generateBtn" disabled>Generate Diagram</button>
+            </div>
+        </div>
+
+        <!-- Mermaid Code -->
+        <div class="card">
+            <div class="card-title">Mermaid Code</div>
+            <textarea id="mermaidCode" rows="6" placeholder="Mermaid diagram code will appear here. Edits update the diagram live."></textarea>
+        </div>
+
+        <!-- Diagram -->
+        <div class="card">
+            <div class="card-title">Diagram</div>
+            <div class="diagram-output" id="diagramOutput">
+                <div class="diagram-placeholder" id="diagramPlaceholder">Your diagram will render here</div>
+            </div>
+            <div class="diagram-actions">
+                <button class="btn btn-ghost" id="downloadSvgBtn" disabled>Download SVG</button>
+                <button class="btn btn-ghost" id="downloadPngBtn" disabled>Download PNG</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (() => {
+        "use strict";
+
+        const PROVIDERS = {
+            pwc: {
+                url: "https://genai-sharedservice-emea.pwcinternal.com",
+                whisperModel: "openai.whisper",
+                authMode: "dual",
+                models: [
+                    { group: "Azure", items: [
+                        "azure.gpt-4.1", "azure.gpt-4.1-mini", "azure.gpt-4.1-nano",
+                        "azure.gpt-4o", "azure.gpt-4o-mini",
+                        "azure.gpt-5", "azure.gpt-5-mini", "azure.gpt-5-nano", "azure.gpt-5.1",
+                        "azure.o1", "azure.o3", "azure.o3-mini", "azure.o4-mini",
+                    ]},
+                    { group: "Bedrock — Anthropic", items: [
+                        "bedrock.anthropic.claude-3-5-sonnet", "bedrock.anthropic.claude-3-7-sonnet-v1",
+                        "bedrock.anthropic.claude-3-haiku", "bedrock.anthropic.claude-haiku-4-5",
+                        "bedrock.anthropic.claude-opus-4-5", "bedrock.anthropic.claude-opus-4-6",
+                        "bedrock.anthropic.claude-sonnet-4", "bedrock.anthropic.claude-sonnet-4-5",
+                        "bedrock.anthropic.claude-sonnet-4-6",
+                    ]},
+                    { group: "Bedrock — Other", items: [
+                        "bedrock.mistral.pixtral-large-2502-v1",
+                        "bedrock.openai.gpt-oss-20b", "bedrock.openai.gpt-oss-120b",
+                    ]},
+                    { group: "OpenAI", items: [
+                        "openai.gpt-4.1", "openai.gpt-4.1-mini", "openai.gpt-4.1-nano",
+                        "openai.gpt-4o", "openai.gpt-4o-mini",
+                        "openai.gpt-5", "openai.gpt-5-mini", "openai.gpt-5-nano",
+                        "openai.gpt-5.1", "openai.gpt-5.2",
+                        "openai.o1", "openai.o3", "openai.o3-mini", "openai.o4-mini",
+                    ]},
+                    { group: "Vertex AI — Anthropic", items: [
+                        "vertex_ai.anthropic.claude-3-5-sonnet", "vertex_ai.anthropic.claude-3-5-sonnet-v2",
+                        "vertex_ai.anthropic.claude-3-7-sonnet", "vertex_ai.anthropic.claude-3-haiku",
+                        "vertex_ai.anthropic.claude-haiku-4-5", "vertex_ai.anthropic.claude-opus-4-5",
+                        "vertex_ai.anthropic.claude-opus-4-6", "vertex_ai.anthropic.claude-sonnet-4",
+                        "vertex_ai.anthropic.claude-sonnet-4-5", "vertex_ai.anthropic.claude-sonnet-4-6",
+                    ]},
+                    { group: "Vertex AI — Gemini", items: [
+                        "vertex_ai.gemini-2.0-flash", "vertex_ai.gemini-2.0-flash-lite",
+                        "vertex_ai.gemini-2.5-flash", "vertex_ai.gemini-2.5-flash-lite",
+                        "vertex_ai.gemini-2.5-pro",
+                        "vertex_ai.gemini-3-flash-preview", "vertex_ai.gemini-3-pro-preview",
+                    ]},
+                ],
+                defaultModel: "azure.gpt-4o",
+            },
+            openai: {
+                url: "https://api.openai.com/v1",
+                whisperModel: "whisper-1",
+                authMode: "bearer",
+                models: [
+                    { group: "GPT", items: [
+                        "gpt-4o", "gpt-4o-mini",
+                        "gpt-4.1", "gpt-4.1-mini", "gpt-4.1-nano",
+                    ]},
+                    { group: "o-series", items: [
+                        "o3", "o3-mini", "o4-mini",
+                    ]},
+                ],
+                defaultModel: "gpt-4o",
+            },
+        };
+
+        function getProvider() {
+            return localStorage.getItem("v2d_provider") || "pwc";
+        }
+
+        function getProviderConfig() {
+            return PROVIDERS[getProvider()];
+        }
+
+        function getBaseUrl() {
+            const cfg = getProviderConfig();
+            const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+            return isLocal ? `${location.origin}/api` : cfg.url;
+        }
+
+        function getRemoteUrl() {
+            return getProviderConfig().url;
+        }
+
+        mermaid.initialize({ startOnLoad: false, theme: "default" });
+
+        // ── DOM refs ──
+        const $ = (sel) => document.querySelector(sel);
+        const providerSelect  = $("#apiProviderSelect");
+        const apiKeyInput     = $("#apiKeyInput");
+        const apiKeyLabel     = $("#apiKeyLabel");
+        const apiKeyRow       = apiKeyLabel.parentElement === apiKeyLabel ? null : apiKeyLabel;
+        const authTokenInput  = $("#authTokenInput");
+        const toggleCredBtn   = $("#toggleCredVisibility");
+        const saveCredsBtn    = $("#saveCreds");
+        const clearCredsBtn   = $("#clearCreds");
+        const credStatus      = $("#credStatus");
+        const recordBtn       = $("#recordBtn");
+        const audioPlayback   = $("#audioPlayback");
+        const audioUpload     = $("#audioUpload");
+        const processAudioBtn = $("#processAudioBtn");
+        const transcription   = $("#transcription");
+        const modelSelect     = $("#modelSelect");
+        const generateBtn     = $("#generateBtn");
+        const mermaidCode     = $("#mermaidCode");
+        const diagramOutput   = $("#diagramOutput");
+        const downloadSvgBtn  = $("#downloadSvgBtn");
+        const downloadPngBtn  = $("#downloadPngBtn");
+        const spinnerEl       = $("#spinner");
+
+        // ── State ──
+        let mediaRecorder = null;
+        let audioChunks   = [];
+        let audioBlob     = null;
+        let renderCounter = 0;
+
+        // ── Helpers ──
+        function showSpinner() { spinnerEl.classList.add("active"); }
+        function hideSpinner() { spinnerEl.classList.remove("active"); }
+
+        function toast(msg, isError = false) {
+            const el = document.createElement("div");
+            el.className = "toast" + (isError ? " error" : "");
+            el.textContent = msg;
+            $("#toasts").appendChild(el);
+            setTimeout(() => el.remove(), 5000);
+        }
+
+        function getCreds() {
+            return {
+                apiKey: localStorage.getItem("v2d_api_key") || "",
+                authToken: localStorage.getItem("v2d_auth_token") || "",
+            };
+        }
+
+        function authHeaders() {
+            const { apiKey, authToken } = getCreds();
+            const cfg = getProviderConfig();
+            const headers = {};
+            if (cfg.authMode === "dual") {
+                headers["API-Key"] = apiKey;
+                headers["Authorization"] = `Bearer ${authToken}`;
+            } else {
+                headers["Authorization"] = `Bearer ${authToken}`;
+            }
+            const isLocal = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+            if (isLocal) headers["X-Target-Url"] = getRemoteUrl();
+            return headers;
+        }
+
+        function hasCreds() {
+            const { apiKey, authToken } = getCreds();
+            const cfg = getProviderConfig();
+            if (cfg.authMode === "dual") return !!(apiKey && authToken);
+            return !!authToken;
+        }
+
+        function updateButtonStates() {
+            const ready = hasCreds();
+            processAudioBtn.disabled = !ready || !audioBlob;
+            generateBtn.disabled = !ready;
+        }
+
+        // ── Provider / Model switching ──
+        function populateModels() {
+            const cfg = getProviderConfig();
+            const saved = localStorage.getItem("v2d_model") || cfg.defaultModel;
+            modelSelect.innerHTML = "";
+            cfg.models.forEach(g => {
+                const optgroup = document.createElement("optgroup");
+                optgroup.label = g.group;
+                g.items.forEach(m => {
+                    const opt = document.createElement("option");
+                    opt.value = m;
+                    opt.textContent = m;
+                    if (m === saved) opt.selected = true;
+                    optgroup.appendChild(opt);
+                });
+                modelSelect.appendChild(optgroup);
+            });
+        }
+
+        function applyProviderUI() {
+            const cfg = getProviderConfig();
+            const isDual = cfg.authMode === "dual";
+            apiKeyLabel.style.display = isDual ? "" : "none";
+            apiKeyInput.style.display = isDual ? "" : "none";
+            apiKeyInput.required = isDual;
+            populateModels();
+            updateButtonStates();
+        }
+
+        providerSelect.addEventListener("change", () => {
+            localStorage.setItem("v2d_provider", providerSelect.value);
+            applyProviderUI();
+        });
+
+        modelSelect.addEventListener("change", () => {
+            localStorage.setItem("v2d_model", modelSelect.value);
+        });
+
+        // ── Credentials ──
+        function loadCreds() {
+            providerSelect.value = getProvider();
+            const { apiKey, authToken } = getCreds();
+            apiKeyInput.value = apiKey;
+            authTokenInput.value = authToken;
+            applyProviderUI();
+            if (hasCreds()) {
+                credStatus.textContent = "Credentials loaded from local storage.";
+                credStatus.classList.add("saved");
+            }
+        }
+        loadCreds();
+
+        saveCredsBtn.addEventListener("click", () => {
+            const apiKey = apiKeyInput.value.trim();
+            const authToken = authTokenInput.value.trim();
+            const cfg = getProviderConfig();
+            if (cfg.authMode === "dual" && (!apiKey || !authToken)) {
+                toast("Both API-Key and Authorization token are required.", true);
+                return;
+            }
+            if (cfg.authMode === "bearer" && !authToken) {
+                toast("Authorization token is required.", true);
+                return;
+            }
+            localStorage.setItem("v2d_provider", providerSelect.value);
+            localStorage.setItem("v2d_api_key", apiKey);
+            localStorage.setItem("v2d_auth_token", authToken);
+            credStatus.textContent = "Credentials saved to local storage.";
+            credStatus.classList.add("saved");
+            updateButtonStates();
+            toast("Credentials saved.");
+        });
+
+        clearCredsBtn.addEventListener("click", () => {
+            localStorage.removeItem("v2d_provider");
+            localStorage.removeItem("v2d_api_key");
+            localStorage.removeItem("v2d_auth_token");
+            localStorage.removeItem("v2d_model");
+            providerSelect.value = "pwc";
+            apiKeyInput.value = "";
+            authTokenInput.value = "";
+            applyProviderUI();
+            credStatus.textContent = "Credentials cleared.";
+            credStatus.classList.remove("saved");
+            updateButtonStates();
+            toast("Credentials cleared.");
+        });
+
+        toggleCredBtn.addEventListener("click", () => {
+            const isHidden = apiKeyInput.type === "password";
+            apiKeyInput.type = isHidden ? "text" : "password";
+            authTokenInput.type = isHidden ? "text" : "password";
+            toggleCredBtn.textContent = isHidden ? "Hide" : "Show";
+        });
+
+        // ── Audio Recording ──
+        recordBtn.addEventListener("click", () => {
+            if (mediaRecorder && mediaRecorder.state === "recording") {
+                mediaRecorder.stop();
+                recordBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8"/></svg> Record`;
+                recordBtn.classList.remove("btn-danger");
+                recordBtn.classList.add("btn-primary");
+            } else {
+                navigator.mediaDevices.getUserMedia({ audio: true })
+                    .then(stream => {
+                        audioChunks = [];
+                        mediaRecorder = new MediaRecorder(stream);
+                        mediaRecorder.start();
+                        recordBtn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="6" width="12" height="12" rx="2"/></svg> Stop`;
+                        recordBtn.classList.remove("btn-primary");
+                        recordBtn.classList.add("btn-danger");
+
+                        mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                        mediaRecorder.onstop = () => {
+                            stream.getTracks().forEach(t => t.stop());
+                            audioBlob = new Blob(audioChunks, { type: "audio/webm" });
+                            audioPlayback.src = URL.createObjectURL(audioBlob);
+                            audioPlayback.style.display = "block";
+                            updateButtonStates();
+
+                            if (hasCreds()) transcribeAudio(audioBlob);
+                        };
+                    })
+                    .catch(() => toast("Microphone access denied.", true));
+            }
+        });
+
+        // ── File Upload ──
+        audioUpload.addEventListener("change", () => {
+            const file = audioUpload.files[0];
+            if (!file) { audioBlob = null; updateButtonStates(); return; }
+            audioBlob = file;
+            audioPlayback.src = URL.createObjectURL(file);
+            audioPlayback.style.display = "block";
+            updateButtonStates();
+        });
+
+        processAudioBtn.addEventListener("click", () => {
+            if (!audioBlob) { toast("No audio to process.", true); return; }
+            transcribeAudio(audioBlob);
+        });
+
+        // ── Whisper Transcription ──
+        async function transcribeAudio(blob) {
+            if (!hasCreds()) { toast("Save your credentials first.", true); return; }
+
+            showSpinner();
+            try {
+                const formData = new FormData();
+                formData.append("file", blob, blob.name || "audio.webm");
+                formData.append("model", getProviderConfig().whisperModel);
+                formData.append("response_format", "json");
+                formData.append("temperature", "0");
+
+                const res = await fetch(`${getBaseUrl()}/audio/transcriptions`, {
+                    method: "POST",
+                    headers: { ...authHeaders(), accept: "application/json" },
+                    body: formData,
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error?.message || err.detail || `Whisper API error ${res.status}`);
+                }
+
+                const data = await res.json();
+                transcription.value = (data.text || "").trim();
+                toast("Transcription complete.");
+            } catch (e) {
+                toast(e.message, true);
+            } finally {
+                hideSpinner();
+            }
+        }
+
+        // ── Diagram Generation ──
+        generateBtn.addEventListener("click", async () => {
+            const text = transcription.value.trim();
+            if (!text) { toast("Enter or transcribe some text first.", true); return; }
+            if (!hasCreds()) { toast("Save your credentials first.", true); return; }
+
+            showSpinner();
+            try {
+                const res = await fetch(`${getBaseUrl()}/chat/completions`, {
+                    method: "POST",
+                    headers: {
+                        ...authHeaders(),
+                        accept: "application/json",
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        model: modelSelect.value,
+                        messages: [
+                            {
+                                role: "system",
+                                content:
+                                    "You are an expert in converting text descriptions into Mermaid.js diagrams. " +
+                                    "Based on the input, choose the most appropriate diagram type (e.g., flowchart, sequence diagram, class diagram, etc.) " +
+                                    "and generate the corresponding Mermaid code. Only provide the Mermaid code without any additional explanations or markdown fences.",
+                            },
+                            { role: "user", content: text },
+                        ],
+                    }),
+                });
+
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.error?.message || err.detail || `Chat API error ${res.status}`);
+                }
+
+                const data = await res.json();
+                let code = data.choices[0].message.content.trim();
+                code = code.replace(/^```mermaid\s*/i, "").replace(/\s*```\s*$/i, "");
+                mermaidCode.value = code;
+                renderDiagram();
+                toast("Diagram generated.");
+            } catch (e) {
+                toast(e.message, true);
+            } finally {
+                hideSpinner();
+            }
+        });
+
+        // ── Mermaid Rendering ──
+        let renderTimeout;
+        mermaidCode.addEventListener("input", () => {
+            clearTimeout(renderTimeout);
+            renderTimeout = setTimeout(renderDiagram, 400);
+        });
+
+        async function renderDiagram() {
+            const code = mermaidCode.value.trim();
+            if (!code) {
+                diagramOutput.innerHTML = `<div class="diagram-placeholder">Your diagram will render here</div>`;
+                downloadSvgBtn.disabled = true;
+                downloadPngBtn.disabled = true;
+                return;
+            }
+
+            renderCounter++;
+            const id = `mermaid-${renderCounter}`;
+
+            try {
+                const { svg } = await mermaid.render(id, code);
+                diagramOutput.innerHTML = svg;
+                downloadSvgBtn.disabled = false;
+                downloadPngBtn.disabled = false;
+            } catch {
+                diagramOutput.innerHTML = `<div class="diagram-placeholder" style="color:#C52A1A;">Invalid Mermaid syntax — fix the code above.</div>`;
+                downloadSvgBtn.disabled = true;
+                downloadPngBtn.disabled = true;
+            }
+        }
+
+        // ── Downloads ──
+        downloadSvgBtn.addEventListener("click", () => {
+            const svg = diagramOutput.querySelector("svg");
+            if (!svg) return;
+            const blob = new Blob([svg.outerHTML], { type: "image/svg+xml" });
+            downloadFile(blob, "diagram.svg");
+        });
+
+        downloadPngBtn.addEventListener("click", () => {
+            const svg = diagramOutput.querySelector("svg");
+            if (!svg) return;
+
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const canvas  = document.createElement("canvas");
+            const ctx     = canvas.getContext("2d");
+            const img     = new Image();
+
+            img.onload = () => {
+                canvas.width  = img.width * 2;
+                canvas.height = img.height * 2;
+                ctx.scale(2, 2);
+                ctx.fillStyle = "#fff";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+                canvas.toBlob(blob => downloadFile(blob, "diagram.png"), "image/png");
+            };
+
+            img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
+        });
+
+        function downloadFile(blob, name) {
+            const a = document.createElement("a");
+            a.href = URL.createObjectURL(blob);
+            a.download = name;
+            a.click();
+            URL.revokeObjectURL(a.href);
+        }
+
+        // ── Init ──
+        updateButtonStates();
+    })();
+    </script>
+</body>
+</html>
