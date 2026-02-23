@@ -4,6 +4,7 @@ on:
   push:
     paths:
       - 'micro-experiences/**'
+  workflow_dispatch:
 
 jobs:
   build-index:
