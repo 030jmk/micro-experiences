@@ -16,20 +16,47 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Generate index.html
+      - name: Install Playwright
+        run: |
+          pip install playwright
+          playwright install chromium
+          playwright install-deps chromium
+
+      - name: Generate screenshots and index.html
         run: |
           python3 <<'PYSCRIPT'
           import os
           import re
           import subprocess
           import urllib.parse
+          from playwright.sync_api import sync_playwright
+
+          # Create assets folder
+          os.makedirs('assets/screenshots', exist_ok=True)
+
+          def take_screenshot(project_name, output_path):
+              """Screenshot the live GitHub Pages site"""
+              url = f'https://jan.kopankiewicz.de/micro-experiences/{urllib.parse.quote(project_name)}/'
+              try:
+                  with sync_playwright() as p:
+                      browser = p.chromium.launch()
+                      page = browser.new_page(viewport={'width': 1280, 'height': 720})
+                      page.goto(url, wait_until='networkidle', timeout=30000)
+                      page.wait_for_timeout(2000)
+                      page.screenshot(path=output_path)
+                      browser.close()
+                  print(f"  ✅ Screenshot saved: {output_path}")
+                  return True
+              except Exception as e:
+                  print(f"  ❌ Screenshot failed: {e}")
+                  return False
 
           projects = []
 
           for entry in sorted(os.listdir('.')):
               if not os.path.isdir(entry):
                   continue
-              if entry.startswith('.') or entry == 'node_modules':
+              if entry.startswith('.') or entry in ('node_modules', 'assets'):
                   continue
               if not os.path.isfile(os.path.join(entry, 'index.html')):
                   print(f"Skipping {entry} - no index.html")
@@ -72,12 +99,15 @@ jobs:
               if not title:
                   title = entry.replace('-', ' ').replace('_', ' ').title()
 
-              # Thumbnail
-              thumb = None
-              for img in ['thumbnail.png', 'thumbnail.jpg', 'thumbnail.webp', 'og-image.png', 'screenshot.png']:
-                  if os.path.isfile(os.path.join(entry, img)):
-                      thumb = urllib.parse.quote(entry) + '/' + img
-                      break
+              # Screenshot - saved to assets folder
+              safe_name = entry.replace(' ', '-').lower()
+              screenshot_path = f'assets/screenshots/{safe_name}.png'
+              has_screenshot = take_screenshot(entry, screenshot_path)
+
+              if has_screenshot:
+                  thumb = f'assets/screenshots/{safe_name}.png'
+              else:
+                  thumb = None
 
               projects.append({
                   'name': entry,
@@ -122,12 +152,12 @@ jobs:
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Micro Experiences</title>
+            <title>Jan's Micro Experience Sites</title>
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
           </head>
           <body>
             <div class="container py-5">
-              <h1 class="mb-1">🧪 Micro Experiences</h1>
+              <h1 class="mb-1">Micro Experience Sites</h1>
               <p class="text-muted mb-4">{len(projects)} projects</p>
               <div class="row g-4">
                 {cards}
@@ -140,20 +170,14 @@ jobs:
           with open('index.html', 'w') as f:
               f.write(html_out)
 
-          print(f"Generated index.html with {len(projects)} projects")
+          print(f"\nGenerated index.html with {len(projects)} projects")
           PYSCRIPT
-
-      - name: Verify
-        run: |
-          echo "=== File exists? ==="
-          ls -la index.html
-          echo "=== Line count ==="
-          wc -l index.html
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git diff --cached --quiet || git commit -m "chore: auto-update index"
+          git add assets/screenshots/
+          git diff --cached --quiet || git commit -m "chore: auto-update index with screenshots"
           git push
