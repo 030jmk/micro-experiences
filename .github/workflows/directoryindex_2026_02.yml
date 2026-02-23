@@ -19,12 +19,10 @@ jobs:
       - name: Generate index.html
         shell: bash
         run: |
-          echo "Starting generation..."
-          echo "Current directory: $(pwd)"
-          echo "Folders found:"
-          ls -d */
+          set -euo pipefail
 
-          # Start the file
+          echo "Starting generation..."
+
           cat > index.html <<'HTMLHEADER'
           <!DOCTYPE html>
           <html lang="en">
@@ -43,53 +41,64 @@ jobs:
 
           COUNT=0
 
-          for project in */; do
+          find . -maxdepth 1 -mindepth 1 -type d | sort | while IFS= read -r project; do
+            # Remove leading ./
+            project="${project#./}"
+
+            # Skip hidden folders and special dirs
             case "$project" in
-              .github/|node_modules/) continue ;;
+              .*|node_modules) continue ;;
             esac
 
-            if [ ! -f "${project}index.html" ]; then
+            if [ ! -f "$project/index.html" ]; then
               echo "Skipping $project - no index.html"
               continue
             fi
 
-            name=$(basename "$project")
+            name="$project"
             echo "Processing: $name"
+
+            # URL-encode the folder name for links
+            encoded_name=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$name'))")
 
             last_date=$(git log -1 --format=%cs -- "$project" 2>/dev/null || echo "unknown")
             last_date_human=$(echo "$last_date" | cut -c1-7)
             commit_count=$(git rev-list --count HEAD -- "$project" 2>/dev/null || echo "0")
             file_count=$(find "$project" -type f | wc -l | tr -d ' ')
 
-            title=$(grep -oPi '(?<=<title>).*?(?=</title>)' "${project}index.html" 2>/dev/null | head -1 | sed 's/^ *//;s/ *$//')
-            description=$(grep -oPi '<meta\s+name="description"\s+content="\K[^"]*' "${project}index.html" 2>/dev/null | head -1)
+            # Extract title - simple sed approach instead of grep -P
+            title=$(sed -n 's/.*<title>\(.*\)<\/title>.*/\1/ip' "$project/index.html" | head -1 | sed 's/^ *//;s/ *$//')
+
+            # Extract description
+            description=$(sed -n 's/.*<meta[^>]*name="description"[^>]*content="\([^"]*\)".*/\1/ip' "$project/index.html" | head -1)
 
             if [ -z "$title" ]; then
               title=$(echo "$name" | sed 's/[-_]/ /g' | sed 's/\b\w/\U&/g')
             fi
 
+            # Check for thumbnail
             thumb=""
             for img in thumbnail.png thumbnail.jpg thumbnail.webp og-image.png screenshot.png; do
-              if [ -f "${project}${img}" ]; then
-                thumb="${name}/${img}"
+              if [ -f "$project/$img" ]; then
+                thumb="$encoded_name/$img"
                 break
               fi
             done
 
             if [ -n "$thumb" ]; then
-              THUMB_HTML="<img src=\"${thumb}\" class=\"card-img-top\" alt=\"${title}\" loading=\"lazy\" style=\"height:180px;object-fit:cover;\">"
+              THUMB_HTML="<img src=\"${thumb}\" class=\"card-img-top\" alt=\"\" loading=\"lazy\" style=\"height:180px;object-fit:cover;\">"
             else
               THUMB_HTML="<div class=\"card-img-top bg-secondary bg-gradient d-flex align-items-center justify-content-center text-white\" style=\"height:180px;font-size:2.5rem;\">🧪</div>"
             fi
 
             DESC_HTML=""
             if [ -n "$description" ]; then
-              DESC_HTML="<p class=\"card-text text-muted small\">${description}</p>"
+              DESC_HTML="<p class=\"card-text text-muted small\">$description</p>"
             fi
 
             cat >> index.html <<HTMLCARD
                 <div class="col-sm-6 col-lg-4">
-                  <a href="${name}/" class="text-decoration-none">
+                  <a href="${encoded_name}/" class="text-decoration-none">
                     <div class="card h-100 shadow-sm">
                       ${THUMB_HTML}
                       <div class="card-body">
@@ -106,7 +115,13 @@ jobs:
           HTMLCARD
 
             COUNT=$((COUNT + 1))
+            echo "$COUNT" > /tmp/count.txt
           done
+
+          # Read count back (needed because while loop runs in subshell)
+          if [ -f /tmp/count.txt ]; then
+            COUNT=$(cat /tmp/count.txt)
+          fi
 
           cat >> index.html <<HTMLFOOTER
               </div>
@@ -120,13 +135,11 @@ jobs:
           HTMLFOOTER
 
           echo "Generated index.html with ${COUNT} projects"
-          cat index.html
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
-          git status
           git diff --cached --quiet || git commit -m "chore: auto-update index"
           git push
