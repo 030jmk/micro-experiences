@@ -469,9 +469,9 @@ function confirmUpload() {
     for (let i=1; i<=4; i++) document.getElementById('loadingStep'+i).classList.remove('visible');
 
     setTimeout(() => document.getElementById('loadingStep1').classList.add('visible'), 500);
-    setTimeout(() => document.getElementById('loadingStep2').classList.add('visible'), 1600);
+    setTimeout(() => document.getElementById('loadingStep2').classList.add('visible'), 2000);
     setTimeout(() => document.getElementById('loadingStep3').classList.add('visible'), 4000);
-    setTimeout(() => document.getElementById('loadingStep4').classList.add('visible'), 4200);
+    setTimeout(() => document.getElementById('loadingStep4').classList.add('visible'), 5000);
 
     setTimeout(() => {
         loadingModal.hide();
