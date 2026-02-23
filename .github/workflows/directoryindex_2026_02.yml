@@ -17,14 +17,107 @@ jobs:
           fetch-depth: 0
 
       - name: Generate index.html
-        shell: bash
         run: |
-          set -euo pipefail
+          python3 <<'PYSCRIPT'
+          import os
+          import re
+          import subprocess
+          import urllib.parse
 
-          echo "Starting generation..."
+          projects = []
 
-          cat > index.html <<'HTMLHEADER'
-          <!DOCTYPE html>
+          for entry in sorted(os.listdir('.')):
+              if not os.path.isdir(entry):
+                  continue
+              if entry.startswith('.') or entry == 'node_modules':
+                  continue
+              if not os.path.isfile(os.path.join(entry, 'index.html')):
+                  print(f"Skipping {entry} - no index.html")
+                  continue
+
+              print(f"Processing: {entry}")
+
+              # Git metadata
+              try:
+                  last_date = subprocess.check_output(
+                      ['git', 'log', '-1', '--format=%cs', '--', entry],
+                      stderr=subprocess.DEVNULL
+                  ).decode().strip()
+              except:
+                  last_date = 'unknown'
+
+              last_date_human = last_date[:7] if len(last_date) >= 7 else last_date
+
+              try:
+                  commit_count = subprocess.check_output(
+                      ['git', 'rev-list', '--count', 'HEAD', '--', entry],
+                      stderr=subprocess.DEVNULL
+                  ).decode().strip()
+              except:
+                  commit_count = '0'
+
+              file_count = sum(len(files) for _, _, files in os.walk(entry))
+
+              # Parse HTML
+              index_path = os.path.join(entry, 'index.html')
+              with open(index_path, 'r', encoding='utf-8', errors='ignore') as f:
+                  html = f.read()
+
+              title_match = re.search(r'<title>(.*?)</title>', html, re.IGNORECASE | re.DOTALL)
+              title = title_match.group(1).strip() if title_match else None
+
+              desc_match = re.search(r'<meta\s+name=["\']description["\']\s+content=["\']([^"\']*)["\']', html, re.IGNORECASE)
+              description = desc_match.group(1).strip() if desc_match else None
+
+              if not title:
+                  title = entry.replace('-', ' ').replace('_', ' ').title()
+
+              # Thumbnail
+              thumb = None
+              for img in ['thumbnail.png', 'thumbnail.jpg', 'thumbnail.webp', 'og-image.png', 'screenshot.png']:
+                  if os.path.isfile(os.path.join(entry, img)):
+                      thumb = urllib.parse.quote(entry) + '/' + img
+                      break
+
+              projects.append({
+                  'name': entry,
+                  'encoded_name': urllib.parse.quote(entry),
+                  'title': title,
+                  'description': description,
+                  'last_date': last_date_human,
+                  'commit_count': commit_count,
+                  'file_count': file_count,
+                  'thumb': thumb,
+              })
+
+          # Build HTML
+          cards = ''
+          for p in projects:
+              if p['thumb']:
+                  thumb_html = f'<img src="{p["thumb"]}" class="card-img-top" alt="" loading="lazy" style="height:180px;object-fit:cover;">'
+              else:
+                  thumb_html = '<div class="card-img-top bg-secondary bg-gradient d-flex align-items-center justify-content-center text-white" style="height:180px;font-size:2.5rem;">🧪</div>'
+
+              desc_html = f'<p class="card-text text-muted small">{p["description"]}</p>' if p['description'] else ''
+
+              cards += f'''
+                <div class="col-sm-6 col-lg-4">
+                  <a href="{p['encoded_name']}/" class="text-decoration-none">
+                    <div class="card h-100 shadow-sm">
+                      {thumb_html}
+                      <div class="card-body">
+                        <h5 class="card-title text-dark">{p['title']}</h5>
+                        {desc_html}
+                      </div>
+                      <div class="card-footer bg-transparent">
+                        <small class="text-muted">latest change: {p['last_date']}</small>
+                        <small class="text-muted float-end">{p['commit_count']} commits &middot; {p['file_count']} files</small>
+                      </div>
+                    </div>
+                  </a>
+                </div>'''
+
+          html_out = f'''<!DOCTYPE html>
           <html lang="en">
           <head>
             <meta charset="UTF-8">
@@ -35,106 +128,27 @@ jobs:
           <body>
             <div class="container py-5">
               <h1 class="mb-1">🧪 Micro Experiences</h1>
-              <p class="text-muted mb-4" id="count"></p>
+              <p class="text-muted mb-4">{len(projects)} projects</p>
               <div class="row g-4">
-          HTMLHEADER
-
-          COUNT=0
-
-          find . -maxdepth 1 -mindepth 1 -type d | sort | while IFS= read -r project; do
-            # Remove leading ./
-            project="${project#./}"
-
-            # Skip hidden folders and special dirs
-            case "$project" in
-              .*|node_modules) continue ;;
-            esac
-
-            if [ ! -f "$project/index.html" ]; then
-              echo "Skipping $project - no index.html"
-              continue
-            fi
-
-            name="$project"
-            echo "Processing: $name"
-
-            # URL-encode the folder name for links
-            encoded_name=$(python3 -c "import urllib.parse; print(urllib.parse.quote('$name'))")
-
-            last_date=$(git log -1 --format=%cs -- "$project" 2>/dev/null || echo "unknown")
-            last_date_human=$(echo "$last_date" | cut -c1-7)
-            commit_count=$(git rev-list --count HEAD -- "$project" 2>/dev/null || echo "0")
-            file_count=$(find "$project" -type f | wc -l | tr -d ' ')
-
-            # Extract title - simple sed approach instead of grep -P
-            title=$(sed -n 's/.*<title>\(.*\)<\/title>.*/\1/ip' "$project/index.html" | head -1 | sed 's/^ *//;s/ *$//')
-
-            # Extract description
-            description=$(sed -n 's/.*<meta[^>]*name="description"[^>]*content="\([^"]*\)".*/\1/ip' "$project/index.html" | head -1)
-
-            if [ -z "$title" ]; then
-              title=$(echo "$name" | sed 's/[-_]/ /g' | sed 's/\b\w/\U&/g')
-            fi
-
-            # Check for thumbnail
-            thumb=""
-            for img in thumbnail.png thumbnail.jpg thumbnail.webp og-image.png screenshot.png; do
-              if [ -f "$project/$img" ]; then
-                thumb="$encoded_name/$img"
-                break
-              fi
-            done
-
-            if [ -n "$thumb" ]; then
-              THUMB_HTML="<img src=\"${thumb}\" class=\"card-img-top\" alt=\"\" loading=\"lazy\" style=\"height:180px;object-fit:cover;\">"
-            else
-              THUMB_HTML="<div class=\"card-img-top bg-secondary bg-gradient d-flex align-items-center justify-content-center text-white\" style=\"height:180px;font-size:2.5rem;\">🧪</div>"
-            fi
-
-            DESC_HTML=""
-            if [ -n "$description" ]; then
-              DESC_HTML="<p class=\"card-text text-muted small\">$description</p>"
-            fi
-
-            cat >> index.html <<HTMLCARD
-                <div class="col-sm-6 col-lg-4">
-                  <a href="${encoded_name}/" class="text-decoration-none">
-                    <div class="card h-100 shadow-sm">
-                      ${THUMB_HTML}
-                      <div class="card-body">
-                        <h5 class="card-title text-dark">${title}</h5>
-                        ${DESC_HTML}
-                      </div>
-                      <div class="card-footer bg-transparent">
-                        <small class="text-muted">latest change: ${last_date_human}</small>
-                        <small class="text-muted float-end">${commit_count} commits · ${file_count} files</small>
-                      </div>
-                    </div>
-                  </a>
-                </div>
-          HTMLCARD
-
-            COUNT=$((COUNT + 1))
-            echo "$COUNT" > /tmp/count.txt
-          done
-
-          # Read count back (needed because while loop runs in subshell)
-          if [ -f /tmp/count.txt ]; then
-            COUNT=$(cat /tmp/count.txt)
-          fi
-
-          cat >> index.html <<HTMLFOOTER
+                {cards}
               </div>
             </div>
-            <script>
-              document.getElementById('count').textContent = '${COUNT} projects';
-            </script>
             <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
           </body>
-          </html>
-          HTMLFOOTER
+          </html>'''
 
-          echo "Generated index.html with ${COUNT} projects"
+          with open('index.html', 'w') as f:
+              f.write(html_out)
+
+          print(f"Generated index.html with {len(projects)} projects")
+          PYSCRIPT
+
+      - name: Verify
+        run: |
+          echo "=== File exists? ==="
+          ls -la index.html
+          echo "=== Line count ==="
+          wc -l index.html
 
       - name: Commit and push
         run: |
