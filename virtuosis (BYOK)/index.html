@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Virtuosis Wellbeing Analysis</title>
+    <link rel="stylesheet" href="https://appkitcdn.pwc.com/appkit4/cdn/styles/4.10.3/themes/appkit.orange.min.css">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; }
+
+        body {
+            background-color: #F3F3F3;
+            color: #474747;
+            margin: 0;
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+
+        /* ── Navbar ── */
+
+        .app-navbar {
+            background-color: #FFFFFF;
+            border-bottom: 1px solid #D1D1D1;
+            padding: 0.75rem 0;
+        }
+
+        .app-navbar-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .app-logo {
+            width: 28px;
+            height: 28px;
+            background-color: #D04A02;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #FFFFFF;
+            font-weight: 700;
+            font-size: 0.875rem;
+        }
+
+        .app-title {
+            font-size: 1.25rem;
+            line-height: 1.5rem;
+            font-weight: 500;
+            color: #252525;
+            margin: 0;
+        }
+
+        /* ── Layout ── */
+
+        .app-main {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 3rem 1rem;
+        }
+
+        .page-heading {
+            font-size: 1.5rem;
+            line-height: 2rem;
+            font-weight: 500;
+            color: #252525;
+            text-align: center;
+            margin: 0 0 0.5rem;
+        }
+
+        .page-subtitle {
+            text-align: center;
+            color: #696969;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            margin: 0 0 1.5rem;
+        }
+
+        /* ── Card ── */
+
+        .card {
+            background-color: #FFFFFF;
+            border: 1px solid #E8E8E8;
+            border-radius: 0.5rem;
+            box-shadow: rgba(71, 71, 71, 0.24) 0px 0.125rem 0.25rem -0.125rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-heading {
+            font-size: 1.25rem;
+            line-height: 1.5rem;
+            font-weight: 500;
+            color: #252525;
+            margin: 0 0 1.5rem;
+        }
+
+        /* ── Config card ── */
+
+        .config-card {
+            margin-bottom: 1.5rem;
+        }
+
+        .config-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding: 0.5rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        .config-status.connected {
+            background-color: #D3EBD5;
+            color: #21812D;
+        }
+
+        .config-status.disconnected {
+            background-color: #F3D4D1;
+            color: #C52A1A;
+        }
+
+        .config-status .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .config-status.connected .status-dot { background-color: #21812D; }
+        .config-status.disconnected .status-dot { background-color: #C52A1A; }
+
+        .field-group {
+            margin-bottom: 0.75rem;
+        }
+
+        .field-group:last-child { margin-bottom: 0; }
+
+        .field-label {
+            display: block;
+            font-size: 0.75rem;
+            line-height: 0.875rem;
+            font-weight: 500;
+            color: #696969;
+            margin-bottom: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .field-input {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #474747;
+            background-color: #FFFFFF;
+            border: 1px solid #D1D1D1;
+            border-radius: 0.25rem;
+            outline: none;
+            font-family: inherit;
+        }
+
+        .field-input:focus {
+            border-color: #D04A02;
+            box-shadow: 0 0 0 2px rgba(208, 74, 2, 0.16);
+        }
+
+        .field-input.invalid {
+            border-color: #C52A1A;
+            box-shadow: 0 0 0 2px rgba(197, 42, 26, 0.12);
+        }
+
+        .field-hint {
+            font-size: 0.75rem;
+            line-height: 0.875rem;
+            color: #979797;
+            margin-top: 0.5rem;
+        }
+
+        .config-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+
+        .btn-text {
+            background: none;
+            border: none;
+            color: #696969;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            padding: 0.625rem 0.75rem;
+            font-family: inherit;
+        }
+
+        .btn-text:hover { color: #C52A1A; }
+
+        /* ── Disabled overlay for analysis card ── */
+
+        .analysis-card { position: relative; }
+
+        .analysis-card.locked::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-color: rgba(255, 255, 255, 0.6);
+            border-radius: 0.5rem;
+            pointer-events: all;
+        }
+
+        .analysis-card.locked { pointer-events: none; }
+
+        /* ── Recording area ── */
+
+        .record-area {
+            text-align: center;
+        }
+
+        .timer-display {
+            font-size: 3rem;
+            line-height: 3rem;
+            font-weight: 700;
+            color: #252525;
+            font-variant-numeric: tabular-nums;
+            margin-bottom: 1rem;
+        }
+
+        .timer-display.active { color: #D04A02; }
+
+        /* ── Buttons ── */
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.5rem;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            font-weight: 500;
+            border-radius: 0.25rem;
+            border: none;
+            cursor: pointer;
+            transition: background-color 0.15s, box-shadow 0.15s;
+            font-family: inherit;
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background-color: #D04A02;
+            color: #FFFFFF;
+        }
+
+        .btn-primary:hover:not(:disabled) { background-color: #A7452C; }
+
+        .btn-secondary {
+            background-color: #FFFFFF;
+            color: #474747;
+            border: 1px solid #D1D1D1;
+        }
+
+        .btn-secondary:hover:not(:disabled) { background-color: #F3F3F3; }
+
+        .btn-danger {
+            background-color: #C52A1A;
+            color: #FFFFFF;
+        }
+
+        .btn-danger:hover:not(:disabled) { background-color: #A62B1E; }
+
+        .btn-large {
+            padding: 0.75rem 2rem;
+            font-size: 1rem;
+        }
+
+        .btn-group {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        /* ── Divider ── */
+
+        .divider {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            color: #979797;
+            font-size: 0.875rem;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background-color: #E8E8E8;
+        }
+
+        /* ── File upload ── */
+
+        .upload-area {
+            text-align: center;
+        }
+
+        .file-name {
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: #696969;
+        }
+
+        /* ── Status ── */
+
+        .status-message {
+            text-align: center;
+            min-height: 1.5rem;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            color: #696969;
+        }
+
+        .status-message.error { color: #C52A1A; }
+
+        .status-message .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #E8E8E8;
+            border-top-color: #D04A02;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ── Recording pulse ── */
+
+        .recording-pulse {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #C52A1A;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+            animation: pulse 1s ease-in-out infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.3); }
+        }
+
+        /* ── Results ── */
+
+        .results-card { display: none; }
+        .results-card.visible { display: block; }
+
+        /* ── View switcher ── */
+
+        .viz-switcher {
+            display: flex;
+            gap: 0;
+            border-bottom: 1px solid #E8E8E8;
+            margin-bottom: 1.5rem;
+        }
+
+        .viz-tab {
+            flex: 1;
+            padding: 0.625rem 0.5rem;
+            background: none;
+            border: none;
+            border-bottom: 2px solid transparent;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            color: #696969;
+            cursor: pointer;
+            text-align: center;
+            font-family: inherit;
+            transition: color 0.15s, border-color 0.15s;
+        }
+
+        .viz-tab:hover { color: #252525; }
+
+        .viz-tab.active {
+            color: #D04A02;
+            border-bottom-color: #D04A02;
+        }
+
+        .viz-view { display: none; }
+        .viz-view.active { display: block; }
+
+        /* ── Bars ── */
+
+        .bars-row { margin-bottom: 1.25rem; }
+        .bars-row:last-child { margin-bottom: 0; }
+
+        .bars-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 0.5rem;
+        }
+
+        .bars-label {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            color: #252525;
+        }
+
+        .bars-value {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .bars-value.low { color: #21812D; }
+        .bars-value.medium { color: #FFBF1F; }
+        .bars-value.high { color: #C52A1A; }
+
+        .bars-track {
+            height: 8px;
+            background-color: #F3F3F3;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .bars-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.6s ease;
+            width: 0%;
+        }
+
+        .bars-fill.low { background-color: #21812D; }
+        .bars-fill.medium { background-color: #FFBF1F; }
+        .bars-fill.high { background-color: #C52A1A; }
+
+        /* ── Gauges ── */
+
+        .gauges-grid {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .gauge-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .gauge-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #252525;
+        }
+
+        .gauge-result {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .gauge-result.low { color: #21812D; }
+        .gauge-result.medium { color: #FFBF1F; }
+        .gauge-result.high { color: #C52A1A; }
+
+        /* ── Segments ── */
+
+        .segments-row { margin-bottom: 1.25rem; }
+        .segments-row:last-child { margin-bottom: 0; }
+
+        .segments-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #252525;
+            margin-bottom: 0.5rem;
+        }
+
+        .segments-track {
+            display: flex;
+            gap: 3px;
+            height: 36px;
+        }
+
+        .segment {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #979797;
+            background-color: #F3F3F3;
+            border-radius: 0.25rem;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .segment.active-low {
+            background-color: #21812D;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        .segment.active-medium {
+            background-color: #FFBF1F;
+            color: #252525;
+            font-weight: 700;
+        }
+
+        .segment.active-high {
+            background-color: #C52A1A;
+            color: #FFFFFF;
+            font-weight: 700;
+        }
+
+        /* ── Tiles ── */
+
+        .tiles-grid {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .tile {
+            flex: 1;
+            border-left: 4px solid #E8E8E8;
+            border-radius: 0.25rem;
+            padding: 1rem;
+            background-color: #FFFFFF;
+            transition: border-color 0.3s, background-color 0.3s;
+        }
+
+        .tile.low {
+            border-left-color: #21812D;
+            background-color: #f3faf4;
+        }
+
+        .tile.medium {
+            border-left-color: #FFBF1F;
+            background-color: #fffcf2;
+        }
+
+        .tile.high {
+            border-left-color: #C52A1A;
+            background-color: #fdf4f3;
+        }
+
+        .tile-name {
+            font-size: 0.75rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #696969;
+            margin-bottom: 0.25rem;
+        }
+
+        .tile-result {
+            font-size: 2rem;
+            line-height: 2.25rem;
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+
+        .tile-result.low { color: #21812D; }
+        .tile-result.medium { color: #b38a00; }
+        .tile-result.high { color: #C52A1A; }
+
+        .tile-icon {
+            margin-top: 0.5rem;
+            font-size: 1.25rem;
+        }
+
+        /* ── Meta ── */
+
+        .results-meta {
+            margin-top: 1.25rem;
+            padding-top: 1rem;
+            border-top: 1px solid #E8E8E8;
+            display: flex;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            font-size: 0.75rem;
+            line-height: 0.875rem;
+            color: #979797;
+        }
+
+        .meta-value {
+            color: #474747;
+            font-weight: 500;
+        }
+
+        /* ── Footer ── */
+
+        .app-footer {
+            text-align: center;
+            padding: 0 1rem 3rem;
+            font-size: 0.75rem;
+            line-height: 0.875rem;
+            color: #979797;
+        }
+
+        /* ── Responsive ── */
+
+        @media (max-width: 599px) {
+            .app-main { padding: 1.5rem 1rem; }
+            .card { padding: 1rem; }
+            .timer-display { font-size: 2.25rem; line-height: 2.625rem; }
+            .btn-large { width: 100%; }
+            .btn-group { flex-direction: column; }
+            .btn-group .btn { width: 100%; }
+            .tiles-grid { flex-direction: column; }
+            .gauges-grid { gap: 1rem; }
+            .viz-tab { font-size: 0.75rem; padding: 0.5rem 0.25rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="app-navbar">
+        <div class="app-navbar-inner">
+            <div class="app-logo">V</div>
+            <h1 class="app-title">Virtuosis</h1>
+        </div>
+    </nav>
+
+    <main class="app-main">
+        <h2 class="page-heading">Wellbeing Analysis</h2>
+        <p class="page-subtitle">Record or upload a voice sample to assess stress, anxiety, and depression levels.</p>
+
+        <div class="card config-card" id="configCard">
+            <div class="card-heading">API Configuration</div>
+            <div class="config-status disconnected" id="configStatus">
+                <span class="status-dot"></span>
+                <span id="configStatusText">Enter your credentials to get started</span>
+            </div>
+            <div class="field-group">
+                <label class="field-label" for="apiKey">API Key</label>
+                <input class="field-input" id="apiKey" type="password" placeholder="Enter your Virtuosis API key">
+            </div>
+            <div class="field-group">
+                <label class="field-label" for="projectId">Project ID</label>
+                <input class="field-input" id="projectId" type="text" placeholder="Enter your project ID">
+            </div>
+            <p class="field-hint">Credentials are saved in your browser's local storage and sent only to api.virtuosis.ai.</p>
+            <div class="config-actions">
+                <button class="btn btn-primary" id="saveConfigBtn">Save &amp; Connect</button>
+                <button class="btn-text" id="clearConfigBtn">Clear credentials</button>
+            </div>
+        </div>
+
+        <div class="card analysis-card locked" id="analysisCard">
+            <div class="card-heading">Record Audio</div>
+
+            <div class="record-area">
+                <div class="timer-display" id="timer">00:00</div>
+                <div class="btn-group">
+                    <button class="btn btn-primary btn-large" id="recordBtn">Start Recording</button>
+                </div>
+            </div>
+
+            <div class="divider">or</div>
+
+            <div class="upload-area">
+                <input type="file" id="fileInput" accept="audio/*" hidden>
+                <button class="btn btn-secondary" id="uploadBtn">Upload Audio File</button>
+                <div class="file-name" id="fileName"></div>
+            </div>
+
+            <div style="margin-top: 1.5rem; text-align: center;">
+                <button class="btn btn-primary btn-large" id="analyzeBtn" disabled>Analyze</button>
+            </div>
+
+            <div class="status-message" id="status"></div>
+        </div><!-- /analysis-card -->
+
+        <div class="card results-card" id="results">
+            <div class="card-heading">Results</div>
+
+            <div class="viz-switcher" id="vizSwitcher">
+                <button class="viz-tab active" data-view="bars">Bars</button>
+                <button class="viz-tab" data-view="gauges">Gauges</button>
+                <button class="viz-tab" data-view="segments">Segments</button>
+                <button class="viz-tab" data-view="tiles">Tiles</button>
+            </div>
+
+            <div class="viz-view active" id="viewBars"></div>
+            <div class="viz-view" id="viewGauges"></div>
+            <div class="viz-view" id="viewSegments"></div>
+            <div class="viz-view" id="viewTiles"></div>
+
+            <div class="results-meta">
+                <div class="meta-item">Duration: <span class="meta-value" id="duration">-</span>s</div>
+                <div class="meta-item">Timestamp: <span class="meta-value" id="timestamp">-</span></div>
+            </div>
+        </div>
+
+        <p class="app-footer">Minimum 30 seconds of speech required for accurate analysis.</p>
+    </main>
+
+    <script>
+        const BASE_URL = 'https://api.virtuosis.ai';
+        const STORAGE_KEY = 'virtuosis_config';
+
+        // ── Elements ──
+
+        const els = {
+            configCard:      document.getElementById('configCard'),
+            configStatus:    document.getElementById('configStatus'),
+            configStatusText:document.getElementById('configStatusText'),
+            apiKeyInput:     document.getElementById('apiKey'),
+            projectIdInput:  document.getElementById('projectId'),
+            saveConfigBtn:   document.getElementById('saveConfigBtn'),
+            clearConfigBtn:  document.getElementById('clearConfigBtn'),
+            analysisCard:    document.getElementById('analysisCard'),
+            recordBtn:       document.getElementById('recordBtn'),
+            uploadBtn:       document.getElementById('uploadBtn'),
+            fileInput:       document.getElementById('fileInput'),
+            analyzeBtn:      document.getElementById('analyzeBtn'),
+            status:          document.getElementById('status'),
+            timer:           document.getElementById('timer'),
+            fileName:        document.getElementById('fileName'),
+            results:         document.getElementById('results'),
+        };
+
+        // ── Credential storage ──
+
+        function loadConfig() {
+            try {
+                return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {};
+            } catch { return {}; }
+        }
+
+        function saveConfig(apiKey, projectId) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ apiKey, projectId }));
+        }
+
+        function clearConfig() {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+
+        function getConfig() {
+            const stored = loadConfig();
+            return {
+                apiKey: stored.apiKey || '',
+                projectId: stored.projectId || ''
+            };
+        }
+
+        function hasValidConfig() {
+            const { apiKey, projectId } = getConfig();
+            return apiKey.length > 0 && projectId.length > 0;
+        }
+
+        // ── Config UI ──
+
+        function setConfigState(connected, message) {
+            els.configStatus.className = 'config-status ' + (connected ? 'connected' : 'disconnected');
+            els.configStatusText.textContent = message;
+            if (connected) {
+                els.analysisCard.classList.remove('locked');
+            } else {
+                els.analysisCard.classList.add('locked');
+            }
+        }
+
+        function initConfig() {
+            const { apiKey, projectId } = loadConfig();
+            if (apiKey) els.apiKeyInput.value = apiKey;
+            if (projectId) els.projectIdInput.value = projectId;
+
+            if (hasValidConfig()) {
+                setConfigState(true, 'Connected \u2014 credentials saved');
+            } else {
+                setConfigState(false, 'Enter your credentials to get started');
+            }
+        }
+
+        els.saveConfigBtn.addEventListener('click', () => {
+            const apiKey = els.apiKeyInput.value.trim();
+            const projectId = els.projectIdInput.value.trim();
+
+            els.apiKeyInput.classList.remove('invalid');
+            els.projectIdInput.classList.remove('invalid');
+
+            let valid = true;
+            if (!apiKey) { els.apiKeyInput.classList.add('invalid'); valid = false; }
+            if (!projectId) { els.projectIdInput.classList.add('invalid'); valid = false; }
+
+            if (!valid) {
+                setConfigState(false, 'Both fields are required');
+                return;
+            }
+
+            saveConfig(apiKey, projectId);
+            setConfigState(true, 'Connected \u2014 credentials saved');
+        });
+
+        els.clearConfigBtn.addEventListener('click', () => {
+            clearConfig();
+            els.apiKeyInput.value = '';
+            els.projectIdInput.value = '';
+            els.apiKeyInput.classList.remove('invalid');
+            els.projectIdInput.classList.remove('invalid');
+            setConfigState(false, 'Credentials cleared');
+            els.results.classList.remove('visible');
+            clearStatus();
+        });
+
+        els.apiKeyInput.addEventListener('input', () => els.apiKeyInput.classList.remove('invalid'));
+        els.projectIdInput.addEventListener('input', () => els.projectIdInput.classList.remove('invalid'));
+
+        initConfig();
+
+        // ── Timer ──
+
+        let seconds = 0;
+        let timerInterval = null;
+
+        function resetTimer() {
+            seconds = 0;
+            els.timer.textContent = '00:00';
+            els.timer.classList.remove('active');
+        }
+
+        function startTimer() {
+            seconds = 0;
+            els.timer.classList.add('active');
+            timerInterval = setInterval(() => {
+                seconds++;
+                const m = String(Math.floor(seconds / 60)).padStart(2, '0');
+                const s = String(seconds % 60).padStart(2, '0');
+                els.timer.textContent = `${m}:${s}`;
+            }, 1000);
+        }
+
+        function stopTimer() {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            els.timer.classList.remove('active');
+        }
+
+        // ── Status helpers ──
+
+        function setStatus(text, type) {
+            els.status.className = 'status-message' + (type === 'error' ? ' error' : '');
+            if (type === 'loading') {
+                els.status.innerHTML = '<span class="spinner"></span>' + text;
+            } else {
+                els.status.textContent = text;
+            }
+        }
+
+        function clearStatus() { els.status.textContent = ''; els.status.className = 'status-message'; }
+
+        // ── Recording ──
+
+        let audioBlob = null;
+        let isRecording = false;
+        let audioContext, audioStream, scriptProcessor, recordedSamples;
+
+        els.recordBtn.addEventListener('click', async () => {
+            if (!isRecording) {
+                try {
+                    audioStream = await navigator.mediaDevices.getUserMedia({
+                        audio: { sampleRate: 48000, channelCount: 1, echoCancellation: false, noiseSuppression: false }
+                    });
+                    audioContext = new AudioContext({ sampleRate: 48000 });
+                    const source = audioContext.createMediaStreamSource(audioStream);
+                    scriptProcessor = audioContext.createScriptProcessor(4096, 1, 1);
+                    recordedSamples = [];
+
+                    scriptProcessor.onaudioprocess = (e) => {
+                        recordedSamples.push(new Float32Array(e.inputBuffer.getChannelData(0)));
+                    };
+
+                    source.connect(scriptProcessor);
+                    scriptProcessor.connect(audioContext.destination);
+
+                    isRecording = true;
+                    els.recordBtn.innerHTML = '<span class="recording-pulse"></span>Stop Recording';
+                    els.recordBtn.classList.remove('btn-primary');
+                    els.recordBtn.classList.add('btn-danger');
+                    els.uploadBtn.disabled = true;
+                    els.analyzeBtn.disabled = true;
+                    els.fileName.textContent = '';
+                    startTimer();
+                    setStatus('Recording...', '');
+                } catch (err) {
+                    setStatus('Microphone access denied: ' + err.message, 'error');
+                }
+            } else {
+                scriptProcessor.disconnect();
+                audioStream.getTracks().forEach(t => t.stop());
+                audioContext.close();
+
+                audioBlob = buildWavBlob(recordedSamples, 48000);
+
+                isRecording = false;
+                els.recordBtn.textContent = 'Start Recording';
+                els.recordBtn.classList.remove('btn-danger');
+                els.recordBtn.classList.add('btn-primary');
+                els.uploadBtn.disabled = false;
+                stopTimer();
+                els.analyzeBtn.disabled = false;
+                setStatus('Recording ready for analysis', '');
+            }
+        });
+
+        function buildWavBlob(samples, sampleRate) {
+            const length = samples.reduce((a, s) => a + s.length, 0);
+            const pcm = new Float32Array(length);
+            let off = 0;
+            for (const s of samples) { pcm.set(s, off); off += s.length; }
+
+            const buf = new ArrayBuffer(44 + pcm.length * 2);
+            const v = new DataView(buf);
+            const w = (o, str) => { for (let i = 0; i < str.length; i++) v.setUint8(o + i, str.charCodeAt(i)); };
+
+            w(0, 'RIFF');
+            v.setUint32(4, 36 + pcm.length * 2, true);
+            w(8, 'WAVE');
+            w(12, 'fmt ');
+            v.setUint32(16, 16, true);
+            v.setUint16(20, 1, true);
+            v.setUint16(22, 1, true);
+            v.setUint32(24, sampleRate, true);
+            v.setUint32(28, sampleRate * 2, true);
+            v.setUint16(32, 2, true);
+            v.setUint16(34, 16, true);
+            w(36, 'data');
+            v.setUint32(40, pcm.length * 2, true);
+
+            for (let i = 0; i < pcm.length; i++) {
+                v.setInt16(44 + i * 2, Math.max(-1, Math.min(1, pcm[i])) * 0.8 * 0x7FFF, true);
+            }
+            return new Blob([buf], { type: 'audio/wav' });
+        }
+
+        // ── File upload ──
+
+        els.uploadBtn.addEventListener('click', () => els.fileInput.click());
+
+        els.fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) {
+                audioBlob = e.target.files[0];
+                els.fileName.textContent = audioBlob.name;
+                els.analyzeBtn.disabled = false;
+                resetTimer();
+                setStatus('File ready for analysis', '');
+            }
+        });
+
+        // ── API calls ──
+
+        async function apiCall(method, path, body) {
+            const { apiKey } = getConfig();
+            const opts = {
+                method,
+                headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
+            };
+            if (body) opts.body = JSON.stringify(body);
+            const res = await fetch(BASE_URL + path, opts);
+            const data = await res.json();
+            if (!res.ok || data.error) throw new Error(data.error?.message || `API error (${res.status})`);
+            return data;
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onloadend = () => resolve(r.result.split(',')[1]);
+                r.onerror = reject;
+                r.readAsDataURL(blob);
+            });
+        }
+
+        // ── Analyze ──
+
+        els.analyzeBtn.addEventListener('click', async () => {
+            if (!audioBlob) return;
+            const { projectId } = getConfig();
+
+            els.analyzeBtn.disabled = true;
+            els.recordBtn.disabled = true;
+            els.uploadBtn.disabled = true;
+            els.results.classList.remove('visible');
+
+            try {
+                setStatus('Creating account...', 'loading');
+                const account = await apiCall('POST', '/v1/accounts', { projectId });
+
+                setStatus('Uploading recording...', 'loading');
+                const audio = await blobToBase64(audioBlob);
+                const upload = await apiCall('POST', '/v1/recordings', {
+                    accountId: account.accountId,
+                    audio,
+                    startTimestamp: new Date().toISOString()
+                });
+
+                setStatus('Processing \u2014 this may take up to 5 minutes...', 'loading');
+                await pollForScores(upload.recordingId);
+
+            } catch (err) {
+                setStatus('Error: ' + err.message, 'error');
+            } finally {
+                els.analyzeBtn.disabled = false;
+                els.recordBtn.disabled = false;
+                els.uploadBtn.disabled = false;
+            }
+        });
+
+        async function pollForScores(recordingId) {
+            const MAX = 20;
+            const INTERVAL = 15000;
+
+            for (let i = 0; i < MAX; i++) {
+                const data = await apiCall('GET', `/v1/recordings/${recordingId}/scores`);
+
+                if (data.status === 'completed') {
+                    renderResults(data);
+                    setStatus('Analysis complete', '');
+                    return;
+                }
+                if (data.status === 'error') throw new Error('Processing failed on the server');
+
+                setStatus(`Processing \u2014 attempt ${i + 1} of ${MAX}...`, 'loading');
+                await new Promise(r => setTimeout(r, INTERVAL));
+            }
+            throw new Error('Processing timed out after 5 minutes');
+        }
+
+        // ── Visualization constants ──
+
+        const VIZ_COLORS = { low: '#21812D', medium: '#FFBF1F', high: '#C52A1A' };
+        const VIZ_PERCENT = { low: 33, medium: 66, high: 100 };
+        const VIZ_LABELS = ['anxiety', 'depression', 'stress'];
+        const VIZ_DISPLAY = { anxiety: 'Anxiety', depression: 'Depression', stress: 'Stress' };
+        const VIZ_PREF_KEY = 'virtuosis_viz_pref';
+
+        let activeVizView = localStorage.getItem(VIZ_PREF_KEY) || 'bars';
+
+        // ── View switcher ──
+
+        function initVizSwitcher() {
+            const switcher = document.getElementById('vizSwitcher');
+            switcher.querySelectorAll('.viz-tab').forEach(tab => {
+                if (tab.dataset.view === activeVizView) tab.classList.add('active');
+                else tab.classList.remove('active');
+            });
+            document.querySelectorAll('.viz-view').forEach(v => v.classList.remove('active'));
+            const activeEl = document.getElementById('view' + activeVizView.charAt(0).toUpperCase() + activeVizView.slice(1));
+            if (activeEl) activeEl.classList.add('active');
+
+            switcher.addEventListener('click', (e) => {
+                const tab = e.target.closest('.viz-tab');
+                if (!tab) return;
+                activeVizView = tab.dataset.view;
+                localStorage.setItem(VIZ_PREF_KEY, activeVizView);
+                switcher.querySelectorAll('.viz-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                document.querySelectorAll('.viz-view').forEach(v => v.classList.remove('active'));
+                const target = document.getElementById('view' + activeVizView.charAt(0).toUpperCase() + activeVizView.slice(1));
+                if (target) target.classList.add('active');
+            });
+        }
+
+        initVizSwitcher();
+
+        // ── Render results ──
+
+        function renderResults(data) {
+            els.results.classList.add('visible');
+
+            const scores = {};
+            VIZ_LABELS.forEach(key => { scores[key] = data.scores[key].result; });
+
+            renderBars(scores);
+            renderGauges(scores);
+            renderSegments(scores);
+            renderTiles(scores);
+
+            document.getElementById('duration').textContent = data.duration || '-';
+            document.getElementById('timestamp').textContent =
+                data.startTimestamp ? new Date(data.startTimestamp).toLocaleString() : '-';
+        }
+
+        // ── Bars ──
+
+        function renderBars(scores) {
+            const el = document.getElementById('viewBars');
+            el.innerHTML = VIZ_LABELS.map(key => {
+                const r = scores[key];
+                return `
+                    <div class="bars-row">
+                        <div class="bars-header">
+                            <span class="bars-label">${VIZ_DISPLAY[key]}</span>
+                            <span class="bars-value ${r}">${r}</span>
+                        </div>
+                        <div class="bars-track">
+                            <div class="bars-fill ${r}" style="width: 0%"></div>
+                        </div>
+                    </div>`;
+            }).join('');
+            requestAnimationFrame(() => {
+                el.querySelectorAll('.bars-fill').forEach((bar, i) => {
+                    bar.style.width = VIZ_PERCENT[scores[VIZ_LABELS[i]]] + '%';
+                });
+            });
+        }
+
+        // ── Gauges ──
+
+        function renderGauges(scores) {
+            const el = document.getElementById('viewGauges');
+            el.innerHTML = `<div class="gauges-grid">${
+                VIZ_LABELS.map(key => `
+                    <div class="gauge-item">
+                        <span class="gauge-label">${VIZ_DISPLAY[key]}</span>
+                        <canvas id="gauge_${key}" width="140" height="85"></canvas>
+                        <span class="gauge-result ${scores[key]}">${scores[key]}</span>
+                    </div>`
+                ).join('')
+            }</div>`;
+            VIZ_LABELS.forEach(key => drawGauge(document.getElementById('gauge_' + key), scores[key]));
+        }
+
+        function drawGauge(canvas, result) {
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height;
+            const cx = w / 2, cy = h - 8;
+            const radius = 54;
+
+            ctx.clearRect(0, 0, w, h);
+
+            const zones = [
+                { start: Math.PI, end: Math.PI + Math.PI / 3, color: '#21812D' },
+                { start: Math.PI + Math.PI / 3, end: Math.PI + 2 * Math.PI / 3, color: '#FFBF1F' },
+                { start: Math.PI + 2 * Math.PI / 3, end: 2 * Math.PI, color: '#C52A1A' },
+            ];
+
+            zones.forEach(z => {
+                ctx.beginPath();
+                ctx.arc(cx, cy, radius, z.start, z.end);
+                ctx.lineWidth = 14;
+                ctx.strokeStyle = z.color;
+                ctx.globalAlpha = 0.2;
+                ctx.stroke();
+            });
+
+            const activeZone = result === 'low' ? 0 : result === 'medium' ? 1 : 2;
+            ctx.globalAlpha = 1;
+            ctx.beginPath();
+            ctx.arc(cx, cy, radius, zones[activeZone].start, zones[activeZone].end);
+            ctx.lineWidth = 14;
+            ctx.strokeStyle = zones[activeZone].color;
+            ctx.stroke();
+
+            const needleAngles = { low: Math.PI + Math.PI / 6, medium: Math.PI + Math.PI / 2, high: Math.PI + 5 * Math.PI / 6 };
+            const angle = needleAngles[result];
+            const needleLen = radius - 14;
+
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + Math.cos(angle) * needleLen, cy + Math.sin(angle) * needleLen);
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#252525';
+            ctx.lineCap = 'round';
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(cx, cy, 4, 0, 2 * Math.PI);
+            ctx.fillStyle = '#252525';
+            ctx.fill();
+        }
+
+        // ── Segments ──
+
+        function renderSegments(scores) {
+            const el = document.getElementById('viewSegments');
+            el.innerHTML = VIZ_LABELS.map(key => {
+                const r = scores[key];
+                return `
+                    <div class="segments-row">
+                        <div class="segments-label">${VIZ_DISPLAY[key]}</div>
+                        <div class="segments-track">
+                            <div class="segment ${r === 'low' ? 'active-low' : ''}">Low</div>
+                            <div class="segment ${r === 'medium' ? 'active-medium' : ''}">Medium</div>
+                            <div class="segment ${r === 'high' ? 'active-high' : ''}">High</div>
+                        </div>
+                    </div>`;
+            }).join('');
+        }
+
+        // ── Tiles ──
+
+        function renderTiles(scores) {
+            const el = document.getElementById('viewTiles');
+            const icons = { low: '\u2714', medium: '\u26A0', high: '\u2718' };
+            el.innerHTML = `<div class="tiles-grid">${
+                VIZ_LABELS.map(key => {
+                    const r = scores[key];
+                    return `
+                        <div class="tile ${r}">
+                            <div class="tile-name">${VIZ_DISPLAY[key]}</div>
+                            <div class="tile-result ${r}">${r}</div>
+                            <div class="tile-icon">${icons[r]}</div>
+                        </div>`;
+                }).join('')
+            }</div>`;
+        }
+    </script>
+</body>
+</html>
