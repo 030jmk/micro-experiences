@@ -1,0 +1,1051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Editor for managing Spot The AI challenge data">
+    <title>Challenge Editor | Spot The AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://appkitcdn.pwc.com/appkit4/cdn/styles/4.10.3/themes/appkit.orange.min.css">
+    <style>
+:root {
+  --primary: #D04A02;
+  --primary-dark: #A7452C;
+  --primary-light: #FB7C4D;
+  --primary-lighter: #FDAB8D;
+  --primary-lightest: #FEDACC;
+  --secondary: #2D2D2D;
+  --secondary-light: #474747;
+  --white: #FFFFFF;
+  --off-white: #F3F3F3;
+  --light-gray: #E8E8E8;
+  --medium-gray: #D1D1D1;
+  --dark-gray: #535353;
+  --black: #252525;
+  --success: #21812D;
+  --success-light: #D3EBD5;
+  --danger: #C52A1A;
+  --danger-light: #F3D4D1;
+  --warning: #FFBF1F;
+  --warning-light: #FFF2D2;
+  --info: #0089EB;
+  --info-light: #B3DCF9;
+  --bg-body: #F3F3F3;
+  --bg-card: #FFFFFF;
+  --bg-input: #FFFFFF;
+  --text-primary: #252525;
+  --text-secondary: #474747;
+  --text-muted: #696969;
+  --text-light: #FFFFFF;
+  --border-color: #D1D1D1;
+  --border-color-focus: var(--primary);
+  --focus-ring-color: rgba(208, 74, 2, 0.32);
+  --focus-ring-width: 3px;
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 3rem;
+  --border-radius-sm: 0.125rem;
+  --border-radius-md: 0.25rem;
+  --border-radius-lg: 0.5rem;
+  --border-radius-pill: 50rem;
+  --shadow-sm: rgba(71, 71, 71, 0.24) 0px 0.125rem 0.25rem -0.125rem;
+  --shadow-md: rgba(71, 71, 71, 0.24) 0px 0.25rem 0.5rem -0.125rem;
+  --shadow-lg: rgba(71, 71, 71, 0.24) 0px 0.5rem 1rem -0.125rem;
+  --transition-speed: 0.3s;
+  --transition-timing: ease-in-out;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--bg-body);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.header {
+  background-color: var(--white);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 1020;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+}
+
+.header-logo h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+main {
+  flex: 1;
+  padding: 1.5rem 0 3rem;
+}
+
+.lead {
+  color: var(--text-secondary);
+  font-size: 1.05rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Cards ── */
+.card {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 1.25rem;
+}
+
+.card-header {
+  padding: 0.85rem 1rem;
+  background-color: var(--off-white);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.card-body { padding: 1rem; }
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  font-weight: 500;
+  border: 1px solid transparent;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  border-radius: var(--border-radius-md);
+  cursor: pointer;
+  transition: background-color var(--transition-speed) var(--transition-timing),
+              border-color var(--transition-speed) var(--transition-timing),
+              box-shadow var(--transition-speed) var(--transition-timing);
+}
+
+.btn:focus-visible { outline: none; box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color); }
+.btn-primary { color: var(--white); background-color: var(--primary); border-color: var(--primary); }
+.btn-primary:hover { background-color: var(--primary-dark); border-color: var(--primary-dark); }
+.btn-secondary { color: var(--white); background-color: var(--secondary); border-color: var(--secondary); }
+.btn-secondary:hover { background-color: var(--secondary-light); border-color: var(--secondary-light); }
+.btn-outline { color: var(--primary); background-color: transparent; border-color: var(--primary); }
+.btn-outline:hover { color: var(--white); background-color: var(--primary); }
+.btn-danger { color: var(--white); background-color: var(--danger); border-color: var(--danger); }
+.btn-danger:hover { background-color: #a02215; border-color: #a02215; }
+.btn-sm { padding: 0.3rem 0.65rem; font-size: 0.8rem; }
+.btn-lg { padding: 0.65rem 1.4rem; font-size: 1rem; }
+
+/* ── Form controls ── */
+.form-label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-weight: 500;
+  font-size: 0.9rem;
+  color: var(--text-primary);
+}
+
+.form-control, .form-select {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  transition: border-color var(--transition-speed) var(--transition-timing),
+              box-shadow var(--transition-speed) var(--transition-timing);
+}
+
+.form-control:focus, .form-select:focus {
+  border-color: var(--primary);
+  outline: 0;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+.form-text {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.25rem;
+}
+
+textarea.form-control { resize: vertical; min-height: 80px; }
+
+/* ── Badges ── */
+.badge {
+  display: inline-block;
+  padding: 0.2em 0.55em;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--border-radius-pill);
+  line-height: 1.3;
+}
+
+.badge-text { background: #E3F0FF; color: #1565c0; }
+.badge-image { background: #E8F5E9; color: #2e7d32; }
+.badge-audio { background: #FFF3E0; color: #e65100; }
+.badge-video { background: #F3E5F5; color: #7b1fa2; }
+
+/* ── Toolbar ── */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 1.25rem;
+}
+
+.toolbar .btn { white-space: nowrap; }
+
+.toolbar-divider {
+  width: 1px;
+  height: 1.5rem;
+  background: var(--border-color);
+  margin: 0 0.25rem;
+}
+
+/* ── Challenge list ── */
+.challenge-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--light-gray);
+  transition: background-color 0.15s;
+  cursor: pointer;
+}
+
+.challenge-item:last-child { border-bottom: none; }
+.challenge-item:hover { background-color: var(--off-white); }
+.challenge-item.active { background-color: var(--primary-lightest); border-left: 3px solid var(--primary); }
+
+.challenge-item .id-col {
+  font-weight: 600;
+  color: var(--text-muted);
+  min-width: 1.75rem;
+  text-align: center;
+}
+
+.challenge-item .type-col { flex-shrink: 0; }
+
+.challenge-item .path-col {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.challenge-item .actions-col {
+  display: flex;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+}
+
+.empty-state i { font-size: 2rem; margin-bottom: 0.5rem; display: block; opacity: 0.5; }
+
+/* ── Editor form layout ── */
+.editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+}
+
+.editor-grid .full-width { grid-column: 1 / -1; }
+
+@media (max-width: 700px) {
+  .editor-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Content option panel ── */
+.option-panel {
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+}
+
+.option-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 0.75rem;
+  background-color: var(--off-white);
+  border-bottom: 1px solid var(--border-color);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.option-panel-body { padding: 0.75rem; }
+
+.ai-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ai-toggle input { accent-color: var(--primary); width: 1rem; height: 1rem; cursor: pointer; }
+
+/* ── Source type selector (tabs) ── */
+.source-tabs {
+  display: flex;
+  gap: 0;
+  margin-bottom: 0.75rem;
+}
+
+.source-tab {
+  flex: 1;
+  padding: 0.4rem 0;
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid var(--border-color);
+  background: var(--off-white);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.source-tab:first-child { border-radius: var(--border-radius-md) 0 0 var(--border-radius-md); }
+.source-tab:last-child { border-radius: 0 var(--border-radius-md) var(--border-radius-md) 0; }
+.source-tab:not(:first-child) { border-left: none; }
+.source-tab.active { background: var(--primary); color: var(--white); border-color: var(--primary); }
+
+.source-content { display: none; }
+.source-content.active { display: block; }
+
+/* ── Dropzone ── */
+.dropzone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--text-muted);
+  transition: border-color 0.2s, background-color 0.2s;
+  cursor: pointer;
+  position: relative;
+}
+
+.dropzone:hover, .dropzone.dragover {
+  border-color: var(--primary);
+  background-color: var(--primary-lightest);
+  color: var(--primary);
+}
+
+.dropzone i { font-size: 1.5rem; margin-bottom: 0.35rem; display: block; }
+.dropzone p { margin: 0; font-size: 0.85rem; }
+.dropzone input[type="file"] { display: none; }
+
+/* ── Media preview ── */
+.media-preview {
+  margin-top: 0.5rem;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  position: relative;
+  display: none;
+  border: 1px solid var(--border-color);
+}
+
+.media-preview.visible { display: block; }
+.media-preview img, .media-preview video, .media-preview audio { max-width: 100%; display: block; }
+.media-preview audio { width: 100%; }
+
+.media-preview .remove-preview {
+  position: absolute;
+  top: 0.35rem;
+  right: 0.35rem;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.file-name-display {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  padding: 0.5rem;
+  background: var(--off-white);
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* ── Explanation rich-text area ── */
+.explanation-toolbar {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--border-color);
+  border-bottom: none;
+  border-radius: var(--border-radius-md) var(--border-radius-md) 0 0;
+  background: var(--off-white);
+  flex-wrap: wrap;
+}
+
+.explanation-toolbar button {
+  background: none;
+  border: 1px solid transparent;
+  padding: 0.25rem 0.45rem;
+  border-radius: var(--border-radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.explanation-toolbar button:hover { background: var(--light-gray); }
+
+.explanation-editor {
+  border: 1px solid var(--border-color);
+  border-radius: 0 0 var(--border-radius-md) var(--border-radius-md);
+  padding: 0.65rem 0.75rem;
+  min-height: 100px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-primary);
+  background: var(--bg-input);
+  outline: none;
+}
+
+.explanation-editor:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+.explanation-editor a { color: var(--primary); text-decoration: underline; }
+
+/* ── Toast notification ── */
+.toast-container {
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.toast {
+  padding: 0.65rem 1rem;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  animation: toastIn 0.25s ease-out;
+  max-width: 380px;
+}
+
+.toast-success { background: var(--success-light); color: var(--success); border: 1px solid var(--success); }
+.toast-error { background: var(--danger-light); color: var(--danger); border: 1px solid var(--danger); }
+.toast-info { background: var(--info-light); color: var(--info); border: 1px solid var(--info); }
+
+@keyframes toastIn { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── Misc ── */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 0.75rem; }
+.mt-3 { margin-top: 1rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 0.75rem; }
+.gap-2 { gap: 0.5rem; }
+
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 1500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.confirm-dialog {
+  background: var(--bg-card);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 90%;
+  text-align: center;
+}
+
+.confirm-dialog p { margin: 0 0 1rem; color: var(--text-primary); }
+.confirm-dialog .btn-group { display: flex; gap: 0.5rem; justify-content: center; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="container header-container">
+        <div class="header-logo"><h1>Spot The AI — Editor</h1></div>
+    </div>
+</header>
+
+<main class="container">
+    <p class="lead">Load, edit, and export <code>challenges.json</code>. Drag in media files or paste URLs.</p>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+        <button class="btn btn-outline btn-sm" id="loadBtn"><i class="fas fa-folder-open"></i> Load JSON</button>
+        <button class="btn btn-outline btn-sm" id="fetchBtn"><i class="fas fa-globe"></i> Fetch from URL</button>
+        <input type="file" id="fileInput" accept=".json" style="display:none">
+        <span class="toolbar-divider"></span>
+        <button class="btn btn-primary btn-sm" id="addBtn"><i class="fas fa-plus"></i> New Challenge</button>
+        <span class="toolbar-divider"></span>
+        <button class="btn btn-secondary btn-sm" id="exportBtn" disabled><i class="fas fa-download"></i> Export JSON</button>
+        <span style="flex:1"></span>
+        <span id="countBadge" style="font-size:0.8rem;color:var(--text-muted)">0 challenges</span>
+    </div>
+
+    <!-- Challenge list -->
+    <div class="card" id="listCard">
+        <div class="card-header">
+            <h2><i class="fas fa-list" style="margin-right:0.4rem;color:var(--primary)"></i>Challenges</h2>
+        </div>
+        <div class="card-body" style="padding:0">
+            <div id="challengeList">
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <p>No challenges loaded.<br>Load a JSON file, fetch from URL, or add one manually.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Editor panel (hidden until a challenge is selected/added) -->
+    <div class="card" id="editorCard" style="display:none">
+        <div class="card-header">
+            <h2 id="editorTitle"><i class="fas fa-pen" style="margin-right:0.4rem;color:var(--primary)"></i>Edit Challenge</h2>
+            <button class="btn btn-sm btn-outline" id="closeEditor"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="card-body">
+            <div class="editor-grid">
+                <!-- Media type -->
+                <div>
+                    <label class="form-label" for="mediaType">Media Type</label>
+                    <select class="form-control form-select" id="mediaType">
+                        <option value="text">Text</option>
+                        <option value="image">Image</option>
+                        <option value="audio">Audio</option>
+                        <option value="video">Video</option>
+                    </select>
+                </div>
+                <div></div>
+
+                <!-- Option A -->
+                <div>
+                    <div class="option-panel">
+                        <div class="option-panel-header">
+                            <span>Option A</span>
+                            <label class="ai-toggle"><input type="checkbox" id="isAI_A"> <span>AI-generated</span></label>
+                        </div>
+                        <div class="option-panel-body">
+                            <div class="source-tabs">
+                                <button class="source-tab active" data-target="fileA">Local File</button>
+                                <button class="source-tab" data-target="urlA">URL</button>
+                            </div>
+                            <div class="source-content active" id="src-fileA">
+                                <div class="dropzone" id="dropzoneA">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag & drop or click to select</p>
+                                    <input type="file" id="filePickA">
+                                </div>
+                                <div class="media-preview" id="previewA">
+                                    <button class="remove-preview" id="removeA" title="Remove">&times;</button>
+                                    <div id="previewContentA"></div>
+                                    <div class="file-name-display" id="fileNameA"></div>
+                                </div>
+                            </div>
+                            <div class="source-content" id="src-urlA">
+                                <label class="form-label" for="urlInputA">Content URL</label>
+                                <input type="url" class="form-control" id="urlInputA" placeholder="https://example.com/image.png">
+                                <div class="form-text">Paste a direct link to the media file</div>
+                            </div>
+                            <div class="mt-1">
+                                <label class="form-label" for="pathA">Path in JSON</label>
+                                <input type="text" class="form-control" id="pathA" placeholder="content/images/photo_real.png">
+                                <div class="form-text">File path as it will appear in challenges.json</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Option B -->
+                <div>
+                    <div class="option-panel">
+                        <div class="option-panel-header">
+                            <span>Option B</span>
+                            <label class="ai-toggle"><input type="checkbox" id="isAI_B" checked> <span>AI-generated</span></label>
+                        </div>
+                        <div class="option-panel-body">
+                            <div class="source-tabs">
+                                <button class="source-tab active" data-target="fileB">Local File</button>
+                                <button class="source-tab" data-target="urlB">URL</button>
+                            </div>
+                            <div class="source-content active" id="src-fileB">
+                                <div class="dropzone" id="dropzoneB">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                    <p>Drag & drop or click to select</p>
+                                    <input type="file" id="filePickB">
+                                </div>
+                                <div class="media-preview" id="previewB">
+                                    <button class="remove-preview" id="removeB" title="Remove">&times;</button>
+                                    <div id="previewContentB"></div>
+                                    <div class="file-name-display" id="fileNameB"></div>
+                                </div>
+                            </div>
+                            <div class="source-content" id="src-urlB">
+                                <label class="form-label" for="urlInputB">Content URL</label>
+                                <input type="url" class="form-control" id="urlInputB" placeholder="https://example.com/image_ai.png">
+                                <div class="form-text">Paste a direct link to the media file</div>
+                            </div>
+                            <div class="mt-1">
+                                <label class="form-label" for="pathB">Path in JSON</label>
+                                <input type="text" class="form-control" id="pathB" placeholder="content/images/photo_ai.png">
+                                <div class="form-text">File path as it will appear in challenges.json</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Explanation -->
+                <div class="full-width">
+                    <label class="form-label">Explanation <span style="font-weight:400;color:var(--text-muted)">(supports HTML: bold, italic, links)</span></label>
+                    <div class="explanation-toolbar">
+                        <button type="button" title="Bold" data-cmd="bold"><i class="fas fa-bold"></i></button>
+                        <button type="button" title="Italic" data-cmd="italic"><i class="fas fa-italic"></i></button>
+                        <button type="button" title="Insert Link" data-cmd="link"><i class="fas fa-link"></i></button>
+                        <button type="button" title="Line break" data-cmd="br"><i class="fas fa-level-down-alt"></i></button>
+                        <button type="button" title="Toggle HTML source" data-cmd="source"><i class="fas fa-code"></i></button>
+                    </div>
+                    <div class="explanation-editor" id="explanationEditor" contenteditable="true"></div>
+                    <textarea class="form-control mt-1" id="explanationSource" style="display:none;font-family:monospace;font-size:0.85rem" rows="4"></textarea>
+                </div>
+
+                <!-- Save / Delete row -->
+                <div class="full-width" style="display:flex;gap:0.5rem;justify-content:flex-end;padding-top:0.5rem">
+                    <button class="btn btn-danger btn-sm" id="deleteBtn" style="display:none"><i class="fas fa-trash"></i> Delete</button>
+                    <button class="btn btn-primary" id="saveBtn"><i class="fas fa-check"></i> Save Challenge</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+(function () {
+    let challenges = [];
+    let editingIndex = -1;
+    let sourceMode = false;
+    const MEDIA_FOLDERS = { text: 'content/text/', image: 'content/images/', audio: 'content/audio/', video: 'content/videos/' };
+    const MEDIA_ACCEPT = { text: '.txt,.md', image: '.png,.jpg,.jpeg,.gif,.webp', audio: '.mp3,.wav,.ogg,.m4a', video: '.mp4,.webm,.mov' };
+
+    const $ = id => document.getElementById(id);
+
+    // ── Toast ──
+    function toast(msg, type = 'info') {
+        const el = document.createElement('div');
+        el.className = `toast toast-${type}`;
+        const icons = { success: 'fa-check-circle', error: 'fa-exclamation-circle', info: 'fa-info-circle' };
+        el.innerHTML = `<i class="fas ${icons[type] || icons.info}"></i> ${msg}`;
+        $('toastContainer').appendChild(el);
+        setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity 0.3s'; setTimeout(() => el.remove(), 300); }, 3000);
+    }
+
+    // ── Confirm dialog ──
+    function confirm(msg) {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'confirm-overlay';
+            overlay.innerHTML = `<div class="confirm-dialog"><p>${msg}</p><div class="btn-group"><button class="btn btn-outline btn-sm" id="cfmNo">Cancel</button><button class="btn btn-danger btn-sm" id="cfmYes">Confirm</button></div></div>`;
+            document.body.appendChild(overlay);
+            overlay.querySelector('#cfmYes').onclick = () => { overlay.remove(); resolve(true); };
+            overlay.querySelector('#cfmNo').onclick = () => { overlay.remove(); resolve(false); };
+        });
+    }
+
+    // ── Render challenge list ──
+    function renderList() {
+        const list = $('challengeList');
+        $('countBadge').textContent = `${challenges.length} challenge${challenges.length !== 1 ? 's' : ''}`;
+        $('exportBtn').disabled = challenges.length === 0;
+
+        if (challenges.length === 0) {
+            list.innerHTML = '<div class="empty-state"><i class="fas fa-inbox"></i><p>No challenges loaded.<br>Load a JSON file, fetch from URL, or add one manually.</p></div>';
+            return;
+        }
+
+        list.innerHTML = challenges.map((c, i) => {
+            const badgeClass = `badge-${c.mediaType}`;
+            const active = i === editingIndex ? ' active' : '';
+            const pathA = c.contentA?.path || '—';
+            const pathB = c.contentB?.path || '—';
+            return `<div class="challenge-item${active}" data-index="${i}">
+                <span class="id-col">${c.id}</span>
+                <span class="type-col"><span class="badge ${badgeClass}">${c.mediaType}</span></span>
+                <span class="path-col" title="A: ${pathA}  |  B: ${pathB}">A: ${pathA} &nbsp;|&nbsp; B: ${pathB}</span>
+                <span class="actions-col">
+                    <button class="btn btn-sm btn-outline edit-btn" title="Edit" data-index="${i}"><i class="fas fa-pen"></i></button>
+                    <button class="btn btn-sm btn-danger del-btn" title="Delete" data-index="${i}"><i class="fas fa-trash"></i></button>
+                </span>
+            </div>`;
+        }).join('');
+
+        list.querySelectorAll('.edit-btn').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); openEditor(+btn.dataset.index); }));
+        list.querySelectorAll('.del-btn').forEach(btn => btn.addEventListener('click', async e => { e.stopPropagation(); await deleteChallenge(+btn.dataset.index); }));
+        list.querySelectorAll('.challenge-item').forEach(row => row.addEventListener('click', () => openEditor(+row.dataset.index)));
+    }
+
+    // ── Open editor for a challenge ──
+    function openEditor(index) {
+        editingIndex = index;
+        const c = challenges[index];
+        $('editorCard').style.display = '';
+        $('editorTitle').innerHTML = `<i class="fas fa-pen" style="margin-right:0.4rem;color:var(--primary)"></i>Edit Challenge #${c.id}`;
+        $('mediaType').value = c.mediaType || 'image';
+        $('isAI_A').checked = !!c.contentA?.isAI;
+        $('isAI_B').checked = !!c.contentB?.isAI;
+        $('pathA').value = c.contentA?.path || '';
+        $('pathB').value = c.contentB?.path || '';
+        $('urlInputA').value = '';
+        $('urlInputB').value = '';
+        $('explanationEditor').innerHTML = c.explanation || '';
+        $('explanationSource').value = c.explanation || '';
+        sourceMode = false;
+        $('explanationEditor').style.display = '';
+        $('explanationSource').style.display = 'none';
+
+        clearPreview('A');
+        clearPreview('B');
+        showPreviewForPath(c.contentA?.path, 'A', c.mediaType);
+        showPreviewForPath(c.contentB?.path, 'B', c.mediaType);
+
+        $('deleteBtn').style.display = '';
+        $('saveBtn').innerHTML = '<i class="fas fa-check"></i> Update Challenge';
+        $('editorCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        updateFileAccept();
+        renderList();
+    }
+
+    function openNewEditor() {
+        editingIndex = -1;
+        $('editorCard').style.display = '';
+        $('editorTitle').innerHTML = '<i class="fas fa-plus" style="margin-right:0.4rem;color:var(--primary)"></i>New Challenge';
+        $('mediaType').value = 'image';
+        $('isAI_A').checked = false;
+        $('isAI_B').checked = true;
+        $('pathA').value = '';
+        $('pathB').value = '';
+        $('urlInputA').value = '';
+        $('urlInputB').value = '';
+        $('explanationEditor').innerHTML = '';
+        $('explanationSource').value = '';
+        sourceMode = false;
+        $('explanationEditor').style.display = '';
+        $('explanationSource').style.display = 'none';
+        clearPreview('A');
+        clearPreview('B');
+        $('deleteBtn').style.display = 'none';
+        $('saveBtn').innerHTML = '<i class="fas fa-plus"></i> Add Challenge';
+        $('editorCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        updateFileAccept();
+        renderList();
+    }
+
+    // ── Save challenge from editor ──
+    function saveChallenge() {
+        const mediaType = $('mediaType').value;
+        const pathA = $('pathA').value.trim();
+        const pathB = $('pathB').value.trim();
+        const explanation = sourceMode ? $('explanationSource').value : $('explanationEditor').innerHTML;
+
+        if (!pathA || !pathB) { toast('Both option paths are required.', 'error'); return; }
+
+        const obj = {
+            id: editingIndex >= 0 ? challenges[editingIndex].id : (challenges.length > 0 ? Math.max(...challenges.map(c => c.id)) + 1 : 1),
+            mediaType,
+            contentA: { path: pathA, isAI: $('isAI_A').checked },
+            contentB: { path: pathB, isAI: $('isAI_B').checked },
+            explanation
+        };
+
+        if (editingIndex >= 0) {
+            challenges[editingIndex] = obj;
+            toast(`Challenge #${obj.id} updated.`, 'success');
+        } else {
+            challenges.push(obj);
+            toast(`Challenge #${obj.id} added.`, 'success');
+        }
+
+        renderList();
+        editingIndex = challenges.indexOf(obj);
+        renderList();
+    }
+
+    async function deleteChallenge(index) {
+        if (!await confirm(`Delete challenge #${challenges[index].id}?`)) return;
+        challenges.splice(index, 1);
+        if (editingIndex === index) { editingIndex = -1; $('editorCard').style.display = 'none'; }
+        else if (editingIndex > index) editingIndex--;
+        renderList();
+        toast('Challenge deleted.', 'info');
+    }
+
+    // ── File loading ──
+    function loadJSON(text) {
+        try {
+            const data = JSON.parse(text);
+            if (!data.challenges || !Array.isArray(data.challenges)) throw new Error('Missing challenges array');
+            challenges = data.challenges;
+            editingIndex = -1;
+            $('editorCard').style.display = 'none';
+            renderList();
+            toast(`Loaded ${challenges.length} challenges.`, 'success');
+        } catch (err) {
+            toast(`Invalid JSON: ${err.message}`, 'error');
+        }
+    }
+
+    $('loadBtn').addEventListener('click', () => $('fileInput').click());
+    $('fileInput').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => loadJSON(ev.target.result);
+        reader.readAsText(file);
+        e.target.value = '';
+    });
+
+    $('fetchBtn').addEventListener('click', async () => {
+        const url = prompt('Enter the URL of challenges.json:', 'challenges.json');
+        if (!url) return;
+        try {
+            const res = await fetch(url);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const text = await res.text();
+            loadJSON(text);
+        } catch (err) {
+            toast(`Fetch failed: ${err.message}`, 'error');
+        }
+    });
+
+    // ── Export ──
+    $('exportBtn').addEventListener('click', () => {
+        const json = JSON.stringify({ challenges }, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'challenges.json';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast('challenges.json exported.', 'success');
+    });
+
+    // ── Editor controls ──
+    $('addBtn').addEventListener('click', openNewEditor);
+    $('closeEditor').addEventListener('click', () => { $('editorCard').style.display = 'none'; editingIndex = -1; renderList(); });
+    $('saveBtn').addEventListener('click', saveChallenge);
+    $('deleteBtn').addEventListener('click', () => { if (editingIndex >= 0) deleteChallenge(editingIndex); });
+
+    // Enforce exactly one AI flag
+    $('isAI_A').addEventListener('change', () => { $('isAI_B').checked = !$('isAI_A').checked; });
+    $('isAI_B').addEventListener('change', () => { $('isAI_A').checked = !$('isAI_B').checked; });
+
+    // Media type change → update file accept attributes and path prefixes
+    $('mediaType').addEventListener('change', updateFileAccept);
+
+    function updateFileAccept() {
+        const type = $('mediaType').value;
+        const accept = MEDIA_ACCEPT[type] || '';
+        $('filePickA').accept = accept;
+        $('filePickB').accept = accept;
+    }
+
+    // ── Source tabs (Local File / URL) ──
+    document.querySelectorAll('.source-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            const parent = tab.closest('.option-panel-body');
+            parent.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
+            parent.querySelectorAll('.source-content').forEach(c => c.classList.remove('active'));
+            tab.classList.add('active');
+            parent.querySelector(`#src-${tab.dataset.target}`).classList.add('active');
+        });
+    });
+
+    // ── Drag & drop + file pick ──
+    function setupDropzone(suffix) {
+        const dz = $(`dropzone${suffix}`);
+        const pick = $(`filePick${suffix}`);
+        const pathInput = $(`path${suffix}`);
+
+        dz.addEventListener('click', () => pick.click());
+        dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+        dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+        dz.addEventListener('drop', e => {
+            e.preventDefault();
+            dz.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0], suffix);
+        });
+        pick.addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0], suffix); e.target.value = ''; });
+    }
+
+    function handleFile(file, suffix) {
+        const type = $('mediaType').value;
+        const folder = MEDIA_FOLDERS[type] || 'content/';
+        const safeName = file.name.replace(/\s+/g, '_');
+        $(`path${suffix}`).value = folder + safeName;
+        showFilePreview(file, suffix, type);
+        toast(`File "${safeName}" set for Option ${suffix}.`, 'info');
+    }
+
+    function showFilePreview(file, suffix, mediaType) {
+        const container = $(`previewContent${suffix}`);
+        const preview = $(`preview${suffix}`);
+        const nameEl = $(`fileName${suffix}`);
+        container.innerHTML = '';
+        nameEl.innerHTML = '';
+
+        const url = URL.createObjectURL(file);
+
+        if (mediaType === 'image' && file.type.startsWith('image/')) {
+            container.innerHTML = `<img src="${url}" alt="Preview">`;
+        } else if (mediaType === 'video' && file.type.startsWith('video/')) {
+            container.innerHTML = `<video src="${url}" controls style="max-height:220px"></video>`;
+        } else if (mediaType === 'audio' && file.type.startsWith('audio/')) {
+            container.innerHTML = `<audio src="${url}" controls></audio>`;
+        }
+
+        nameEl.innerHTML = `<i class="fas fa-file"></i> ${file.name}`;
+        preview.classList.add('visible');
+    }
+
+    function showPreviewForPath(path, suffix, mediaType) {
+        if (!path) return;
+        const container = $(`previewContent${suffix}`);
+        const preview = $(`preview${suffix}`);
+        const nameEl = $(`fileName${suffix}`);
+        container.innerHTML = '';
+
+        if (mediaType === 'image') {
+            container.innerHTML = `<img src="${path}" alt="Preview" onerror="this.parentElement.innerHTML='<div style=\\'padding:1rem;color:var(--text-muted);text-align:center\\'>Image not found</div>'">`;
+        } else if (mediaType === 'video') {
+            container.innerHTML = `<video src="${path}" controls style="max-height:220px" onerror="this.parentElement.innerHTML='<div style=\\'padding:1rem;color:var(--text-muted);text-align:center\\'>Video not found</div>'"></video>`;
+        } else if (mediaType === 'audio') {
+            container.innerHTML = `<audio src="${path}" controls></audio>`;
+        }
+
+        nameEl.innerHTML = `<i class="fas fa-file"></i> ${path.split('/').pop()}`;
+        preview.classList.add('visible');
+    }
+
+    function clearPreview(suffix) {
+        $(`previewContent${suffix}`).innerHTML = '';
+        $(`fileName${suffix}`).innerHTML = '';
+        $(`preview${suffix}`).classList.remove('visible');
+    }
+
+    $('removeA').addEventListener('click', () => { clearPreview('A'); $('pathA').value = ''; });
+    $('removeB').addEventListener('click', () => { clearPreview('B'); $('pathB').value = ''; });
+
+    setupDropzone('A');
+    setupDropzone('B');
+
+    // ── URL inputs → auto-fill path ──
+    $('urlInputA').addEventListener('change', () => { const v = $('urlInputA').value.trim(); if (v) $('pathA').value = v; });
+    $('urlInputB').addEventListener('change', () => { const v = $('urlInputB').value.trim(); if (v) $('pathB').value = v; });
+
+    // ── Explanation rich-text toolbar ──
+    document.querySelectorAll('.explanation-toolbar button').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const cmd = btn.dataset.cmd;
+            if (cmd === 'bold') document.execCommand('bold');
+            else if (cmd === 'italic') document.execCommand('italic');
+            else if (cmd === 'link') {
+                const url = prompt('Enter URL:');
+                if (url) document.execCommand('createLink', false, url);
+            } else if (cmd === 'br') {
+                document.execCommand('insertHTML', false, '<br>');
+            } else if (cmd === 'source') {
+                sourceMode = !sourceMode;
+                if (sourceMode) {
+                    $('explanationSource').value = $('explanationEditor').innerHTML;
+                    $('explanationEditor').style.display = 'none';
+                    $('explanationSource').style.display = '';
+                    btn.style.color = 'var(--primary)';
+                } else {
+                    $('explanationEditor').innerHTML = $('explanationSource').value;
+                    $('explanationSource').style.display = 'none';
+                    $('explanationEditor').style.display = '';
+                    btn.style.color = '';
+                }
+            }
+        });
+    });
+
+    // ── Auto-load challenges.json on startup ──
+    (async function () {
+        try {
+            const res = await fetch('challenges.json');
+            if (res.ok) { loadJSON(await res.text()); }
+        } catch (_) {}
+    })();
+})();
+</script>
+</body>
+</html>
