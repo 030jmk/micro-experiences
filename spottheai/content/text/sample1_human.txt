@@ -1,0 +1,2 @@
+You kind of just do? AI uses words that most people don't naturally use, they use phrasing and grammar that is often technically correct, but feels off somehow?
+One of the things I have found as we move from ChatGPT 3 > 3.5 > 4, is models are way more neutral/generic... Most people have at least some kind of bias, for ChatGPT, it feels like it is intentionally trying to scrub any kind of bias from its language, even when presenting an objectively biased argument, which leads to some very awkward phrasing.
