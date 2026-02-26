@@ -1,0 +1,3924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Test your ability to distinguish between AI-generated and human-created content across various media types">
+    <title>Spot The AI</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#D04A02">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://appkitcdn.pwc.com/appkit4/cdn/styles/4.10.3/themes/appkit.orange.min.css">
+    <style>
+/**
+ * CSS Variables for Spot The AI application
+ * Mapped to PwC AppKit design tokens (Orange theme)
+ */
+
+:root {
+  /* Primary Colors — AppKit Orange palette */
+  --primary: #D04A02;
+  --primary-dark: #A7452C;
+  --primary-light: #FB7C4D;
+  --primary-lighter: #FDAB8D;
+  --primary-lightest: #FEDACC;
+
+  /* Secondary Colors — AppKit Neutrals */
+  --secondary: #2D2D2D;
+  --secondary-light: #474747;
+  --secondary-lighter: #696969;
+
+  /* Neutral Colors — AppKit Neutral scale */
+  --white: #FFFFFF;
+  --off-white: #F3F3F3;
+  --light-gray: #E8E8E8;
+  --medium-gray: #D1D1D1;
+  --dark-gray: #535353;
+  --black: #252525;
+
+  /* Loading and Placeholder Colors */
+  --shimmer-color: rgba(0, 0, 0, 0.04);
+  --placeholder-bg: #E8E8E8;
+
+  /* Semantic Colors — AppKit Status tokens */
+  --success: #21812D;
+  --success-light: #D3EBD5;
+  --danger: #C52A1A;
+  --danger-light: #F3D4D1;
+  --warning: #FFBF1F;
+  --warning-light: #FFF2D2;
+  --info: #0089EB;
+  --info-light: #B3DCF9;
+
+  /* Background Colors — AppKit Utility tokens (light) */
+  --bg-body: #F3F3F3;
+  --bg-card: #FFFFFF;
+  --bg-modal: #FFFFFF;
+  --bg-input: #FFFFFF;
+
+  /* Text Colors — AppKit Utility tokens (light) */
+  --text-primary: #252525;
+  --text-secondary: #474747;
+  --text-muted: #696969;
+  --text-light: #FFFFFF;
+
+  /* Border Colors — AppKit tokens */
+  --border-color: #D1D1D1;
+  --border-color-focus: var(--primary);
+
+  /* Focus Styles */
+  --focus-ring-color: rgba(208, 74, 2, 0.32);
+  --focus-ring-width: 3px;
+
+  /* Spacing — AppKit spacing scale */
+  --spacing-xs: 0.25rem;  /* 4px — $spacing-2 */
+  --spacing-sm: 0.5rem;   /* 8px — $spacing-3 */
+  --spacing-md: 1rem;     /* 16px — $spacing-5 */
+  --spacing-lg: 1.5rem;   /* 24px — $spacing-7 */
+  --spacing-xl: 3rem;     /* 48px — $spacing-8 */
+
+  /* Border Radius — AppKit border-radius tokens */
+  --border-radius-sm: 0.125rem; /* 2px — $border-radius-1 */
+  --border-radius-md: 0.25rem;  /* 4px — $border-radius-2 */
+  --border-radius-lg: 0.5rem;   /* 8px — $border-radius-3 */
+  --border-radius-pill: 50rem;
+
+  /* Shadows — AppKit elevation shadows */
+  --shadow-sm: rgba(71, 71, 71, 0.24) 0px 0.125rem 0.25rem -0.125rem;
+  --shadow-md: rgba(71, 71, 71, 0.24) 0px 0.25rem 0.5rem -0.125rem;
+  --shadow-lg: rgba(71, 71, 71, 0.24) 0px 0.5rem 1rem -0.125rem;
+
+  /* Transitions */
+  --transition-speed: 0.3s;
+  --transition-timing: ease-in-out;
+
+  /* Media Loading */
+  --loading-animation-duration: 1.5s;
+  --loading-placeholder-opacity: 0.7;
+
+  /* Z-index layers */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+}
+
+/* Dark Theme Variables — AppKit dark-mode token values */
+[data-theme="dark"] {
+  /* Background Colors */
+  --bg-body: #191919;
+  --bg-card: #252525;
+  --bg-modal: #252525;
+  --bg-input: #3B3B3B;
+
+  /* Text Colors */
+  --text-primary: #FFFFFF;
+  --text-secondary: #D1D1D1;
+  --text-muted: #979797;
+
+  /* Neutral overrides */
+  --off-white: #252525;
+  --light-gray: #3B3B3B;
+  --medium-gray: #535353;
+  --dark-gray: #BABABA;
+  --black: #FFFFFF;
+
+  /* Border Colors */
+  --border-color: #696969;
+
+  /* Loading and Placeholder Colors */
+  --shimmer-color: rgba(255, 255, 255, 0.04);
+  --placeholder-bg: #3B3B3B;
+
+  /* Semantic Colors — same hue, adjusted for dark backgrounds */
+  --success: #21812D;
+  --success-light: #1F3B29;
+  --danger: #C52A1A;
+  --danger-light: #3F2425;
+  --warning: #FFBF1F;
+  --warning-light: #4B4226;
+  --info: #4DACF1;
+  --info-light: #003DAB;
+
+  /* Shadows — deeper for dark mode */
+  --shadow-sm: rgba(0, 0, 0, 0.32) 0px 0.125rem 0.25rem -0.125rem;
+  --shadow-md: rgba(0, 0, 0, 0.32) 0px 0.25rem 0.5rem -0.125rem;
+  --shadow-lg: rgba(0, 0, 0, 0.32) 0px 0.5rem 1rem -0.125rem;
+}
+/**
+ * Layout styles for Spot The AI application
+ * Defines the overall layout structure with accessibility in mind
+ */
+
+/* Base layout */
+body {
+  line-height: 1.5;
+  color: var(--text-primary);
+  background-color: var(--bg-body);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Container for content */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-right: auto;
+  margin-left: auto;
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+/* Header styles */
+.header {
+  background-color: var(--white);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: var(--z-index-sticky);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+.header-logo h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 500;
+  color: var(--primary);
+}
+
+/* Navigation styles */
+.nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.nav-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  padding: 0.5rem 0.75rem;
+  border-radius: var(--border-radius-md);
+  transition: color var(--transition-speed) var(--transition-timing),
+              background-color var(--transition-speed) var(--transition-timing);
+}
+
+.nav-link:hover {
+  color: var(--primary);
+  background-color: var(--light-gray);
+}
+
+.nav-link.active {
+  color: var(--primary);
+  font-weight: 500;
+  position: relative;
+}
+
+.nav-link.active::after {
+  content: "";
+  position: absolute;
+  bottom: -0.25rem;
+  left: 0.75rem;
+  right: 0.75rem;
+  height: 2px;
+  background-color: var(--primary);
+  border-radius: 1px;
+}
+
+/* Mobile menu toggle */
+.mobile-menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.5rem;
+}
+
+/* Main content area */
+main {
+  flex: 1;
+  padding-bottom: 2rem;
+}
+
+/* Footer styles */
+footer {
+  background-color: var(--light-gray);
+  color: var(--text-secondary);
+  padding: 1.5rem 0;
+  margin-top: auto;
+}
+
+footer a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+footer a:hover {
+  text-decoration: underline;
+}
+
+/* Grid system */
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  margin-right: -15px;
+  margin-left: -15px;
+}
+
+.col, .col-md-6 {
+  position: relative;
+  width: 100%;
+  padding-right: 15px;
+  padding-left: 15px;
+}
+
+/* Responsive layout */
+@media (max-width: 768px) {
+  .header-container {
+    flex-wrap: wrap;
+  }
+  
+  .nav {
+    display: none;
+    width: 100%;
+    margin-top: 1rem;
+    flex-direction: column;
+  }
+  
+  .nav.show {
+    display: flex;
+  }
+  
+  .mobile-menu-toggle {
+    display: block;
+  }
+  
+  .col-md-6 {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+}
+
+@media (min-width: 769px) {
+  .col-md-6 {
+    flex: 0 0 50%;
+    max-width: 50%;
+  }
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .header {
+  background-color: var(--bg-card);
+  border-bottom-color: var(--border-color);
+}
+
+[data-theme="dark"] .nav-link:hover {
+  background-color: var(--secondary-light);
+}
+
+[data-theme="dark"] footer {
+  background-color: var(--bg-card);
+  border-top: 1px solid var(--border-color);
+}/**
+ * Component styles for Spot The AI application
+ * Defines styles for reusable UI components with accessibility in mind
+ */
+
+/* Buttons with accessible contrast */
+.btn {
+  display: inline-block;
+  font-weight: 500;
+  text-align: center;
+  vertical-align: middle;
+  user-select: none;
+  border: 1px solid transparent;
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  border-radius: var(--border-radius-md);
+  transition: color var(--transition-speed) var(--transition-timing),
+              background-color var(--transition-speed) var(--transition-timing),
+              border-color var(--transition-speed) var(--transition-timing),
+              box-shadow var(--transition-speed) var(--transition-timing);
+}
+
+.btn:focus {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+/* Primary button with high contrast */
+.btn-primary {
+  color: var(--white);
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover {
+  color: var(--white);
+  background-color: var(--primary-dark);
+  border-color: var(--primary-dark);
+}
+
+/* Secondary button with high contrast */
+.btn-secondary {
+  color: var(--white);
+  background-color: var(--secondary);
+  border-color: var(--secondary);
+}
+
+.btn-secondary:hover {
+  color: var(--white);
+  background-color: var(--secondary-light);
+  border-color: var(--secondary-light);
+}
+
+/* Outline button with high contrast */
+.btn-outline {
+  color: var(--primary);
+  background-color: transparent;
+  border-color: var(--primary);
+}
+
+.btn-outline:hover {
+  color: var(--white);
+  background-color: var(--primary);
+  border-color: var(--primary);
+}
+
+/* Cards with accessible contrast */
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  word-wrap: break-word;
+  background-color: var(--bg-card);
+  background-clip: border-box;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.card-header {
+  padding: 1rem;
+  margin-bottom: 0;
+  background-color: var(--off-white);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.card-body {
+  flex: 1 1 auto;
+  padding: 1rem;
+}
+
+.card-title {
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+/* Alerts with accessible contrast */
+.alert {
+  position: relative;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--border-radius-md);
+}
+
+.alert-success {
+  color: var(--success);
+  background-color: var(--success-light);
+  border-color: var(--success);
+}
+
+.alert-danger {
+  color: var(--danger);
+  background-color: var(--danger-light);
+  border-color: var(--danger);
+}
+
+.alert-warning {
+  color: var(--warning);
+  background-color: var(--warning-light);
+  border-color: var(--warning);
+}
+
+.alert-info {
+  color: var(--info);
+  background-color: var(--info-light);
+  border-color: var(--info);
+}
+
+/* Form controls with accessible contrast */
+.form-control {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  color: var(--text-primary);
+  background-color: var(--bg-input);
+  background-clip: padding-box;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  transition: border-color var(--transition-speed) var(--transition-timing),
+              box-shadow var(--transition-speed) var(--transition-timing);
+}
+
+.form-control:focus {
+  color: var(--text-primary);
+  background-color: var(--bg-input);
+  border-color: var(--primary);
+  outline: 0;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+.form-label {
+  margin-bottom: 0.5rem;
+  font-weight: 500; 
+  color: var(--text-primary);
+}
+
+/* Non-color indicators for important states */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  margin-right: 0.5rem;
+}
+
+.status-indicator::before {
+  content: "";
+  display: inline-block;
+  width: 0.75rem;
+  height: 0.75rem;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+}
+
+.status-indicator.correct::before {
+  background-color: var(--success);
+  box-shadow: 0 0 0 2px var(--success-light);
+}
+
+.status-indicator.incorrect::before {
+  background-color: var(--danger);
+  box-shadow: 0 0 0 2px var(--danger-light);
+}
+
+.status-indicator.pending::before {
+  background-color: var(--warning);
+  box-shadow: 0 0 0 2px var(--warning-light);
+}
+
+/* High visibility focus indicators */
+.focus-visible {
+  outline: var(--focus-ring-width) solid var(--primary) !important;
+  outline-offset: 2px !important;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color) !important;
+}
+
+/* Badges with accessible contrast */
+.badge {
+  display: inline-block;
+  padding: 0.25em 0.4em;
+  font-size: 75%;
+  font-weight: 700;
+  line-height: 1.25rem;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: baseline;
+  border-radius: var(--border-radius-pill);
+}
+
+.badge-primary {
+  color: var(--white);
+  background-color: var(--primary);
+}
+
+.badge-secondary {
+  color: var(--white);
+  background-color: var(--secondary);
+}
+
+.badge-success {
+  color: var(--white);
+  background-color: var(--success);
+}
+
+.badge-danger {
+  color: var(--white);
+  background-color: var(--danger);
+}
+
+/* Progress bars with accessible contrast */
+.progress {
+  display: flex;
+  height: 1rem;
+  overflow: hidden;
+  font-size: 0.75rem;  
+  background-color: var(--light-gray);
+  border-radius: var(--border-radius-pill);
+}
+
+.progress-bar {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  color: var(--white);
+  text-align: center;
+  white-space: nowrap;
+  background-color: var(--primary);
+  transition: width var(--transition-speed) var(--transition-timing);
+}
+
+/* Tooltips with accessible contrast */
+.tooltip {
+  position: absolute;
+  z-index: var(--z-index-tooltip);
+  display: block;
+  margin: 0;
+  font-family: inherit;
+  font-style: normal;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: left;
+  text-decoration: none;
+  text-shadow: none;
+  text-transform: none;
+  letter-spacing: normal;
+  word-break: normal;
+  word-spacing: normal;
+  white-space: normal;
+  line-break: auto;
+  font-size: 0.875rem;  
+  word-wrap: break-word;
+  opacity: 0;
+}
+
+.tooltip.show {
+  opacity: 0.9;
+}
+
+.tooltip .tooltip-inner {
+  max-width: 200px;
+  padding: 0.5rem 0.75rem;
+  color: var(--white);
+  text-align: center;
+  background-color: var(--black);
+  border-radius: var(--border-radius-md);
+}
+
+/* Modals with accessible contrast */
+.modal-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  pointer-events: auto;
+  background-color: var(--bg-modal);
+  background-clip: padding-box;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  outline: 0;
+}
+
+.modal-header {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  border-top-left-radius: calc(var(--border-radius-md) - 1px);
+  border-top-right-radius: calc(var(--border-radius-md) - 1px);
+}
+
+.modal-body {
+  position: relative;
+  flex: 1 1 auto;
+  padding: 1rem;
+}
+
+.modal-footer {
+  display: flex;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.75rem;
+  border-top: 1px solid var(--border-color);
+  border-bottom-right-radius: calc(var(--border-radius-md) - 1px);
+  border-bottom-left-radius: calc(var(--border-radius-md) - 1px);
+}/* 
+ * Animation styles for Spot The AI application
+ * Contains keyframes and animation classes
+ */
+
+/* Fade animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+
+    to {
+        opacity: 0;
+    }
+}
+
+.fade-in {
+    animation: fadeIn var(--transition-speed) var(--transition-timing);
+}
+
+.fade-out {
+    animation: fadeOut var(--transition-speed) var(--transition-timing);
+}
+
+/* Enhanced fade animations with transforms for better performance */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeOutUp {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+}
+
+@keyframes fadeOutDown {
+    from {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+}
+
+.fade-in-up {
+    animation: fadeInUp var(--transition-speed) var(--transition-timing);
+}
+
+.fade-in-down {
+    animation: fadeInDown var(--transition-speed) var(--transition-timing);
+}
+
+.fade-out-up {
+    animation: fadeOutUp var(--transition-speed) var(--transition-timing);
+}
+
+.fade-out-down {
+    animation: fadeOutDown var(--transition-speed) var(--transition-timing);
+}
+
+/* Slide animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(100%);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        transform: translateX(-100%);
+    }
+
+    to {
+        transform: translateX(0);
+    }
+}
+
+@keyframes slideOutLeft {
+    from {
+        transform: translateX(0);
+    }
+
+    to {
+        transform: translateX(-100%);
+    }
+}
+
+.slide-in-right {
+    animation: slideInRight var(--transition-speed) var(--transition-timing);
+}
+
+.slide-out-right {
+    animation: slideOutRight var(--transition-speed) var(--transition-timing);
+}
+
+.slide-in-left {
+    animation: slideInLeft var(--transition-speed) var(--transition-timing);
+}
+
+.slide-out-left {
+    animation: slideOutLeft var(--transition-speed) var(--transition-timing);
+}
+
+/* Pulse animation */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}
+
+.pulse {
+    animation: pulse 1.5s infinite;
+}
+
+/* Enhanced pulse animation with opacity */
+@keyframes pulseFade {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.05);
+        opacity: 0.8;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.pulse-fade {
+    animation: pulseFade 2s infinite;
+}
+
+/* Spinner animation */
+@keyframes spinner-border {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Enhanced spinner with fade-in */
+@keyframes spinner-fade-in {
+    0% {
+        opacity: 0;
+        transform: rotate(0deg);
+    }
+    20% {
+        opacity: 1;
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.spinner-fade-in {
+    animation: spinner-fade-in 1s linear infinite;
+}
+
+/* Bounce animation */
+@keyframes bounce {
+    0%,
+    20%,
+    50%,
+    80%,
+    100% {
+        transform: translateY(0);
+    }
+
+    40% {
+        transform: translateY(-30px);
+    }
+
+    60% {
+        transform: translateY(-15px);
+    }
+}
+
+.bounce {
+    animation: bounce 2s infinite;
+}
+
+/* Shake animation */
+@keyframes shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-10px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(10px);
+    }
+}
+
+.shake {
+    animation: shake 0.82s cubic-bezier(.36, .07, .19, .97) both;
+}
+
+/* Progress bar animation */
+@keyframes progressAnimation {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.animated-progress {
+    background: linear-gradient(270deg, var(--primary), var(--primary-light), var(--primary));
+    background-size: 200% 200%;
+    animation: progressAnimation 2s ease infinite;
+}
+
+/* Enhanced progress animation with pulse */
+@keyframes progressPulse {
+    0% {
+        background-position: 0% 50%;
+        box-shadow: 0 0 0 rgba(208, 74, 2, 0.32);
+    }
+
+    50% {
+        background-position: 100% 50%;
+        box-shadow: 0 0 10px rgba(208, 74, 2, 0.48);
+    }
+
+    100% {
+        background-position: 0% 50%;
+        box-shadow: 0 0 0 rgba(208, 74, 2, 0.32);
+    }
+}
+
+.animated-progress-pulse {
+    background: linear-gradient(270deg, var(--primary), var(--primary-light), var(--primary));
+    background-size: 200% 200%;
+    animation: progressPulse 3s ease infinite;
+}
+
+/* Loading dots animation */
+@keyframes loadingDots {
+    0%,
+    20% {
+        content: ".";
+    }
+
+    40% {
+        content: "..";
+    }
+
+    60%,
+    100% {
+        content: "...";
+    }
+}
+
+.loading-dots::after {
+    content: ".";
+    animation: loadingDots 1.5s infinite;
+}
+
+/* Enhanced loading animation */
+@keyframes shimmer {
+    0% {
+        background-position: -200% 0;
+    }
+    100% {
+        background-position: 200% 0;
+    }
+}
+
+.shimmer {
+    background: linear-gradient(90deg, 
+        rgba(255, 255, 255, 0.1) 0%, 
+        rgba(255, 255, 255, 0.2) 50%, 
+        rgba(255, 255, 255, 0.1) 100%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+}
+
+/* Media loading animation */
+@keyframes mediaLoading {
+    0% {
+        opacity: 0.6;
+        transform: scale(0.98);
+    }
+    50% {
+        opacity: 0.8;
+        transform: scale(1);
+    }
+    100% {
+        opacity: 0.6;
+        transform: scale(0.98);
+    }
+}
+
+.media-loading {
+    animation: mediaLoading 1.5s infinite ease-in-out;
+}
+
+/* Feedback animations */
+@keyframes correctAnswer {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(33, 129, 45, 0);
+    }
+    30% {
+        transform: scale(1.05);
+        box-shadow: 0 0 15px rgba(33, 129, 45, 0.7);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(33, 129, 45, 0);
+    }
+}
+
+.correct-answer {
+    animation: correctAnswer 1s ease-out;
+}
+
+@keyframes incorrectAnswer {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    20%, 60% {
+        transform: translateX(-5px);
+    }
+    40%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+.incorrect-answer {
+    animation: incorrectAnswer 0.5s ease-in-out;
+}
+
+/* Button click animation */
+@keyframes buttonClick {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.95);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.button-click {
+    animation: buttonClick 0.3s ease-out;
+}
+
+/* Challenge transition animations */
+@keyframes challengeTransitionOut {
+    0% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+}
+
+@keyframes challengeTransitionIn {
+    0% {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.challenge-transition-out {
+    animation: challengeTransitionOut var(--transition-speed) var(--transition-timing) forwards;
+}
+
+.challenge-transition-in {
+    animation: challengeTransitionIn var(--transition-speed) var(--transition-timing) forwards;
+}
+
+/* Transition classes */
+.transition-all {
+    transition: all var(--transition-speed) var(--transition-timing);
+}
+
+.transition-opacity {
+    transition: opacity var(--transition-speed) var(--transition-timing);
+}
+
+.transition-transform {
+    transition: transform var(--transition-speed) var(--transition-timing);
+}
+
+.transition-colors {
+    transition: color var(--transition-speed) var(--transition-timing),
+        background-color var(--transition-speed) var(--transition-timing),
+        border-color var(--transition-speed) var(--transition-timing);
+}
+
+/* Enhanced transition classes */
+.transition-smooth {
+    transition: all calc(var(--transition-speed) * 1.5) cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.transition-bounce {
+    transition: all var(--transition-speed) cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.transition-delayed {
+    transition-delay: 0.1s;
+}
+
+/* Page transition animations */
+@keyframes pageTransitionIn {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.page-transition-in {
+    animation: pageTransitionIn 0.6s ease-out;
+}
+
+/* Rich text editor animations */
+@keyframes toolbarButtonHover {
+    0% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-2px);
+    }
+    100% {
+        transform: translateY(0);
+    }
+}
+
+.toolbar-button-hover {
+    animation: toolbarButtonHover 0.3s ease-in-out;
+}
+
+/* Media preview animations */
+@keyframes mediaPreviewLoad {
+    0% {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.media-preview-load {
+    animation: mediaPreviewLoad 0.5s ease-out forwards;
+}
+
+/* Form validation animations */
+@keyframes validationShake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    75% {
+        transform: translateX(5px);
+    }
+}
+
+.validation-shake {
+    animation: validationShake 0.4s ease-in-out;
+}
+
+/* Tab switching animation */
+@keyframes tabFadeIn {
+    0% {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tab-fade-in {
+    animation: tabFadeIn 0.3s ease-out forwards;
+}
+
+/* Hint item animations */
+@keyframes hintItemAdd {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.hint-item-add {
+    animation: hintItemAdd 0.4s ease-out forwards;
+}
+
+/* Dropzone animations */
+@keyframes dropzoneActive {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(208, 74, 2, 0.24);
+    }
+    50% {
+        transform: scale(1.02);
+        box-shadow: 0 0 10px rgba(208, 74, 2, 0.32);
+    }
+    100% {
+        transform: scale(1);
+        box-shadow: 0 0 0 rgba(208, 74, 2, 0.24);
+    }
+}
+
+.dropzone-active {
+    animation: dropzoneActive 1.5s infinite ease-in-out;
+}/* 
+ * Responsive styles for Spot The AI application
+ * Contains media queries for different screen sizes
+ */
+
+/* Mobile styles (up to 576px) */
+@media (max-width: 576px) {
+    .header-container {
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    
+    .header-logo {
+        width: 100%;
+        justify-content: center;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .nav {
+        display: none;
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        margin-top: var(--spacing-md);
+    }
+    
+    .nav.show-mobile {
+        display: flex;
+    }
+    
+    .mobile-menu-toggle {
+        display: block;
+        position: absolute;
+        top: var(--spacing-md);
+        right: var(--spacing-md);
+    }
+    
+    .card-deck .card {
+        margin-right: 0;
+        margin-left: 0;
+        margin-bottom: var(--spacing-md);
+    }
+    
+    .challenge-option {
+        margin-bottom: var(--spacing-lg);
+    }
+    
+    .modal-dialog {
+        margin: var(--spacing-sm);
+    }
+    
+    .modal-body {
+        padding: var(--spacing-md);
+    }
+    
+    .btn {
+        padding: var(--spacing-sm) var(--spacing-md);
+    }
+}
+
+/* Tablet styles (577px to 992px) */
+@media (min-width: 577px) and (max-width: 992px) {
+    .header-container {
+        flex-wrap: nowrap;
+    }
+    
+    .nav {
+        gap: var(--spacing-md);
+    }
+    
+    .mobile-menu-toggle {
+        display: none;
+    }
+    
+    .card-columns {
+        column-count: 2;
+    }
+}
+
+/* Desktop styles (993px and above) */
+@media (min-width: 993px) {
+    .header-container {
+        flex-wrap: nowrap;
+    }
+    
+    .nav {
+        gap: var(--spacing-lg);
+    }
+    
+    .mobile-menu-toggle {
+        display: none;
+    }
+    
+    .card-columns {
+        column-count: 3;
+    }
+    
+    .challenge-option:hover {
+        transform: none;
+    }
+}
+
+/* Specific component responsive adjustments */
+
+/* Media cards */
+@media (max-width: 768px) {
+    .media-card-body {
+        min-height: 200px;
+    }
+}
+
+/* Buttons */
+@media (max-width: 576px) {
+    .btn-block-sm {
+        display: block;
+        width: 100%;
+    }
+    
+    .modal-footer {
+        flex-direction: column;
+    }
+    
+    .modal-footer .btn {
+        width: 100%;
+        margin-bottom: var(--spacing-sm);
+    }
+}
+
+/* Challenge layout */
+@media (max-width: 768px) {
+    .challenge-tip {
+        flex-direction: column;
+    }
+    
+    .challenge-tip-icon {
+        margin-bottom: var(--spacing-xs);
+    }
+}
+
+/* Accessibility improvements for touch devices */
+@media (hover: none) {
+    .btn::after {
+        display: none;
+    }
+    
+    .nav-link::after {
+        height: 2px;
+        opacity: 0.5;
+        width: 100%;
+    }
+    
+    .nav-link.active::after {
+        opacity: 1;
+    }
+    
+    .card:hover,
+    .media-card:hover,
+    .challenge-option:hover {
+        transform: none;
+    }
+}
+
+/* Print styles */
+@media print {
+    .header,
+    .footer,
+    .btn,
+    .modal,
+    .mobile-menu-toggle {
+        display: none !important;
+    }
+    
+    .container {
+        width: 100%;
+        max-width: 100%;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .card,
+    .media-card {
+        break-inside: avoid;
+        border: 1px solid #000;
+    }
+    
+    body {
+        background: none;
+        color: #000;
+    }
+    
+    a {
+        text-decoration: underline;
+        color: #000;
+    }
+}/* 
+ * Media Comparison Layout Styles for Spot The AI application
+ * Contains specialized styles for comparing different media types
+ */
+
+/* Base media comparison container */
+.media-comparison-container {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Media comparison responsive layout */
+@media (min-width: 768px) {
+  .media-comparison-container {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Media comparison card - base styles for all media types */
+.media-comparison-card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--border-radius-md);
+  border: 2px solid var(--border-color);
+  background-color: var(--bg-card);
+  overflow: hidden;
+  height: 100%;
+  transition: transform var(--transition-speed) var(--transition-timing),
+              box-shadow var(--transition-speed) var(--transition-timing);
+}
+
+.media-comparison-card:hover {
+  box-shadow: var(--shadow-md);
+}
+
+/* Media comparison card header */
+.media-comparison-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--secondary);
+  color: var(--white);
+}
+
+.media-comparison-title {
+  font-weight: 500;
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+/* Media comparison card body - container for media content */
+.media-comparison-body {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-md);
+  position: relative;
+  min-height: 200px;
+}
+
+@media (min-width: 768px) {
+  .media-comparison-body {
+    min-height: 300px;
+  }
+}
+
+/* Media comparison card footer */
+.media-comparison-footer {
+  padding: var(--spacing-sm) var(--spacing-md);
+  background-color: var(--off-white);
+  border-top: 1px solid var(--border-color);
+}
+
+/* Media comparison action button */
+.media-comparison-action {
+  width: 100%;
+  margin-bottom: var(--spacing-md);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-weight: 500;
+  transition: all var(--transition-speed) cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.media-comparison-action:hover {
+  transform: translateY(-2px);
+}
+
+.media-comparison-action:active {
+  transform: translateY(0);
+}
+
+/* Media type specific styles */
+
+/* Text media type */
+.media-comparison-text {
+  white-space: pre-wrap;
+  overflow-y: auto;
+  max-height: 450px;
+  padding: var(--spacing-sm);
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* Image media type */
+.media-comparison-image {
+  max-height: 450px;
+  width: 100%;
+  object-fit: contain;
+}
+
+/* Audio media type */
+.media-comparison-audio {
+  width: 100%;
+}
+
+.media-comparison-audio-container {
+  width: 100%;
+  padding: var(--spacing-md) 0;
+}
+
+/* Video media type */
+.media-comparison-video {
+  max-height: 450px;
+  width: 100%;
+  object-fit: contain;
+}
+
+/* Loading states */
+.media-comparison-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-color: var(--bg-card);
+  z-index: 1;
+}
+
+/* Accessibility enhancements */
+.media-comparison-card:focus-within {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+/* Media comparison card states */
+.media-comparison-card.correct-answer {
+  border-color: var(--success);
+}
+
+.media-comparison-card.incorrect-answer {
+  border-color: var(--danger);
+}
+
+/* Media comparison card with focus indicator */
+.media-comparison-card:focus-within .media-comparison-header {
+  background-color: var(--primary);
+}
+
+/* Responsive adjustments for different screen sizes */
+@media (max-width: 576px) {
+  .media-comparison-body {
+    min-height: 150px;
+  }
+  
+  .media-comparison-text {
+    max-height: 300px;
+    font-size: 0.875rem;
+  }
+  
+  .media-comparison-image,
+  .media-comparison-video {
+    max-height: 300px;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .media-comparison-card {
+    border-width: 3px;
+  }
+  
+  .media-comparison-header {
+    background-color: black;
+    color: white;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .media-comparison-card {
+    transition: none;
+  }
+  
+  .media-comparison-card:hover {
+    transform: none;
+  }
+  
+  .media-comparison-action:hover {
+    transform: none;
+  }
+}/**
+ * Feedback System Styles
+ * Styles for displaying feedback to users with accessibility in mind
+ */
+
+/* Feedback panel */
+.feedback-panel {
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+
+/* Feedback header */
+.feedback-header {
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.feedback-header-correct {
+  background-color: var(--success-light);
+  color: var(--success);
+  border-bottom: 2px solid var(--success);
+}
+
+.feedback-header-incorrect {
+  background-color: var(--warning-light);
+  color: var(--warning);
+  border-bottom: 2px solid var(--warning);
+}
+
+.feedback-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+}
+
+.feedback-icon {
+  margin-right: 0.5rem;
+  font-size: 1.5rem;
+}
+
+/* Feedback body */
+.feedback-body {
+  padding: 1rem;
+}
+
+/* Result section */
+.feedback-result {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  border-radius: var(--border-radius-md);
+}
+
+.feedback-result-correct {
+  background-color: var(--success-light);
+  border-left: 4px solid var(--success);
+}
+
+.feedback-result-incorrect {
+  background-color: var(--warning-light);
+  border-left: 4px solid var(--warning);
+}
+
+.feedback-result-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.feedback-result-icon-correct {
+  background-color: var(--success);
+  color: var(--white);
+}
+
+.feedback-result-icon-incorrect {
+  background-color: var(--warning);
+  color: var(--white);
+}
+
+.feedback-result-text h5 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.feedback-result-text p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+/* Explanation section */
+.feedback-explanation {
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+}
+
+.feedback-explanation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--off-white);
+  cursor: pointer;
+  border-radius: var(--border-radius-md);
+}
+
+.feedback-explanation-header h5 {
+  margin: 0;
+  color: var(--text-primary);
+}
+
+.feedback-explanation-toggle {
+  transition: transform 0.3s ease;
+}
+
+.feedback-explanation-toggle.expanded {
+  transform: rotate(180deg);
+}
+
+.feedback-explanation-content {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+
+.feedback-explanation-content.expanded {
+  max-height: 500px;
+  padding: 1rem;
+  border-top: 1px solid var(--border-color);
+}
+
+/* Educational content */
+.feedback-educational {
+  margin-top: 1.5rem;
+}
+
+.feedback-educational h5 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.feedback-educational-icon {
+  margin-right: 0.5rem;
+}
+
+/* Tips */
+.feedback-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.feedback-tip {
+  display: flex;
+  background-color: var(--off-white);
+  border-radius: var(--border-radius-md);
+  padding: 1rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.feedback-tip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.feedback-tip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background-color: var(--info-light);
+  color: var(--info);
+  border-radius: 50%;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.feedback-tip-content h6 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.feedback-tip-content p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+/* Hint panel */
+.feedback-hint {
+  display: flex;
+  align-items: flex-start;
+  background-color: var(--info-light);
+  border-left: 4px solid var(--info);
+  border-radius: var(--border-radius-md);
+  padding: 1rem;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.feedback-hint-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background-color: var(--info);
+  color: var(--white);
+  border-radius: 50%;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.feedback-hint-content h6 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.feedback-hint-content p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.feedback-hint-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+}
+
+/* Reference panel */
+.reference-panel {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 350px;
+  max-width: 90vw;
+  background-color: var(--bg-card);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: var(--z-index-fixed);
+}
+
+.reference-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background-color: var(--primary);
+  color: var(--white);
+  border-top-left-radius: var(--border-radius-md);
+  border-top-right-radius: var(--border-radius-md);
+}
+
+.reference-header h5 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 500;
+}
+
+.reference-close {
+  background: none;
+  border: none;
+  color: var(--white);
+  cursor: pointer;
+  padding: 0.25rem;
+  font-size: 1rem;
+}
+
+.reference-body {
+  padding: 1rem;
+}
+
+.reference-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.reference-tip {
+  display: flex;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.reference-tip.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reference-tip-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  background-color: var(--info-light);
+  color: var(--info);
+  border-radius: 50%;
+  margin-right: 1rem;
+  flex-shrink: 0;
+}
+
+.reference-tip-content h6 {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+}
+
+.reference-tip-content p {
+  margin: 0;
+  color: var(--text-secondary);
+}
+
+.reference-footer {
+  text-align: center;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border-color);
+}
+
+.reference-link {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.reference-link:hover {
+  text-decoration: underline;
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.3s ease forwards;
+}
+
+.fade-out {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .feedback-explanation-header {
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .feedback-tip {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+}
+
+/* High contrast mode */
+@media (forced-colors: active) {
+  .feedback-result-icon-correct,
+  .feedback-result-icon-incorrect,
+  .feedback-hint-icon,
+  .reference-tip-icon {
+    forced-color-adjust: none;
+  }
+  
+  .feedback-result-correct {
+    border-left-color: Highlight;
+  }
+  
+  .feedback-result-incorrect {
+    border-left-color: GrayText;
+  }
+  
+  .feedback-hint {
+    border-left-color: Highlight;
+  }
+}/**
+ * Progress Tracker Styles
+ * Styles for tracking and visualizing user progress with accessibility in mind
+ */
+
+/* Progress container */
+.progress-container {
+  margin-bottom: 1.5rem;
+}
+
+/* Progress text */
+.progress-text {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+/* Progress bar */
+.progress {
+  height: 0.75rem;
+  background-color: var(--light-gray);
+  border-radius: var(--border-radius-pill);
+  overflow: hidden;
+  margin-bottom: 0.75rem;
+}
+
+.progress-bar {
+  background-color: var(--primary);
+  transition: width 0.5s ease;
+}
+
+/* Animated progress pulse */
+.animated-progress-pulse {
+  animation: progress-pulse 2s infinite;
+}
+
+@keyframes progress-pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Challenge indicators */
+.challenge-indicators {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.challenge-indicator {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  background-color: var(--light-gray);
+  border: 2px solid var(--medium-gray);
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* Challenge indicator states with non-color indicators */
+.challenge-indicator.current {
+  background-color: var(--primary);
+  border-color: var(--primary);
+  transform: scale(1.2);
+  box-shadow: 0 0 0 2px var(--focus-ring-color);
+}
+
+.challenge-indicator.completed {
+  background-color: var(--medium-gray);
+  border-color: var(--medium-gray);
+}
+
+.challenge-indicator.correct {
+  background-color: var(--success);
+  border-color: var(--success);
+}
+
+.challenge-indicator.correct::after {
+  content: "✓";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--white);
+  font-size: 0.6rem;
+  font-weight: bold;
+}
+
+.challenge-indicator.incorrect {
+  background-color: var(--danger);
+  border-color: var(--danger);
+}
+
+.challenge-indicator.incorrect::after {
+  content: "✕";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--white);
+  font-size: 0.6rem;
+  font-weight: bold;
+}
+
+/* Score display */
+.score-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: var(--off-white);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.score-label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.score-value {
+  font-size: 1.25rem;
+  font-weight: 700; 
+  color: var(--primary);
+  transition: transform 0.3s ease, color 0.3s ease;
+}
+
+/* Score change animation */
+.score-value.score-change {
+  transform: scale(1.3);
+  color: var(--success);
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .score-display {
+  background-color: var(--bg-card);
+}
+
+[data-theme="dark"] .progress {
+  background-color: var(--secondary-light);
+}
+
+/* High contrast mode */
+@media (forced-colors: active) {
+  .progress-bar {
+    background-color: Highlight;
+  }
+  
+  .challenge-indicator.current {
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+  
+  .challenge-indicator.correct {
+    background-color: Highlight;
+    border-color: Highlight;
+  }
+  
+  .challenge-indicator.incorrect {
+    background-color: GrayText;
+    border-color: GrayText;
+  }
+}/**
+ * Keyboard Navigation Styles
+ * Styles for keyboard navigation and accessibility features
+ */
+
+/* Keyboard shortcut badge */
+.keyboard-shortcut {
+  display: inline-block;
+  background-color: var(--off-white);
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius-sm);
+  padding: 0.125rem 0.375rem;
+  margin-left: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  box-shadow: var(--shadow-sm);
+  vertical-align: middle;
+}
+
+/* Keyboard shortcuts panel */
+.keyboard-shortcuts-panel {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
+  padding: 1rem;
+  z-index: var(--z-index-dropdown);
+  max-width: 350px;
+  transform: translateY(100%);
+  opacity: 0;
+  transition: transform var(--transition-speed) var(--transition-timing),
+              opacity var(--transition-speed) var(--transition-timing);
+}
+
+.keyboard-shortcuts-panel.visible {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.keyboard-shortcuts-panel h5 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.keyboard-shortcuts-panel .close-btn {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--text-muted);
+  padding: 0;
+}
+
+.keyboard-shortcuts-list {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+
+.keyboard-shortcuts-list li {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--light-gray);
+}
+
+.keyboard-shortcuts-list li:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.keyboard-shortcuts-list .key {
+  background-color: var(--off-white);
+  border: 1px solid var(--medium-gray);
+  border-radius: var(--border-radius-sm);
+  padding: 0.125rem 0.375rem;
+  font-family: monospace;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Toggle button for keyboard shortcuts panel */
+.keyboard-shortcuts-toggle {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  background-color: var(--primary);
+  color: var(--white);
+  border: none;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+  z-index: 1001;
+  transition: background-color var(--transition-speed) var(--transition-timing);
+}
+
+.keyboard-shortcuts-toggle:hover {
+  background-color: var(--primary-dark);
+}
+
+.keyboard-shortcuts-toggle:focus {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color);
+}
+
+/* Focus styles for keyboard navigation */
+.keyboard-navigation :focus {
+  outline: var(--focus-ring-width) solid var(--primary) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color) !important;
+}
+
+/* Skip to content link */
+.skip-to-content {
+  position: absolute;
+  top: -2.5rem;
+  left: 0;
+  background: var(--primary);
+  color: var(--white);
+  padding: 0.5rem 1rem;
+  z-index: var(--z-index-modal);
+  transition: top var(--transition-speed) var(--transition-timing);
+  text-decoration: none;
+}
+
+.skip-to-content:focus {
+  top: 0;
+  outline: none;
+}
+/**
+ * Utility CSS classes for Spot The AI application
+ */
+
+/* Focus styles for keyboard navigation */
+.keyboard-navigation :focus {
+  outline: var(--focus-ring-width) solid var(--primary) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color) !important;
+}
+
+.keyboard-navigation .btn:focus,
+.keyboard-navigation button:focus {
+  outline: var(--focus-ring-width) solid var(--primary) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 var(--focus-ring-width) var(--focus-ring-color) !important;
+}
+
+/* Skip to content link - hidden by default, visible on focus */
+.skip-to-content {
+  position: absolute;
+  top: -2.5rem;
+  left: 0;
+  background: var(--primary);
+  color: var(--white);
+  padding: 0.5rem 1rem;
+  z-index: var(--z-index-modal);
+  transition: top var(--transition-speed) var(--transition-timing);
+  text-decoration: none;
+}
+
+.skip-to-content:focus {
+  top: 0;
+  outline: none;
+}
+
+/* Visually hidden elements (accessible to screen readers) */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+/* Utility classes for spacing — aligned to AppKit spacing scale */
+.mt-1 { margin-top: 0.125rem !important; }
+.mt-2 { margin-top: 0.25rem !important; }
+.mt-3 { margin-top: 0.5rem !important; }
+.mt-4 { margin-top: 1rem !important; }
+.mt-5 { margin-top: 3rem !important; }
+
+.mb-1 { margin-bottom: 0.125rem !important; }
+.mb-2 { margin-bottom: 0.25rem !important; }
+.mb-3 { margin-bottom: 0.5rem !important; }
+.mb-4 { margin-bottom: 1rem !important; }
+.mb-5 { margin-bottom: 3rem !important; }
+
+.ml-1 { margin-left: 0.125rem !important; }
+.ml-2 { margin-left: 0.25rem !important; }
+.ml-3 { margin-left: 0.5rem !important; }
+.ml-4 { margin-left: 1rem !important; }
+.ml-5 { margin-left: 3rem !important; }
+
+.mr-1 { margin-right: 0.125rem !important; }
+.mr-2 { margin-right: 0.25rem !important; }
+.mr-3 { margin-right: 0.5rem !important; }
+.mr-4 { margin-right: 1rem !important; }
+.mr-5 { margin-right: 3rem !important; }
+
+.p-1 { padding: 0.125rem !important; }
+.p-2 { padding: 0.25rem !important; }
+.p-3 { padding: 0.5rem !important; }
+.p-4 { padding: 1rem !important; }
+.p-5 { padding: 3rem !important; }
+
+/* Utility classes for text alignment */
+.text-center { text-align: center !important; }
+.text-left { text-align: left !important; }
+.text-right { text-align: right !important; }
+
+/* Utility classes for display */
+.d-none { display: none !important; }
+.d-block { display: block !important; }
+.d-flex { display: flex !important; }
+.d-inline { display: inline !important; }
+.d-inline-block { display: inline-block !important; }
+
+/* Flex utilities */
+.flex-wrap { flex-wrap: wrap !important; }
+.justify-content-center { justify-content: center !important; }
+.justify-content-between { justify-content: space-between !important; }
+.justify-content-around { justify-content: space-around !important; }
+.align-items-center { align-items: center !important; }
+.align-items-start { align-items: flex-start !important; }
+.align-items-end { align-items: flex-end !important; }
+
+/* Gap utilities — aligned to AppKit spacing scale */
+.gap-1 { gap: 0.125rem !important; }
+.gap-2 { gap: 0.25rem !important; }
+.gap-3 { gap: 0.5rem !important; }
+.gap-4 { gap: 1rem !important; }
+.gap-5 { gap: 3rem !important; }
+/* Import/Export Section Styles */
+.import-export-body {
+  padding: 1.25rem;
+  transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out;
+  max-height: 2000px;
+  opacity: 1;
+  overflow: hidden;
+}
+
+.import-export-body.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.import-export-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.import-export-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.section-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+}
+
+.export-controls,
+.import-controls,
+.batch-import-controls,
+.backup-controls {
+  padding: 0.5rem;
+  background-color: var(--off-white);
+  border-radius: var(--border-radius-md);
+}
+
+/* Loading Indicator */
+.loading-indicator {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(45, 45, 45, 0.32);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.loading-spinner {
+  width: 3rem;
+  height: 3rem;
+  border: 4px solid rgba(255, 255, 255, 0.24);
+  border-radius: 50%;
+  border-top-color: var(--white);
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+.loading-message {
+  color: var(--white);
+  font-size: 1rem;
+  text-align: center;
+  max-width: 80%;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Alert Styles */
+.alert-container {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  max-width: 400px;
+  z-index: 9999;
+}
+
+.alert {
+  padding: 1rem;
+  margin-bottom: 0.75rem;
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-md);
+  animation: slideIn 0.3s ease-out forwards;
+  display: flex;
+  align-items: flex-start;
+}
+
+.alert.alert-success {
+  background-color: var(--success-light);
+  color: var(--success);
+  border-left: 4px solid var(--success);
+}
+
+.alert.alert-warning {
+  background-color: var(--warning-light);
+  color: var(--secondary);
+  border-left: 4px solid var(--warning);
+}
+
+.alert.alert-error {
+  background-color: var(--danger-light);
+  color: var(--danger);
+  border-left: 4px solid var(--danger);
+}
+
+.alert-content {
+  flex-grow: 1;
+}
+
+.alert-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  padding: 0 0 0 0.75rem;
+  cursor: pointer;
+  opacity: 0.48;
+  transition: opacity var(--transition-speed) var(--transition-timing);
+}
+
+.alert-close:hover {
+  opacity: 1;
+}
+
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOut {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+/* Explanation rich text */
+#modalContent a {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+#modalContent a:hover {
+  color: var(--primary-dark);
+}
+
+/* Splash screen */
+.splash {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-body);
+  text-align: center;
+  padding: 2rem;
+  cursor: pointer;
+  transition: opacity 0.4s ease, visibility 0.4s ease;
+}
+.splash.hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.splash h2 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--primary);
+  margin-bottom: 1rem;
+}
+.splash p {
+  font-size: 1.125rem;
+  color: var(--text-secondary);
+  max-width: 520px;
+  line-height: 1.7;
+  margin-bottom: 2.5rem;
+}
+.splash .splash-cta {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  animation: pulse 2s infinite;
+}
+
+/* ── Connectivity Toast ── */
+.connectivity-toast {
+  position: fixed;
+  bottom: 1.25rem;
+  left: 50%;
+  transform: translateX(-50%) translateY(4rem);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--border-radius-pill);
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  z-index: 2000;
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transition: transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.35s;
+  pointer-events: none;
+}
+.connectivity-toast.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+.connectivity-toast.offline {
+  background: var(--warning-light);
+  color: #7a6200;
+  border: 1px solid var(--warning);
+}
+.connectivity-toast.online {
+  background: var(--success-light);
+  color: var(--success);
+  border: 1px solid var(--success);
+}
+
+/* ── Settings Panel ── */
+.settings-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  z-index: 1200;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s, visibility 0.25s;
+}
+.settings-overlay.open { opacity: 1; visibility: visible; }
+
+.settings-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 340px;
+  max-width: 92vw;
+  height: 100%;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lg);
+  z-index: 1201;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(0.4,0,0.2,1);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.settings-overlay.open .settings-panel { transform: translateX(0); }
+
+.settings-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.15rem;
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+.settings-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.settings-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.35rem;
+  border-radius: var(--border-radius-md);
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.settings-close:hover { background: var(--light-gray); }
+
+.settings-body { padding: 1.15rem; flex: 1; }
+
+.settings-section {
+  margin-bottom: 1.5rem;
+}
+.settings-section-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 0.65rem;
+}
+
+/* Toggle switch */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 44px;
+}
+.toggle-row .toggle-label { font-size: 0.95rem; color: var(--text-primary); }
+
+.toggle-switch {
+  position: relative;
+  width: 48px;
+  height: 26px;
+  flex-shrink: 0;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.toggle-track {
+  position: absolute;
+  inset: 0;
+  background: var(--medium-gray);
+  border-radius: 13px;
+  cursor: pointer;
+  transition: background 0.25s;
+}
+.toggle-track::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  background: var(--white);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  transition: transform 0.25s;
+}
+.toggle-switch input:checked + .toggle-track { background: var(--primary); }
+.toggle-switch input:checked + .toggle-track::after { transform: translateX(22px); }
+
+/* Media type pills */
+.media-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.media-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--border-radius-pill);
+  border: 1.5px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  min-height: 44px;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.media-pill:hover { border-color: var(--primary-light); }
+.media-pill.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: var(--white);
+}
+.media-pill i { font-size: 0.8rem; }
+
+/* Settings buttons */
+.settings-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.65rem 1rem;
+  border-radius: var(--border-radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  min-height: 48px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.settings-btn:hover { background: var(--off-white); border-color: var(--primary-light); }
+.settings-btn + .settings-btn { margin-top: 0.5rem; }
+.settings-btn i { color: var(--primary); }
+.settings-btn.primary-btn { background: var(--primary); color: var(--white); border-color: var(--primary); }
+.settings-btn.primary-btn:hover { background: var(--primary-dark); }
+.settings-btn.primary-btn i { color: var(--white); }
+
+.settings-file-input { display: none; }
+
+.settings-current-source {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.settings-current-source i { font-size: 0.7rem; }
+    </style>
+</head>
+<body>
+    <!-- Skip to content link for keyboard users -->
+    <a href="#main-content" class="skip-to-content">Skip to content</a>
+    
+    <!-- Splash screen -->
+    <div class="splash" id="splash" role="button" tabindex="0" aria-label="Click to start the challenge">
+        <h2>AI Content Challenge</h2>
+        <p>Can you spot the AI-generated content? Test your skills by identifying which option was created by artificial intelligence.</p>
+        <span class="splash-cta">Click anywhere to start</span>
+    </div>
+
+    <!-- Header -->
+    <header class="header" role="banner">
+        <div class="container header-container">
+            <div class="header-logo">
+                <h1 id="logoTitle">Spot The AI</h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- Settings panel (hidden, triggered by long-press on logo) -->
+    <div class="settings-overlay" id="settingsOverlay">
+        <div class="settings-panel" id="settingsPanel">
+            <div class="settings-header">
+                <h3><i class="fas fa-cog" style="margin-right:0.4rem;color:var(--primary)"></i>Settings</h3>
+                <button class="settings-close" id="settingsClose" aria-label="Close settings"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="settings-body">
+                <!-- Dark mode -->
+                <div class="settings-section">
+                    <div class="settings-section-title">Appearance</div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Dark Mode</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="darkModeToggle">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Media type filter -->
+                <div class="settings-section">
+                    <div class="settings-section-title">Media Types</div>
+                    <div class="media-pills" id="mediaTypePills">
+                        <button class="media-pill active" data-type="text"><i class="fas fa-file-alt"></i> Text</button>
+                        <button class="media-pill active" data-type="image"><i class="fas fa-image"></i> Image</button>
+                        <button class="media-pill active" data-type="audio"><i class="fas fa-headphones"></i> Audio</button>
+                        <button class="media-pill active" data-type="video"><i class="fas fa-video"></i> Video</button>
+                    </div>
+                </div>
+
+                <!-- Challenge data -->
+                <div class="settings-section">
+                    <div class="settings-section-title">Challenge Data</div>
+                    <button class="settings-btn" id="settingsLoadJson">
+                        <i class="fas fa-folder-open"></i> Load Custom JSON
+                    </button>
+                    <input type="file" accept=".json" class="settings-file-input" id="settingsFileInput">
+                    <button class="settings-btn" id="settingsDownloadJson">
+                        <i class="fas fa-download"></i> Download Current JSON
+                    </button>
+                    <button class="settings-btn" id="settingsResetJson">
+                        <i class="fas fa-undo"></i> Reset to Default
+                    </button>
+                    <div class="settings-current-source" id="settingsSource">
+                        <i class="fas fa-info-circle"></i> Source: challenges.json (default)
+                    </div>
+                </div>
+
+                <!-- Tools -->
+                <div class="settings-section">
+                    <div class="settings-section-title">Tools</div>
+                    <a href="challengeEditor.html" class="settings-btn" id="settingsOpenEditor">
+                        <i class="fas fa-pen-to-square"></i> Challenge Editor
+                    </a>
+                </div>
+
+                <!-- Apply & restart -->
+                <div class="settings-section">
+                    <button class="settings-btn primary-btn" id="settingsApply">
+                        <i class="fas fa-play"></i> Apply &amp; Restart
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Connectivity toast -->
+    <div class="connectivity-toast" id="connectivityToast" aria-live="polite"></div>
+
+    <main id="main-content" class="container mt-5" role="main" style="display:none;">
+        <!-- Progress Bar -->
+        <section class="mb-4" id="progress-section" style="display: none;" aria-labelledby="progress-heading">
+            <h3 id="progress-heading" class="visually-hidden">Challenge Progress</h3>
+            <div class="progress-container">
+                <div class="progress-text">
+                    <span>Progress</span>
+                    <span id="progressText" aria-live="polite">0 / 0</span>
+                </div>
+                <div class="progress">
+                    <div id="progressBar" class="progress-bar" role="progressbar" aria-label="Game progress" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" style="width: 0%"></div>
+                </div>
+                <!-- Challenge indicators will be added here dynamically -->
+            </div>
+        </section>
+
+        <!-- Main Content Area -->
+        <section id="challenge-container" class="mb-4" aria-live="polite"></section>
+
+        <!-- Modal for Results -->
+        <div class="modal fade" id="resultModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalTitle">Result</h5>
+                    </div>
+                    <div class="modal-body">
+                        <div id="modalContent" aria-live="polite"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" id="nextChallengeBtn">Next Challenge</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- End Game Modal -->
+        <div class="modal fade" id="endModal" tabindex="-1" aria-labelledby="endModalTitle" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-body text-center" style="padding:2.5rem 2rem;">
+                        <div id="end-icon" style="font-size:3rem;margin-bottom:1rem;" aria-hidden="true"></div>
+                        <h4 class="modal-title" id="endModalTitle" style="margin-bottom:0.5rem;">Challenge Complete!</h4>
+                        <div id="final-score" style="font-size:2.5rem;font-weight:700;color:var(--primary);margin:1rem 0;" aria-live="polite">0 / 0</div>
+                        <div id="score-message" style="margin-bottom:1.5rem;"></div>
+                        <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
+                            <button type="button" class="btn btn-primary play-again-btn">
+                                <i class="fas fa-redo me-2" aria-hidden="true"></i>Play Again
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+
+        class FeedbackSystem {
+            constructor() {
+                this.modalContent = document.getElementById('modalContent');
+                this.modalTitle = document.getElementById('modalTitle');
+                this.nextBtn = document.getElementById('nextChallengeBtn');
+                this.resultModal = document.getElementById('resultModal');
+            }
+            showResult(isCorrect, challenge, isLastChallenge) {
+                if (!this.modalContent || !challenge) return;
+                this.modalTitle.textContent = isCorrect ? 'Correct!' : 'Not Quite!';
+                this.modalTitle.className = isCorrect
+                    ? 'modal-title text-success'
+                    : 'modal-title text-warning';
+                const correctOption = challenge.contentA.isAI ? 'A' : 'B';
+                this.modalContent.innerHTML = `
+                    <div class="feedback-result ${isCorrect ? 'feedback-result-correct' : 'feedback-result-incorrect'}">
+                        <div class="feedback-result-icon ${isCorrect ? 'feedback-result-icon-correct' : 'feedback-result-icon-incorrect'}" aria-hidden="true">
+                            <i class="fas ${isCorrect ? 'fa-check' : 'fa-times'}"></i>
+                        </div>
+                        <div class="feedback-result-text">
+                            <h5>${isCorrect ? 'You correctly identified the AI-generated content!' : 'The AI-generated content was Option ' + correctOption}</h5>
+                        </div>
+                    </div>
+                    <div style="margin-top:1rem;color:var(--text-secondary);line-height:1.6">${challenge.explanation}</div>
+                `;
+                this.modalContent.querySelectorAll('a[target="_blank"]').forEach(a => a.setAttribute('rel', 'noopener noreferrer'));
+                this.nextBtn.innerHTML = isLastChallenge
+                    ? '<i class="fas fa-trophy me-2"></i>See Final Score'
+                    : '<i class="fas fa-arrow-right me-2"></i>Next Challenge';
+                const modal = new bootstrap.Modal(this.resultModal);
+                modal.show();
+            }
+        }
+        window.FeedbackSystem = FeedbackSystem;
+
+        // Game state
+        let currentChallengeIndex = 0;
+        let score = 0;
+        let challenges = [];
+        let currentChallenge = null;
+        let isAnswering = false;
+        let isTransitioning = false;
+
+        // Settings state
+        let customChallengesData = null;
+        let activeMediaTypes = ['text', 'image', 'audio', 'video'];
+        
+        // Constants
+        const EXCELLENT_THRESHOLD = 80;
+        const GOOD_THRESHOLD = 60;
+        const TRANSITION_DURATION = 300;
+
+        // Initialize game
+        async function init() {
+            try {
+                document.body.classList.add('page-transition-in');
+                
+                if (customChallengesData) {
+                    challenges = JSON.parse(JSON.stringify(customChallengesData));
+                } else {
+                    const response = await fetch('challenges.json');
+                    if (!response.ok) throw new Error('Failed to load challenges.json');
+                    const data = await response.json();
+                    challenges = data.challenges;
+                }
+
+                // Filter by active media types (synced from URL params and settings panel)
+                challenges = challenges.filter(c => activeMediaTypes.includes(c.mediaType));
+
+                if (challenges.length === 0) {
+                    document.getElementById('progress-section').style.display = 'none';
+                    document.getElementById('challenge-container').innerHTML =
+                        '<div class="alert alert-warning fade-in" style="text-align:center;padding:2rem">' +
+                        '<i class="fas fa-filter" style="font-size:1.5rem;margin-bottom:0.5rem;display:block"></i>' +
+                        '<strong>No challenges match your filters.</strong><br>' +
+                        'Open settings to enable more media types.</div>';
+                    return;
+                }
+
+                // Shuffle the challenges array
+                for (let i = challenges.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [challenges[i], challenges[j]] = [challenges[j], challenges[i]];
+                }
+
+                // Randomize left/right positions for each challenge
+                challenges.forEach(challenge => {
+                    if (Math.random() > 0.5) {
+                        // Swap A and B
+                        const temp = challenge.contentA;
+                        challenge.contentA = challenge.contentB;
+                        challenge.contentB = temp;
+                    }
+                });
+                
+                // Add transition to progress bar
+                const progressBar = document.getElementById('progressBar');
+                progressBar.classList.add('animated-progress-pulse');
+                
+                // Show progress and score sections with animation
+                const progressSection = document.getElementById('progress-section');
+                progressSection.style.display = 'block';
+                progressSection.classList.add('fade-in-down');
+                loadChallenge();
+            } catch (error) {
+                console.error('Error loading challenges:', error);
+                document.getElementById('challenge-container').innerHTML = 
+                    '<div class="alert alert-danger fade-in"><div class="alert-content"><h4 class="alert-heading">Error</h4><p>Error loading challenges. Please refresh the page.</p></div></div>';
+            }
+        }
+        
+        // Set up modal event listeners
+
+        function preloadNextChallenge() {
+            const nextIdx = currentChallengeIndex + 1;
+            if (nextIdx >= challenges.length) return;
+            const next = challenges[nextIdx];
+            const paths = [next.contentA.path, next.contentB.path];
+            switch (next.mediaType) {
+                case 'image':
+                    paths.forEach(p => { const img = new Image(); img.src = p; });
+                    break;
+                case 'audio':
+                case 'video':
+                    paths.forEach(p => {
+                        if (!document.querySelector(`link[rel="prefetch"][href="${p}"]`)) {
+                            const link = document.createElement('link');
+                            link.rel = 'prefetch';
+                            link.href = p;
+                            document.head.appendChild(link);
+                        }
+                    });
+                    break;
+                case 'text':
+                    paths.forEach(p => fetch(p).catch(() => {}));
+                    break;
+            }
+        }
+
+        // Load current challenge
+        function loadChallenge() {
+            if (currentChallengeIndex >= challenges.length) {
+                endGame();
+                return;
+            }
+
+            currentChallenge = challenges[currentChallengeIndex];
+            updateProgress();
+            
+            // Get container and add transition class
+            const container = document.getElementById('challenge-container');
+            
+            if (isTransitioning) {
+                // If already transitioning, wait for it to complete
+                setTimeout(() => {
+                    renderChallenge(currentChallenge);
+                }, TRANSITION_DURATION);
+            } else {
+                // Start transition
+                isTransitioning = true;
+                container.classList.add('challenge-transition-out');
+                
+                // After transition out completes, render new challenge and transition in
+                setTimeout(() => {
+                    renderChallenge(currentChallenge);
+                    container.classList.remove('challenge-transition-out');
+                    container.classList.add('challenge-transition-in');
+                    
+                    // Remove transition class after animation completes
+                    setTimeout(() => {
+                        container.classList.remove('challenge-transition-in');
+                        isTransitioning = false;
+                        preloadNextChallenge();
+                    }, TRANSITION_DURATION);
+                }, TRANSITION_DURATION);
+            }
+        }
+
+        // Render challenge based on media type
+        function renderChallenge(challenge) {
+            const container = document.getElementById('challenge-container');
+            
+            container.innerHTML = `
+                <div class="media-comparison-container">
+                    <!-- Option A -->
+                    <div class="challenge-option">
+                        <button class="btn btn-primary media-comparison-action" onclick="checkAnswer('A')" aria-label="Select Option A as AI Generated">
+                            <i class="fas fa-robot me-2"></i>Option A is AI Generated
+                        </button>
+                        <div class="media-comparison-card" id="cardA">
+                            <div class="media-comparison-header">
+                                <h3 class="media-comparison-title">Option A</h3>
+                            </div>
+                            <div class="media-comparison-body" id="mediaBodyA">
+                                <!-- Content will be inserted here based on media type -->
+                                <div class="media-comparison-loading" id="loadingA">
+                                    <div class="spinner-fade-in" role="status">
+                                        <span class="visually-hidden">Loading content...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Option B -->
+                    <div class="challenge-option">
+                        <button class="btn btn-primary media-comparison-action" onclick="checkAnswer('B')" aria-label="Select Option B as AI Generated">
+                            <i class="fas fa-robot me-2"></i>Option B is AI Generated
+                        </button>
+                        <div class="media-comparison-card" id="cardB">
+                            <div class="media-comparison-header">
+                                <h3 class="media-comparison-title">Option B</h3>
+                            </div>
+                            <div class="media-comparison-body" id="mediaBodyB">
+                                <!-- Content will be inserted here based on media type -->
+                                <div class="media-comparison-loading" id="loadingB">
+                                    <div class="spinner-fade-in" role="status">
+                                        <span class="visually-hidden">Loading content...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Insert specific media content based on type
+            switch(challenge.mediaType) {
+                case 'text':
+                    document.getElementById('mediaBodyA').insertAdjacentHTML('beforeend', `
+                        <div id="contentA" class="media-comparison-text shimmer"></div>
+                    `);
+                    document.getElementById('mediaBodyB').insertAdjacentHTML('beforeend', `
+                        <div id="contentB" class="media-comparison-text shimmer"></div>
+                    `);
+                    loadTextContent(challenge);
+                    break;
+                    
+                case 'image':
+                    document.getElementById('mediaBodyA').insertAdjacentHTML('beforeend', `
+                        <img id="contentA" class="media-comparison-image d-none fade-in" alt="Option A content" 
+                            onload="this.classList.remove('d-none'); document.getElementById('loadingA').style.display = 'none';">
+                    `);
+                    document.getElementById('mediaBodyB').insertAdjacentHTML('beforeend', `
+                        <img id="contentB" class="media-comparison-image d-none fade-in" alt="Option B content" 
+                            onload="this.classList.remove('d-none'); document.getElementById('loadingB').style.display = 'none';">
+                    `);
+                    document.getElementById('contentA').src = challenge.contentA.path;
+                    document.getElementById('contentB').src = challenge.contentB.path;
+                    break;
+                    
+                case 'audio':
+                    document.getElementById('mediaBodyA').insertAdjacentHTML('beforeend', `
+                        <div class="media-comparison-audio-container">
+                            <audio id="contentA" controls class="media-comparison-audio d-none fade-in"
+                                onloadeddata="this.classList.remove('d-none'); document.getElementById('loadingA').style.display = 'none';">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    `);
+                    document.getElementById('mediaBodyB').insertAdjacentHTML('beforeend', `
+                        <div class="media-comparison-audio-container">
+                            <audio id="contentB" controls class="media-comparison-audio d-none fade-in"
+                                onloadeddata="this.classList.remove('d-none'); document.getElementById('loadingB').style.display = 'none';">
+                                Your browser does not support the audio element.
+                            </audio>
+                        </div>
+                    `);
+                    // Set audio sources after DOM is created
+                    setTimeout(() => {
+                        document.getElementById('contentA').src = challenge.contentA.path;
+                        document.getElementById('contentB').src = challenge.contentB.path;
+                    }, 0);
+                    break;
+                    
+                case 'video':
+                    document.getElementById('mediaBodyA').insertAdjacentHTML('beforeend', `
+                        <video id="contentA" controls class="media-comparison-video d-none fade-in"
+                            onloadeddata="this.classList.remove('d-none'); document.getElementById('loadingA').style.display = 'none';">
+                            Your browser does not support the video element.
+                        </video>
+                    `);
+                    document.getElementById('mediaBodyB').insertAdjacentHTML('beforeend', `
+                        <video id="contentB" controls class="media-comparison-video d-none fade-in"
+                            onloadeddata="this.classList.remove('d-none'); document.getElementById('loadingB').style.display = 'none';">
+                            Your browser does not support the video element.
+                        </video>
+                    `);
+                    // Set video sources after DOM is created
+                    setTimeout(() => {
+                        document.getElementById('contentA').src = challenge.contentA.path;
+                        document.getElementById('contentB').src = challenge.contentB.path;
+                    }, 0);
+                    break;
+            }
+        }
+
+        async function loadTextContent(challenge) {
+            try {
+                const [responseA, responseB] = await Promise.all([
+                    fetch(challenge.contentA.path),
+                    fetch(challenge.contentB.path)
+                ]);
+                if (!responseA.ok || !responseB.ok) throw new Error('Failed to load text content');
+                const textA = await responseA.text();
+                const textB = await responseB.text();
+                
+                // Clear the loading spinner and add the text content
+                const contentAElement = document.getElementById('contentA');
+                const contentBElement = document.getElementById('contentB');
+                const loadingA = document.getElementById('loadingA');
+                const loadingB = document.getElementById('loadingB');
+                
+                // Hide loading indicators
+                loadingA.style.display = 'none';
+                loadingB.style.display = 'none';
+                
+                // Clear any existing content
+                contentAElement.innerHTML = '';
+                contentBElement.innerHTML = '';
+                
+                // Remove shimmer effect
+                contentAElement.classList.remove('shimmer');
+                contentBElement.classList.remove('shimmer');
+                
+                // Add fade-in effect
+                contentAElement.classList.add('fade-in');
+                contentBElement.classList.add('fade-in');
+                
+                // Format text content for better readability
+                const formattedTextA = formatTextContent(textA);
+                const formattedTextB = formatTextContent(textB);
+                
+                // Use textContent for security, then apply formatting
+                contentAElement.textContent = textA;
+                contentBElement.textContent = textB;
+                
+                // Add metadata if available
+                if (challenge.contentA.metadata) {
+                    addMetadataFooter('A', challenge.contentA.metadata);
+                }
+                
+                if (challenge.contentB.metadata) {
+                    addMetadataFooter('B', challenge.contentB.metadata);
+                }
+            } catch (error) {
+                console.error('Error loading text content:', error);
+                document.getElementById('contentA').innerHTML = '<span class="text-danger fade-in">Error loading content. Please try refreshing the page.</span>';
+                document.getElementById('contentB').innerHTML = '<span class="text-danger fade-in">Error loading content. Please try refreshing the page.</span>';
+                
+                // Hide loading indicators on error
+                document.getElementById('loadingA').style.display = 'none';
+                document.getElementById('loadingB').style.display = 'none';
+            }
+        }
+        
+        // Format text content for better readability
+        function formatTextContent(text) {
+            // Preserve paragraphs and line breaks
+            return text.trim();
+        }
+        
+        // Add metadata footer to media comparison card
+        function addMetadataFooter(option, metadata) {
+            if (!metadata) return;
+            
+            const card = document.getElementById(`card${option}`);
+            
+            // Create footer if it doesn't exist
+            let footer = card.querySelector('.media-comparison-footer');
+            if (!footer) {
+                footer = document.createElement('div');
+                footer.className = 'media-comparison-footer fade-in';
+                card.appendChild(footer);
+            }
+            
+            // Add metadata content
+            let metadataHtml = '';
+            
+            if (metadata.source) {
+                metadataHtml += `<div><small><strong>Source:</strong> ${metadata.source}</small></div>`;
+            }
+            
+            if (metadata.creator) {
+                metadataHtml += `<div><small><strong>Creator:</strong> ${metadata.creator}</small></div>`;
+            }
+            
+            if (metadata.dateCreated) {
+                metadataHtml += `<div><small><strong>Date:</strong> ${metadata.dateCreated}</small></div>`;
+            }
+            
+            if (metadata.aiModel) {
+                metadataHtml += `<div><small><strong>AI Model:</strong> ${metadata.aiModel}</small></div>`;
+            }
+            
+            footer.innerHTML = metadataHtml;
+        }
+
+        // Check answer
+        function checkAnswer(selection) {
+            // Prevent multiple clicks
+            if (isAnswering || !currentChallenge) return;
+            
+            isAnswering = true;
+            
+            // Get the clicked button and add click animation
+            const clickedButton = document.querySelector(`button[onclick="checkAnswer('${selection}')"]`);
+            clickedButton.classList.add('button-click');
+            
+            // Disable all answer buttons
+            const buttons = document.querySelectorAll('button[onclick^="checkAnswer"]');
+            buttons.forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('disabled');
+            });
+            
+            const isCorrect = (selection === 'A' && currentChallenge.contentA.isAI) || 
+                            (selection === 'B' && currentChallenge.contentB.isAI);
+            
+            // Add visual feedback to the selected option
+            const selectedCard = document.getElementById(`card${selection}`);
+            const selectedOption = document.querySelector(`.challenge-option:has(button[onclick="checkAnswer('${selection}')"])`);
+            
+            if (isCorrect) {
+                score++;
+                selectedCard.classList.add('correct-answer');
+                
+                // Add success icon to the header
+                const header = selectedCard.querySelector('.media-comparison-header');
+                header.innerHTML += '<span class="ms-2"><i class="fas fa-check-circle text-success"></i></span>';
+                header.style.borderBottom = '2px solid var(--success)';
+            } else {
+                selectedCard.classList.add('incorrect-answer');
+                
+                // Add error icon to the header
+                const header = selectedCard.querySelector('.media-comparison-header');
+                header.innerHTML += '<span class="ms-2"><i class="fas fa-times-circle text-danger"></i></span>';
+                header.style.borderBottom = '2px solid var(--danger)';
+                
+                // Highlight the correct answer
+                const correctOption = (selection === 'A') ? 'B' : 'A';
+                const correctCard = document.getElementById(`card${correctOption}`);
+                correctCard.classList.add('correct-answer');
+                
+                // Add success icon to the correct header
+                const correctHeader = correctCard.querySelector('.media-comparison-header');
+                correctHeader.innerHTML += '<span class="ms-2"><i class="fas fa-check-circle text-success"></i></span>';
+                correctHeader.style.borderBottom = '2px solid var(--success)';
+            }
+            
+            // Show result after a short delay for the animation
+            setTimeout(() => {
+                showResult(isCorrect);
+            }, 800);
+        }
+
+        // Show result modal with enhanced feedback
+        function showResult(isCorrect) {
+            // Initialize feedback system if it doesn't exist
+            if (!window.feedbackSystem) {
+                window.feedbackSystem = new FeedbackSystem();
+            }
+            
+            // Check if this is the last challenge
+            const isLastChallenge = (currentChallengeIndex === challenges.length - 1);
+            
+            // Use the feedback system to show the result
+            window.feedbackSystem.showResult(isCorrect, currentChallenge, isLastChallenge);
+        }
+        
+        // Next challenge
+        function nextChallenge() {
+            const modal = bootstrap.Modal.getInstance(document.getElementById('resultModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            currentChallengeIndex++;
+            isAnswering = false; // Reset answering state
+            
+            // Check if this was the last challenge
+            if (currentChallengeIndex >= challenges.length) {
+                // Add a small delay to ensure modal is closed before showing end modal
+                setTimeout(() => {
+                    endGame();
+                }, 300);
+            } else {
+                loadChallenge();
+            }
+        }
+
+        // Update progress
+        function updateProgress() {
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const progress = ((currentChallengeIndex + 1) / challenges.length) * 100;
+            
+            // Animate progress bar
+            progressBar.style.width = progress + '%';
+            progressText.textContent = `${currentChallengeIndex + 1} / ${challenges.length}`;
+        }
+
+        // Update score
+
+        function endGame() {
+            const modal = new bootstrap.Modal(document.getElementById('endModal'));
+            const finalScore = document.getElementById('final-score');
+            const scoreMessage = document.getElementById('score-message');
+            const endIcon = document.getElementById('end-icon');
+
+            finalScore.textContent = `${score} / ${challenges.length}`;
+
+            const percentage = (score / challenges.length) * 100;
+            if (percentage >= EXCELLENT_THRESHOLD) {
+                endIcon.innerHTML = '<i class="fas fa-trophy" style="color:var(--success)"></i>';
+                scoreMessage.innerHTML = `
+                    <p style="font-size:1.125rem;color:var(--success);font-weight:500;margin-bottom:0.25rem;">Excellent! You're an AI detection expert!</p>
+                    <p style="color:var(--text-muted);font-size:0.875rem;">Created by <a href="https://www.linkedin.com/in/kopankiewicz" target="_blank" style="color:var(--primary)">Jan M. Kopankiewicz</a> in the summer of 2025 at the PwC TR AI Lab</p>
+                `;
+            } else if (percentage >= GOOD_THRESHOLD) {
+                endIcon.innerHTML = '<i class="fas fa-thumbs-up" style="color:var(--info)"></i>';
+                scoreMessage.innerHTML = `
+                    <p style="font-size:1.125rem;color:var(--info);font-weight:500;margin-bottom:0.25rem;">Good job! You're getting the hang of it.</p>
+                    <p style="color:var(--text-muted);font-size:0.875rem;">Created by <a href="https://www.linkedin.com/in/kopankiewicz" target="_blank" style="color:var(--primary)">Jan M. Kopankiewicz</a> in the summer of 2025 at the PwC TR AI Lab</p>
+                `;
+            } else {
+                endIcon.innerHTML = '<i class="fas fa-seedling" style="color:var(--warning)"></i>';
+                scoreMessage.innerHTML = `
+                    <p style="font-size:1.125rem;color:var(--text-primary);font-weight:500;margin-bottom:0.25rem;">Keep practicing! AI detection takes time to master.</p>
+                    <p style="color:var(--text-muted);font-size:0.875rem;">Created by <a href="https://www.linkedin.com/in/kopankiewicz" target="_blank" style="color:var(--primary)">Jan M. Kopankiewicz</a> in the summer of 2025 at the PwC TR AI Lab</p>
+                `;
+            }
+            scoreMessage.querySelectorAll('a[target="_blank"]').forEach(a => a.setAttribute('rel', 'noopener noreferrer'));
+
+            modal.show();
+        }
+        
+        // Restart game
+        function restartGame() {
+            currentChallengeIndex = 0;
+            score = 0;
+            isAnswering = false;
+            isTransitioning = false;
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('endModal'));
+            if (modal) {
+                modal.hide();
+            }
+            
+            // Add transition to container
+            const container = document.getElementById('challenge-container');
+            container.classList.add('challenge-transition-out');
+            
+            setTimeout(() => {
+                init();
+            }, 300);
+        }
+
+
+        document.getElementById('nextChallengeBtn').addEventListener('click', nextChallenge);
+        document.querySelector('.play-again-btn')?.addEventListener('click', restartGame);
+
+        function startGame() {
+            const splash = document.getElementById('splash');
+            splash.classList.add('hidden');
+            document.getElementById('main-content').style.display = '';
+            init();
+            splash.addEventListener('transitionend', () => splash.remove(), { once: true });
+        }
+
+        const splash = document.getElementById('splash');
+        splash.addEventListener('click', startGame);
+        splash.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); startGame(); }
+        });
+
+        // Inactivity timers
+        let globalInactivityTimer;
+        let endModalInactivityTimer;
+        const GLOBAL_TIMEOUT = 5 * 60 * 1000;
+        const END_MODAL_TIMEOUT = 2 * 60 * 1000;
+
+        function resetGlobalTimer() {
+            clearTimeout(globalInactivityTimer);
+            globalInactivityTimer = setTimeout(() => location.reload(), GLOBAL_TIMEOUT);
+        }
+
+        function startEndModalTimer() {
+            clearTimeout(endModalInactivityTimer);
+            endModalInactivityTimer = setTimeout(() => {
+                clearTimeout(endModalInactivityTimer);
+                restartGame();
+            }, END_MODAL_TIMEOUT);
+        }
+
+        function clearEndModalTimer() {
+            clearTimeout(endModalInactivityTimer);
+        }
+
+        ['click', 'keydown', 'touchstart', 'mousemove'].forEach(evt =>
+            document.addEventListener(evt, resetGlobalTimer, { passive: true })
+        );
+        resetGlobalTimer();
+
+        document.getElementById('endModal').addEventListener('shown.bs.modal', startEndModalTimer);
+        document.getElementById('endModal').addEventListener('hidden.bs.modal', clearEndModalTimer);
+
+        // ── Settings Panel ──
+        (function initSettings() {
+            const ALL_TYPES = ['text', 'image', 'audio', 'video'];
+            const overlay = document.getElementById('settingsOverlay');
+            const panel = document.getElementById('settingsPanel');
+            const closeBtn = document.getElementById('settingsClose');
+            const logo = document.getElementById('logoTitle');
+            const darkToggle = document.getElementById('darkModeToggle');
+            const pills = document.querySelectorAll('.media-pill');
+            const loadBtn = document.getElementById('settingsLoadJson');
+            const fileInput = document.getElementById('settingsFileInput');
+            const downloadBtn = document.getElementById('settingsDownloadJson');
+            const resetBtn = document.getElementById('settingsResetJson');
+            const applyBtn = document.getElementById('settingsApply');
+            const sourceLabel = document.getElementById('settingsSource');
+
+            // ── Read URL params on load and apply to UI ──
+            function readURLState() {
+                const params = new URLSearchParams(window.location.search);
+
+                // Dark mode: ?dark=1 or localStorage
+                if (params.get('dark') === '1' || localStorage.getItem('dark') === '1') {
+                    darkToggle.checked = true;
+                    document.body.setAttribute('data-theme', 'dark');
+                }
+
+                // Media types: ?types=image,text (only those) or ?exclude=video (all except those)
+                const typesParam = params.get('types');
+                const excludeParam = params.get('exclude');
+                let active = ALL_TYPES.slice();
+
+                if (typesParam) {
+                    active = typesParam.split(',').map(t => t.trim().toLowerCase()).filter(t => ALL_TYPES.includes(t));
+                } else if (excludeParam) {
+                    const excluded = excludeParam.split(',').map(t => t.trim().toLowerCase());
+                    active = ALL_TYPES.filter(t => !excluded.includes(t));
+                }
+
+                pills.forEach(p => {
+                    if (active.includes(p.dataset.type)) p.classList.add('active');
+                    else p.classList.remove('active');
+                });
+                activeMediaTypes = active;
+            }
+
+            // ── Write current settings into the URL (no page reload) ──
+            function writeURLState() {
+                const params = new URLSearchParams(window.location.search);
+
+                // Dark mode
+                if (darkToggle.checked) params.set('dark', '1');
+                else params.delete('dark');
+
+                // Media types — only write if not all four are active
+                params.delete('types');
+                params.delete('exclude');
+                const active = [];
+                pills.forEach(p => { if (p.classList.contains('active')) active.push(p.dataset.type); });
+
+                if (active.length > 0 && active.length < ALL_TYPES.length) {
+                    if (active.length <= 2) {
+                        params.set('types', active.join(','));
+                    } else {
+                        const excluded = ALL_TYPES.filter(t => !active.includes(t));
+                        params.set('exclude', excluded.join(','));
+                    }
+                }
+
+                const qs = params.toString();
+                const newUrl = window.location.pathname + (qs ? '?' + qs : '');
+                history.replaceState(null, '', newUrl);
+            }
+
+            readURLState();
+
+            function openSettings() { overlay.classList.add('open'); }
+            function closeSettings() { overlay.classList.remove('open'); }
+
+            // Long-press on logo (touch)
+            let pressTimer = null;
+            logo.addEventListener('touchstart', e => {
+                pressTimer = setTimeout(() => { openSettings(); pressTimer = null; }, 800);
+            }, { passive: true });
+            logo.addEventListener('touchend', () => { if (pressTimer) clearTimeout(pressTimer); });
+            logo.addEventListener('touchmove', () => { if (pressTimer) clearTimeout(pressTimer); });
+
+            // Double-click on logo (desktop)
+            logo.addEventListener('dblclick', e => { e.preventDefault(); openSettings(); });
+
+            // Close
+            closeBtn.addEventListener('click', closeSettings);
+            overlay.addEventListener('click', e => { if (e.target === overlay) closeSettings(); });
+
+            // Prevent panel clicks from closing overlay
+            panel.addEventListener('click', e => e.stopPropagation());
+
+            // Keyboard shortcut: Ctrl+, or Cmd+,
+            document.addEventListener('keydown', e => {
+                if ((e.ctrlKey || e.metaKey) && e.key === ',') {
+                    e.preventDefault();
+                    overlay.classList.contains('open') ? closeSettings() : openSettings();
+                }
+            });
+
+            // Dark mode toggle
+            darkToggle.addEventListener('change', () => {
+                if (darkToggle.checked) {
+                    document.body.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('dark', '1');
+                } else {
+                    document.body.removeAttribute('data-theme');
+                    localStorage.removeItem('dark');
+                }
+                writeURLState();
+            });
+
+            // Media type pills
+            pills.forEach(pill => {
+                pill.addEventListener('click', () => {
+                    pill.classList.toggle('active');
+                    syncActiveMediaTypes();
+                });
+            });
+
+            function syncActiveMediaTypes() {
+                activeMediaTypes = [];
+                pills.forEach(p => { if (p.classList.contains('active')) activeMediaTypes.push(p.dataset.type); });
+            }
+
+            // Load custom JSON
+            loadBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', e => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (!data.challenges || !Array.isArray(data.challenges)) throw new Error('Invalid format');
+                        customChallengesData = data.challenges;
+                        sourceLabel.innerHTML = '<i class="fas fa-info-circle"></i> Source: ' + file.name + ' (custom)';
+                    } catch (err) {
+                        alert('Invalid JSON file: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            });
+
+            // Download current JSON
+            downloadBtn.addEventListener('click', async () => {
+                let data;
+                if (customChallengesData) {
+                    data = customChallengesData;
+                } else {
+                    try {
+                        const res = await fetch('challenges.json');
+                        const json = await res.json();
+                        data = json.challenges;
+                    } catch (_) {
+                        alert('Could not load default challenges.json');
+                        return;
+                    }
+                }
+                const blob = new Blob([JSON.stringify({ challenges: data }, null, 2)], { type: 'application/json' });
+                const a = document.createElement('a');
+                a.href = URL.createObjectURL(blob);
+                a.download = 'challenges.json';
+                a.click();
+                URL.revokeObjectURL(a.href);
+            });
+
+            // Reset to default
+            resetBtn.addEventListener('click', () => {
+                customChallengesData = null;
+                sourceLabel.innerHTML = '<i class="fas fa-info-circle"></i> Source: challenges.json (default)';
+            });
+
+            // Apply & Restart
+            applyBtn.addEventListener('click', () => {
+                syncActiveMediaTypes();
+                if (activeMediaTypes.length === 0) {
+                    pills.forEach(p => p.style.animation = 'none');
+                    requestAnimationFrame(() => {
+                        pills.forEach(p => { p.style.animation = ''; p.style.outline = '2px solid var(--danger)'; });
+                        setTimeout(() => pills.forEach(p => p.style.outline = ''), 1500);
+                    });
+                    return;
+                }
+                closeSettings();
+                writeURLState();
+                restartGame();
+            });
+        })();
+
+        // ── Service Worker Registration ──
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+
+        // ── Offline/Online Indicator ──
+        (function initConnectivity() {
+            const toast = document.getElementById('connectivityToast');
+            let hideTimer;
+
+            function showToast(isOnline) {
+                clearTimeout(hideTimer);
+                toast.className = 'connectivity-toast ' + (isOnline ? 'online' : 'offline');
+                toast.innerHTML = isOnline
+                    ? '<i class="fas fa-wifi"></i> Back online'
+                    : '<i class="fas fa-plane"></i> Offline &mdash; playing from cache';
+                requestAnimationFrame(() => toast.classList.add('visible'));
+                hideTimer = setTimeout(() => toast.classList.remove('visible'), isOnline ? 3000 : 6000);
+            }
+
+            window.addEventListener('offline', () => showToast(false));
+            window.addEventListener('online', () => showToast(true));
+        })();
+    </script>
+</body>
+</html>
