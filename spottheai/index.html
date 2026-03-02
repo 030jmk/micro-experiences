@@ -2931,6 +2931,34 @@ footer a:hover {
 .settings-btn.primary-btn:hover { background: var(--primary-dark); }
 .settings-btn.primary-btn i { color: var(--white); }
 
+.settings-select {
+  appearance: none;
+  -webkit-appearance: none;
+  background: var(--white);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 0.4rem 2rem 0.4rem 0.65rem;
+  font-size: 0.9rem;
+  min-height: 40px;
+  cursor: pointer;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.65rem center;
+  transition: border-color 0.2s;
+}
+.settings-select:hover,
+.settings-select:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+[data-theme="dark"] .settings-select {
+  background-color: var(--dark-gray);
+  color: var(--white);
+  border-color: var(--medium-gray);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23aaa'/%3E%3C/svg%3E");
+}
+
 .settings-file-input { display: none; }
 
 .settings-current-source {
@@ -2982,6 +3010,13 @@ footer a:hover {
                             <span class="toggle-track"></span>
                         </label>
                     </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Keep Screen On</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="wakeLockToggle" checked>
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
                 </div>
 
                 <!-- Media type filter -->
@@ -3010,6 +3045,34 @@ footer a:hover {
                     </button>
                     <div class="settings-current-source" id="settingsSource">
                         <i class="fas fa-info-circle"></i> Source: challenges.json (default)
+                    </div>
+                </div>
+
+                <!-- Timers -->
+                <div class="settings-section">
+                    <div class="settings-section-title">Inactivity Timers</div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Page timeout</span>
+                        <select id="settingsGlobalTimeout" class="settings-select">
+                            <option value="60">1 min</option>
+                            <option value="120">2 min</option>
+                            <option value="180">3 min</option>
+                            <option value="300" selected>5 min</option>
+                            <option value="600">10 min</option>
+                            <option value="900">15 min</option>
+                            <option value="0">Off</option>
+                        </select>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Results screen</span>
+                        <select id="settingsEndTimeout" class="settings-select">
+                            <option value="30">30 sec</option>
+                            <option value="60">1 min</option>
+                            <option value="120" selected>2 min</option>
+                            <option value="180">3 min</option>
+                            <option value="300">5 min</option>
+                            <option value="0">Off</option>
+                        </select>
                     </div>
                 </div>
 
@@ -3673,20 +3736,24 @@ footer a:hover {
         // Inactivity timers
         let globalInactivityTimer;
         let endModalInactivityTimer;
-        const GLOBAL_TIMEOUT = 2 * 60 * 1000;
-        const END_MODAL_TIMEOUT = 1 * 60 * 1000;
+        let GLOBAL_TIMEOUT = 5 * 60 * 1000;
+        let END_MODAL_TIMEOUT = 2 * 60 * 1000;
 
         function resetGlobalTimer() {
             clearTimeout(globalInactivityTimer);
-            globalInactivityTimer = setTimeout(() => location.reload(), GLOBAL_TIMEOUT);
+            if (GLOBAL_TIMEOUT > 0) {
+                globalInactivityTimer = setTimeout(() => location.reload(), GLOBAL_TIMEOUT);
+            }
         }
 
         function startEndModalTimer() {
             clearTimeout(endModalInactivityTimer);
-            endModalInactivityTimer = setTimeout(() => {
-                clearTimeout(endModalInactivityTimer);
-                restartGame();
-            }, END_MODAL_TIMEOUT);
+            if (END_MODAL_TIMEOUT > 0) {
+                endModalInactivityTimer = setTimeout(() => {
+                    clearTimeout(endModalInactivityTimer);
+                    restartGame();
+                }, END_MODAL_TIMEOUT);
+            }
         }
 
         function clearEndModalTimer() {
@@ -3716,6 +3783,10 @@ footer a:hover {
             const resetBtn = document.getElementById('settingsResetJson');
             const applyBtn = document.getElementById('settingsApply');
             const sourceLabel = document.getElementById('settingsSource');
+            const globalTimeoutSelect = document.getElementById('settingsGlobalTimeout');
+            const endTimeoutSelect = document.getElementById('settingsEndTimeout');
+            const DEFAULT_GLOBAL = 300;
+            const DEFAULT_END = 120;
 
             // ── Read URL params on load and apply to UI ──
             function readURLState() {
@@ -3744,6 +3815,24 @@ footer a:hover {
                     else p.classList.remove('active');
                 });
                 activeMediaTypes = active;
+
+                // Timers: ?globalTimeout=300 (seconds) or localStorage
+                const gt = params.get('globalTimeout') ?? localStorage.getItem('globalTimeout');
+                if (gt !== null) {
+                    const sec = parseInt(gt, 10);
+                    if (!isNaN(sec)) {
+                        GLOBAL_TIMEOUT = sec * 1000;
+                        globalTimeoutSelect.value = String(sec);
+                    }
+                }
+                const et = params.get('endTimeout') ?? localStorage.getItem('endTimeout');
+                if (et !== null) {
+                    const sec = parseInt(et, 10);
+                    if (!isNaN(sec)) {
+                        END_MODAL_TIMEOUT = sec * 1000;
+                        endTimeoutSelect.value = String(sec);
+                    }
+                }
             }
 
             // ── Write current settings into the URL (no page reload) ──
@@ -3767,6 +3856,24 @@ footer a:hover {
                         const excluded = ALL_TYPES.filter(t => !active.includes(t));
                         params.set('exclude', excluded.join(','));
                     }
+                }
+
+                // Timers — only write if not default
+                const gtSec = parseInt(globalTimeoutSelect.value, 10);
+                if (gtSec !== DEFAULT_GLOBAL) {
+                    params.set('globalTimeout', String(gtSec));
+                    localStorage.setItem('globalTimeout', String(gtSec));
+                } else {
+                    params.delete('globalTimeout');
+                    localStorage.removeItem('globalTimeout');
+                }
+                const etSec = parseInt(endTimeoutSelect.value, 10);
+                if (etSec !== DEFAULT_END) {
+                    params.set('endTimeout', String(etSec));
+                    localStorage.setItem('endTimeout', String(etSec));
+                } else {
+                    params.delete('endTimeout');
+                    localStorage.removeItem('endTimeout');
                 }
 
                 const qs = params.toString();
@@ -3814,6 +3921,17 @@ footer a:hover {
                     document.body.removeAttribute('data-theme');
                     localStorage.removeItem('dark');
                 }
+                writeURLState();
+            });
+
+            // Timeout selects
+            globalTimeoutSelect.addEventListener('change', () => {
+                GLOBAL_TIMEOUT = parseInt(globalTimeoutSelect.value, 10) * 1000;
+                writeURLState();
+                resetGlobalTimer();
+            });
+            endTimeoutSelect.addEventListener('change', () => {
+                END_MODAL_TIMEOUT = parseInt(endTimeoutSelect.value, 10) * 1000;
                 writeURLState();
             });
 
@@ -3894,6 +4012,52 @@ footer a:hover {
                 writeURLState();
                 restartGame();
             });
+        })();
+
+        // ── Screen Wake Lock ──
+        (function initWakeLock() {
+            const toggle = document.getElementById('wakeLockToggle');
+            let wakeLock = null;
+            const supported = 'wakeLock' in navigator;
+
+            if (!supported) {
+                toggle.disabled = true;
+                toggle.checked = false;
+                toggle.closest('.toggle-row').title = 'Not supported in this browser';
+                toggle.closest('.toggle-row').style.opacity = '0.5';
+                return;
+            }
+
+            const stored = localStorage.getItem('wakeLock');
+            toggle.checked = stored !== '0';
+
+            async function requestLock() {
+                if (wakeLock || !toggle.checked) return;
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => { wakeLock = null; });
+                } catch (_) {}
+            }
+
+            function releaseLock() {
+                if (wakeLock) { wakeLock.release(); wakeLock = null; }
+            }
+
+            toggle.addEventListener('change', () => {
+                if (toggle.checked) {
+                    localStorage.setItem('wakeLock', '1');
+                    requestLock();
+                } else {
+                    localStorage.setItem('wakeLock', '0');
+                    releaseLock();
+                }
+            });
+
+            document.addEventListener('visibilitychange', () => {
+                if (document.visibilityState === 'visible' && toggle.checked) requestLock();
+            });
+
+            if (toggle.checked) requestLock();
         })();
 
         // ── Service Worker Registration ──
