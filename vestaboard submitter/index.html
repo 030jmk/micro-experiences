@@ -163,24 +163,35 @@
     .preview-board {
       display: grid;
       grid-template-columns: repeat(22, 1fr);
+      grid-template-rows: repeat(6, 1fr);
       gap: 2px;
       background: #1a1a1a;
       border-radius: 0.5rem;
       padding: 0.5rem;
-      aspect-ratio: 22 / 6.6;
+      overflow: hidden;
     }
     .preview-tile {
-      aspect-ratio: 1;
+      position: relative;
       background: #2d2d2d;
       border-radius: 2px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       font-size: clamp(0.45rem, 1.8vw, 0.85rem);
       font-weight: 700;
       color: #1a1a1a;
       text-transform: uppercase;
       transition: background 0.15s;
+      overflow: hidden;
+    }
+    .preview-tile::before {
+      content: '';
+      display: block;
+      padding-bottom: 100%;
+    }
+    .preview-tile span {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     .preview-tile.filled { background: #D04A02; color: #fff; }
     .preview-tile.space  { background: #2d2d2d; }
@@ -719,6 +730,8 @@
         for (let i = 0; i < ROWS * COLS; i++) {
           const tile = document.createElement('div');
           tile.className = 'preview-tile';
+          const span = document.createElement('span');
+          tile.appendChild(span);
           previewBoard.appendChild(tile);
         }
       }
@@ -731,7 +744,7 @@
             const tile = tiles[r * COLS + c];
             const code = grid[r][c];
             const ch = CODE_TO_CHAR[code] || '';
-            tile.textContent = ch === ' ' ? '' : ch;
+            tile.firstChild.textContent = ch === ' ' ? '' : ch;
             tile.className = 'preview-tile' + (code !== 0 ? ' filled' : '');
           }
         }
