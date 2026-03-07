@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Generate PWA manifest.json files with a visual editor. Configure app name, icons, colors, and more.">
+    <title>PWA Manifest Generator</title>
+    <meta name="theme-color" content="#D04A02">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://appkitcdn.pwc.com/appkit4/cdn/styles/4.10.3/themes/appkit.orange.min.css">
+    <style>
+:root {
+  --primary: #D04A02;
+  --primary-dark: #A7452C;
+  --primary-light: #FB7C4D;
+  --primary-lighter: #FDAB8D;
+  --primary-lightest: #FEDACC;
+
+  --secondary: #2D2D2D;
+  --secondary-light: #474747;
+  --secondary-lighter: #696969;
+
+  --white: #FFFFFF;
+  --off-white: #F3F3F3;
+  --light-gray: #E8E8E8;
+  --medium-gray: #D1D1D1;
+  --dark-gray: #535353;
+  --black: #252525;
+
+  --success: #21812D;
+  --success-light: #D3EBD5;
+  --danger: #C52A1A;
+  --danger-light: #F3D4D1;
+  --warning: #FFBF1F;
+  --warning-light: #FFF2D2;
+  --info: #0089EB;
+  --info-light: #B3DCF9;
+
+  --bg-body: #F3F3F3;
+  --bg-card: #FFFFFF;
+  --bg-input: #FFFFFF;
+
+  --text-heading: #252525;
+  --text-body: #474747;
+  --text-muted: #696969;
+  --text-light: #FFFFFF;
+
+  --border-color: #D1D1D1;
+
+  --focus-ring-color: rgba(208, 74, 2, 0.32);
+
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 3rem;
+
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.5rem;
+
+  --shadow-sm: rgba(71, 71, 71, 0.24) 0px 0.125rem 0.25rem -0.125rem;
+  --shadow-md: rgba(71, 71, 71, 0.24) 0px 0.25rem 0.5rem -0.125rem;
+  --shadow-lg: rgba(71, 71, 71, 0.24) 0px 0.5rem 1rem -0.125rem;
+
+  --transition-speed: 0.3s;
+}
+
+[data-theme="dark"] {
+  --bg-body: #191919;
+  --bg-card: #252525;
+  --bg-input: #3B3B3B;
+
+  --text-heading: #FFFFFF;
+  --text-body: #D1D1D1;
+  --text-muted: #979797;
+
+  --off-white: #252525;
+  --light-gray: #3B3B3B;
+  --medium-gray: #535353;
+  --dark-gray: #BABABA;
+  --black: #FFFFFF;
+
+  --border-color: #696969;
+
+  --success-light: #1F3B29;
+  --danger-light: #3F2425;
+  --warning-light: #4B4226;
+  --info-light: #003DAB;
+
+  --shadow-sm: rgba(0, 0, 0, 0.32) 0px 0.125rem 0.25rem -0.125rem;
+  --shadow-md: rgba(0, 0, 0, 0.32) 0px 0.25rem 0.5rem -0.125rem;
+  --shadow-lg: rgba(0, 0, 0, 0.32) 0px 0.5rem 1rem -0.125rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  background: var(--bg-body);
+  color: var(--text-body);
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 var(--spacing-md);
+}
+
+/* Header */
+.header {
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-sm);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 0;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: 1.25rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+  color: var(--text-heading);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.icon-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--text-body);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  font-size: 1rem;
+}
+
+.icon-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  background: var(--off-white);
+}
+
+/* Main layout */
+.main {
+  flex: 1;
+  padding: var(--spacing-lg) 0 var(--spacing-xl);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  align-items: start;
+}
+
+@media (max-width: 899px) {
+  .layout { grid-template-columns: 1fr; }
+}
+
+/* Card */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--off-white);
+}
+
+.card-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.5rem;
+  font-weight: 500;
+  color: var(--text-heading);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.card-header h2 i { color: var(--primary); font-size: 0.9rem; }
+
+.card-body { padding: var(--spacing-lg); }
+
+/* Form fields */
+.form-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.form-group:last-child { margin-bottom: 0; }
+
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  color: var(--text-heading);
+  margin-bottom: var(--spacing-xs);
+}
+
+.form-hint {
+  display: block;
+  font-size: 0.75rem;
+  line-height: 0.875rem;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-sm);
+}
+
+.label-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.info-tooltip {
+  position: relative;
+  display: inline-flex;
+  cursor: help;
+}
+
+.info-tooltip i {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  transition: color var(--transition-speed);
+}
+
+.info-tooltip:hover i { color: var(--primary); }
+
+.info-tooltip .tooltip-content {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--secondary);
+  color: var(--text-light);
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-md);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  font-weight: 400;
+  width: 260px;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.2s, visibility 0.2s;
+  z-index: 50;
+  pointer-events: none;
+}
+
+.info-tooltip .tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--secondary);
+}
+
+.info-tooltip:hover .tooltip-content {
+  opacity: 1;
+  visibility: visible;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--text-body);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  transition: border-color var(--transition-speed);
+  font-family: inherit;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--focus-ring-color);
+}
+
+.form-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23696969'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  padding-right: 2rem;
+}
+
+[data-theme="dark"] .form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23979797'/%3E%3C/svg%3E");
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+}
+
+@media (max-width: 599px) {
+  .form-row { grid-template-columns: 1fr; }
+}
+
+/* Color picker */
+.color-field {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.color-swatch {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.color-swatch input[type="color"] {
+  width: 56px;
+  height: 56px;
+  margin: -8px;
+  border: none;
+  cursor: pointer;
+}
+
+.color-field .form-input { flex: 1; font-family: monospace; }
+
+/* Icon upload */
+.icon-upload-zone {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  position: relative;
+}
+
+.icon-upload-zone:hover,
+.icon-upload-zone.dragover {
+  border-color: var(--primary);
+  background: var(--primary-lightest);
+}
+
+[data-theme="dark"] .icon-upload-zone:hover,
+[data-theme="dark"] .icon-upload-zone.dragover {
+  background: rgba(208, 74, 2, 0.08);
+}
+
+.icon-upload-zone input { display: none; }
+
+.icon-upload-zone i {
+  font-size: 1.5rem;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-sm);
+  display: block;
+}
+
+.icon-upload-zone p {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  color: var(--text-muted);
+}
+
+.icon-upload-zone .upload-link {
+  color: var(--primary);
+  font-weight: 500;
+}
+
+/* Icon preview grid */
+.icon-preview-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-md);
+}
+
+.icon-preview-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.icon-preview-item img {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  background: var(--off-white);
+}
+
+.icon-preview-item span {
+  font-size: 0.75rem;
+  line-height: 0.875rem;
+  color: var(--text-muted);
+}
+
+/* JSON preview */
+.json-preview-wrapper {
+  position: relative;
+}
+
+.json-preview {
+  background: var(--black);
+  color: #E8E8E8;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre;
+  max-height: 500px;
+  overflow-y: auto;
+  margin: 0;
+  tab-size: 2;
+}
+
+[data-theme="dark"] .json-preview {
+  background: #111111;
+  border: 1px solid var(--border-color);
+}
+
+.json-key { color: #FB7C4D; }
+.json-string { color: #A7D6AB; }
+.json-number { color: #4DACF1; }
+.json-boolean { color: #FFBF1F; }
+.json-null { color: #979797; }
+.json-bracket { color: #D1D1D1; }
+
+/* Action buttons */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  font-family: inherit;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--text-light);
+  border-color: var(--primary);
+}
+
+.btn-primary:hover { background: var(--primary-dark); border-color: var(--primary-dark); }
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-body);
+  border-color: var(--border-color);
+}
+
+.btn-secondary:hover { border-color: var(--primary); color: var(--primary); }
+
+.btn-group {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+.card-actions {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border-top: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+}
+
+/* Toast notification */
+.toast {
+  position: fixed;
+  bottom: var(--spacing-lg);
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--secondary);
+  color: var(--text-light);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  z-index: 200;
+  opacity: 0;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.toast.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+.toast i { color: var(--success); }
+
+/* Validation */
+.form-input.invalid,
+.form-select.invalid {
+  border-color: var(--danger);
+}
+
+.validation-msg {
+  font-size: 0.75rem;
+  line-height: 0.875rem;
+  color: var(--danger);
+  margin-top: var(--spacing-xs);
+  display: none;
+}
+
+.validation-msg.show { display: block; }
+
+/* Sections collapsible */
+.section-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  transition: transform var(--transition-speed);
+}
+
+.section-toggle.collapsed { transform: rotate(-90deg); }
+
+.section-content {
+  overflow: hidden;
+  transition: max-height 0.35s ease, opacity 0.25s ease;
+  max-height: 2000px;
+  opacity: 1;
+}
+
+.section-content.collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* Screenshot list */
+.screenshot-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.screenshot-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--off-white);
+  border-radius: var(--radius-md);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.screenshot-item .form-input {
+  flex: 1;
+  background: var(--bg-input);
+}
+
+.screenshot-item .remove-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+}
+
+.screenshot-item .remove-btn:hover { color: var(--danger); }
+
+.add-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  background: none;
+  border: 1px dashed var(--border-color);
+  border-radius: var(--radius-md);
+  color: var(--primary);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  font-weight: 500;
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  font-family: inherit;
+  margin-top: var(--spacing-sm);
+}
+
+.add-btn:hover { border-color: var(--primary); background: var(--primary-lightest); }
+
+[data-theme="dark"] .add-btn:hover { background: rgba(208, 74, 2, 0.08); }
+
+/* Sticky preview */
+@media (min-width: 900px) {
+  .preview-col { position: sticky; top: 80px; }
+}
+
+/* Footer */
+footer {
+  background: var(--bg-card);
+  border-top: 1px solid var(--border-color);
+  padding: var(--spacing-md) 0;
+  text-align: center;
+  font-size: 0.75rem;
+  line-height: 0.875rem;
+  color: var(--text-muted);
+}
+
+footer a { color: var(--primary); text-decoration: none; }
+footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container header-inner">
+            <h1><i class="fas fa-file-code" style="color:var(--primary);margin-right:var(--spacing-sm)"></i>PWA Manifest Generator</h1>
+            <div class="header-actions">
+                <button class="icon-btn" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="main">
+        <div class="container">
+            <div class="layout">
+                <!-- Form Column -->
+                <div class="form-col">
+                    <!-- Basic Info -->
+                    <div class="card" style="margin-bottom:var(--spacing-lg)">
+                        <div class="card-header">
+                            <h2><i class="fas fa-info-circle"></i> Basic Information</h2>
+                            <button class="section-toggle" data-section="basic" aria-label="Toggle section"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                        <div class="card-body section-content" id="section-basic">
+                            <div class="form-group">
+                                <label class="form-label" for="name">App Name *</label>
+                                <span class="form-hint">Full name shown in app stores and install prompts</span>
+                                <input class="form-input" id="name" type="text" placeholder="My Progressive Web App" required>
+                                <div class="validation-msg" id="name-error">App name is required</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="short_name">Short Name *</label>
+                                <span class="form-hint">Shown on the home screen (max 12 characters recommended)</span>
+                                <input class="form-input" id="short_name" type="text" placeholder="My App" maxlength="12" required>
+                                <div class="validation-msg" id="short_name-error">Short name is required</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="description">Description</label>
+                                <span class="form-hint">Describes the purpose of your application</span>
+                                <textarea class="form-textarea" id="description" placeholder="A brief description of your app..."></textarea>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <div class="label-with-tooltip">
+                                        <label class="form-label" for="start_url" style="margin-bottom:0">Start URL</label>
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-circle-info"></i>
+                                            <span class="tooltip-content">The URL that loads when a user opens your app from their home screen or app launcher. Use "/" for the root, or a specific path like "/home" or "/app". Query parameters like "?source=pwa" can be added to track PWA launches in analytics.</span>
+                                        </span>
+                                    </div>
+                                    <span class="form-hint">Entry point when app is launched</span>
+                                    <input class="form-input" id="start_url" type="text" placeholder="/" value="/">
+                                </div>
+                                <div class="form-group">
+                                    <div class="label-with-tooltip">
+                                        <label class="form-label" for="scope" style="margin-bottom:0">Scope</label>
+                                        <span class="info-tooltip">
+                                            <i class="fas fa-circle-info"></i>
+                                            <span class="tooltip-content">Defines which URLs are considered part of your app. Navigation outside this scope will open in the browser instead of your app window. For example, "/" includes all pages, while "/app/" restricts to that subdirectory. The start URL must be within the scope.</span>
+                                        </span>
+                                    </div>
+                                    <span class="form-hint">Navigation scope of the app</span>
+                                    <input class="form-input" id="scope" type="text" placeholder="/" value="/">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="id">App ID</label>
+                                <span class="form-hint">Unique identifier for your app (optional)</span>
+                                <input class="form-input" id="id" type="text" placeholder="/?source=pwa">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Display & Orientation -->
+                    <div class="card" style="margin-bottom:var(--spacing-lg)">
+                        <div class="card-header">
+                            <h2><i class="fas fa-mobile-screen"></i> Display & Orientation</h2>
+                            <button class="section-toggle" data-section="display" aria-label="Toggle section"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                        <div class="card-body section-content" id="section-display">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="display">Display Mode</label>
+                                    <span class="form-hint">How the app window appears</span>
+                                    <select class="form-select" id="display">
+                                        <option value="standalone" selected>Standalone</option>
+                                        <option value="fullscreen">Fullscreen</option>
+                                        <option value="minimal-ui">Minimal UI</option>
+                                        <option value="browser">Browser</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="orientation">Orientation</label>
+                                    <span class="form-hint">Preferred screen orientation</span>
+                                    <select class="form-select" id="orientation">
+                                        <option value="any" selected>Any</option>
+                                        <option value="natural">Natural</option>
+                                        <option value="portrait">Portrait</option>
+                                        <option value="portrait-primary">Portrait Primary</option>
+                                        <option value="portrait-secondary">Portrait Secondary</option>
+                                        <option value="landscape">Landscape</option>
+                                        <option value="landscape-primary">Landscape Primary</option>
+                                        <option value="landscape-secondary">Landscape Secondary</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label" for="dir">Text Direction</label>
+                                    <span class="form-hint">Primary text direction for the app content</span>
+                                    <select class="form-select" id="dir">
+                                        <option value="auto" selected>Auto</option>
+                                        <option value="ltr">LTR (Left to Right)</option>
+                                        <option value="rtl">RTL (Right to Left)</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label" for="lang">Language</label>
+                                    <span class="form-hint">BCP 47 language tag</span>
+                                    <select class="form-select" id="lang">
+                                        <option value="en-US" selected>English (US)</option>
+                                        <option value="en-GB">English (UK)</option>
+                                        <option value="en-AU">English (Australia)</option>
+                                        <option value="en-CA">English (Canada)</option>
+                                        <option value="en-IN">English (India)</option>
+                                        <option value="de-DE">German (Germany)</option>
+                                        <option value="de-AT">German (Austria)</option>
+                                        <option value="de-CH">German (Switzerland)</option>
+                                        <option value="fr-FR">French (France)</option>
+                                        <option value="fr-CA">French (Canada)</option>
+                                        <option value="fr-BE">French (Belgium)</option>
+                                        <option value="fr-CH">French (Switzerland)</option>
+                                        <option value="es-ES">Spanish (Spain)</option>
+                                        <option value="es-MX">Spanish (Mexico)</option>
+                                        <option value="es-AR">Spanish (Argentina)</option>
+                                        <option value="pt-BR">Portuguese (Brazil)</option>
+                                        <option value="pt-PT">Portuguese (Portugal)</option>
+                                        <option value="it-IT">Italian</option>
+                                        <option value="nl-NL">Dutch (Netherlands)</option>
+                                        <option value="nl-BE">Dutch (Belgium)</option>
+                                        <option value="pl-PL">Polish</option>
+                                        <option value="ru-RU">Russian</option>
+                                        <option value="uk-UA">Ukrainian</option>
+                                        <option value="cs-CZ">Czech</option>
+                                        <option value="sk-SK">Slovak</option>
+                                        <option value="hu-HU">Hungarian</option>
+                                        <option value="ro-RO">Romanian</option>
+                                        <option value="bg-BG">Bulgarian</option>
+                                        <option value="hr-HR">Croatian</option>
+                                        <option value="sr-RS">Serbian</option>
+                                        <option value="sl-SI">Slovenian</option>
+                                        <option value="da-DK">Danish</option>
+                                        <option value="fi-FI">Finnish</option>
+                                        <option value="nb-NO">Norwegian (Bokmål)</option>
+                                        <option value="sv-SE">Swedish</option>
+                                        <option value="is-IS">Icelandic</option>
+                                        <option value="el-GR">Greek</option>
+                                        <option value="tr-TR">Turkish</option>
+                                        <option value="ar-SA">Arabic (Saudi Arabia)</option>
+                                        <option value="ar-AE">Arabic (UAE)</option>
+                                        <option value="ar-EG">Arabic (Egypt)</option>
+                                        <option value="he-IL">Hebrew</option>
+                                        <option value="fa-IR">Persian</option>
+                                        <option value="hi-IN">Hindi</option>
+                                        <option value="bn-BD">Bengali (Bangladesh)</option>
+                                        <option value="ta-IN">Tamil</option>
+                                        <option value="te-IN">Telugu</option>
+                                        <option value="ur-PK">Urdu</option>
+                                        <option value="zh-CN">Chinese (Simplified)</option>
+                                        <option value="zh-TW">Chinese (Traditional)</option>
+                                        <option value="zh-HK">Chinese (Hong Kong)</option>
+                                        <option value="ja-JP">Japanese</option>
+                                        <option value="ko-KR">Korean</option>
+                                        <option value="th-TH">Thai</option>
+                                        <option value="vi-VN">Vietnamese</option>
+                                        <option value="id-ID">Indonesian</option>
+                                        <option value="ms-MY">Malay</option>
+                                        <option value="fil-PH">Filipino</option>
+                                        <option value="sw-KE">Swahili</option>
+                                        <option value="af-ZA">Afrikaans</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Colors -->
+                    <div class="card" style="margin-bottom:var(--spacing-lg)">
+                        <div class="card-header">
+                            <h2><i class="fas fa-palette"></i> Colors</h2>
+                            <button class="section-toggle" data-section="colors" aria-label="Toggle section"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                        <div class="card-body section-content" id="section-colors">
+                            <div class="form-group">
+                                <label class="form-label" for="theme_color">Theme Color</label>
+                                <span class="form-hint">Browser toolbar and task switcher color</span>
+                                <div class="color-field">
+                                    <div class="color-swatch">
+                                        <input type="color" id="theme_color_picker" value="#D04A02">
+                                    </div>
+                                    <input class="form-input" id="theme_color" type="text" placeholder="#D04A02" value="#D04A02">
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="background_color">Background Color</label>
+                                <span class="form-hint">Splash screen background while loading</span>
+                                <div class="color-field">
+                                    <div class="color-swatch">
+                                        <input type="color" id="background_color_picker" value="#FFFFFF">
+                                    </div>
+                                    <input class="form-input" id="background_color" type="text" placeholder="#FFFFFF" value="#FFFFFF">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Icons -->
+                    <div class="card" style="margin-bottom:var(--spacing-lg)">
+                        <div class="card-header">
+                            <h2><i class="fas fa-icons"></i> Icons</h2>
+                            <button class="section-toggle" data-section="icons" aria-label="Toggle section"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                        <div class="card-body section-content" id="section-icons">
+                            <div class="icon-upload-zone" id="iconDropZone">
+                                <input type="file" accept="image/png,image/jpeg,image/svg+xml,image/webp" id="iconFileInput">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Drag & drop an image or <span class="upload-link">browse</span></p>
+                                <p style="font-size:0.75rem;margin-top:var(--spacing-xs)">PNG recommended, at least 512x512px</p>
+                            </div>
+                            <div class="icon-preview-grid" id="iconPreviewGrid"></div>
+                        </div>
+                    </div>
+
+                    <!-- Screenshots -->
+                    <div class="card" style="margin-bottom:var(--spacing-lg)">
+                        <div class="card-header">
+                            <h2><i class="fas fa-camera"></i> Screenshots</h2>
+                            <button class="section-toggle" data-section="screenshots" aria-label="Toggle section"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                        <div class="card-body section-content" id="section-screenshots">
+                            <div class="screenshot-list" id="screenshotList"></div>
+                            <button class="add-btn" id="addScreenshot"><i class="fas fa-plus"></i> Add Screenshot</button>
+                        </div>
+                    </div>
+
+                    <!-- Categories & Related -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-tags"></i> Categories & Related</h2>
+                            <button class="section-toggle" data-section="categories" aria-label="Toggle section"><i class="fas fa-chevron-down"></i></button>
+                        </div>
+                        <div class="card-body section-content" id="section-categories">
+                            <div class="form-group">
+                                <label class="form-label" for="categories">Categories</label>
+                                <span class="form-hint">Comma-separated list (e.g. productivity, utilities)</span>
+                                <input class="form-input" id="categories" type="text" placeholder="productivity, utilities">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="iarc_rating_id">IARC Rating ID</label>
+                                <span class="form-hint">Age rating certification identifier</span>
+                                <input class="form-input" id="iarc_rating_id" type="text" placeholder="">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label" for="prefer_related_applications">Prefer Related Applications</label>
+                                <select class="form-select" id="prefer_related_applications">
+                                    <option value="false" selected>No</option>
+                                    <option value="true">Yes</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Preview Column -->
+                <div class="preview-col">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2><i class="fas fa-code"></i> manifest.json</h2>
+                            <div class="btn-group">
+                                <button class="btn btn-secondary" id="copyBtn" title="Copy to clipboard">
+                                    <i class="fas fa-copy"></i> Copy
+                                </button>
+                                <button class="btn btn-primary" id="downloadBtn" title="Download manifest.json">
+                                    <i class="fas fa-download"></i> Download
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body" style="padding:0">
+                            <div class="json-preview-wrapper">
+                                <pre class="json-preview" id="jsonPreview"></pre>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <span style="font-size:0.75rem;color:var(--text-muted)" id="jsonSize">0 bytes</span>
+                            <div class="btn-group">
+                                <button class="btn btn-secondary" id="importBtn" title="Import existing manifest">
+                                    <i class="fas fa-file-import"></i> Import
+                                </button>
+                                <button class="btn btn-secondary" id="resetBtn" title="Reset all fields">
+                                    <i class="fas fa-undo"></i> Reset
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <input type="file" accept=".json,.webmanifest" id="importFileInput" style="display:none">
+
+    <div class="toast" id="toast">
+        <i class="fas fa-check-circle"></i>
+        <span id="toastMsg"></span>
+    </div>
+
+    <script>
+    (function () {
+        const ICON_SIZES = [48, 72, 96, 128, 144, 192, 384, 512];
+        const MANIFEST_FIELDS = ['name', 'short_name', 'description', 'start_url', 'scope', 'id', 'display', 'orientation', 'dir', 'lang', 'theme_color', 'background_color', 'categories', 'iarc_rating_id', 'prefer_related_applications'];
+
+        let generatedIcons = [];
+        let screenshots = [];
+
+        // Elements
+        const jsonPreview = document.getElementById('jsonPreview');
+        const jsonSize = document.getElementById('jsonSize');
+        const toastEl = document.getElementById('toast');
+        const toastMsg = document.getElementById('toastMsg');
+
+        // Dark mode
+        const themeToggle = document.getElementById('themeToggle');
+        if (localStorage.getItem('pwa-gen-dark') === '1') {
+            document.body.setAttribute('data-theme', 'dark');
+            themeToggle.querySelector('i').className = 'fas fa-sun';
+        }
+        themeToggle.addEventListener('click', () => {
+            const isDark = document.body.getAttribute('data-theme') === 'dark';
+            if (isDark) {
+                document.body.removeAttribute('data-theme');
+                localStorage.removeItem('pwa-gen-dark');
+                themeToggle.querySelector('i').className = 'fas fa-moon';
+            } else {
+                document.body.setAttribute('data-theme', 'dark');
+                localStorage.setItem('pwa-gen-dark', '1');
+                themeToggle.querySelector('i').className = 'fas fa-sun';
+            }
+        });
+
+        // Collapsible sections
+        document.querySelectorAll('.section-toggle').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const section = document.getElementById('section-' + btn.dataset.section);
+                const collapsed = !section.classList.contains('collapsed');
+                section.classList.toggle('collapsed', collapsed);
+                btn.classList.toggle('collapsed', collapsed);
+            });
+        });
+
+        // Color picker sync
+        function syncColorPicker(pickerId, inputId) {
+            const picker = document.getElementById(pickerId);
+            const input = document.getElementById(inputId);
+            picker.addEventListener('input', () => { input.value = picker.value.toUpperCase(); updatePreview(); });
+            input.addEventListener('input', () => {
+                const val = input.value.trim();
+                if (/^#[0-9A-Fa-f]{6}$/.test(val)) picker.value = val;
+                updatePreview();
+            });
+        }
+        syncColorPicker('theme_color_picker', 'theme_color');
+        syncColorPicker('background_color_picker', 'background_color');
+
+        // Icon upload
+        const iconDropZone = document.getElementById('iconDropZone');
+        const iconFileInput = document.getElementById('iconFileInput');
+        const iconPreviewGrid = document.getElementById('iconPreviewGrid');
+
+        iconDropZone.addEventListener('click', () => iconFileInput.click());
+        iconDropZone.addEventListener('dragover', e => { e.preventDefault(); iconDropZone.classList.add('dragover'); });
+        iconDropZone.addEventListener('dragleave', () => iconDropZone.classList.remove('dragover'));
+        iconDropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            iconDropZone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) processIcon(e.dataTransfer.files[0]);
+        });
+        iconFileInput.addEventListener('change', () => {
+            if (iconFileInput.files.length) processIcon(iconFileInput.files[0]);
+            iconFileInput.value = '';
+        });
+
+        function processIcon(file) {
+            if (!file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    generatedIcons = [];
+                    iconPreviewGrid.innerHTML = '';
+                    ICON_SIZES.forEach(size => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = size;
+                        canvas.height = size;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, size, size);
+                        const dataUrl = canvas.toDataURL('image/png');
+                        generatedIcons.push({
+                            src: `icons/icon-${size}x${size}.png`,
+                            sizes: `${size}x${size}`,
+                            type: 'image/png',
+                            purpose: 'any',
+                            dataUrl
+                        });
+
+                        const item = document.createElement('div');
+                        item.className = 'icon-preview-item';
+                        const preview = document.createElement('img');
+                        preview.src = dataUrl;
+                        const displaySize = Math.min(size, 64);
+                        preview.width = displaySize;
+                        preview.height = displaySize;
+                        preview.alt = `${size}x${size} icon`;
+                        const label = document.createElement('span');
+                        label.textContent = `${size}x${size}`;
+                        item.appendChild(preview);
+                        item.appendChild(label);
+                        iconPreviewGrid.appendChild(item);
+                    });
+                    updatePreview();
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // Screenshots
+        const screenshotList = document.getElementById('screenshotList');
+        const addScreenshotBtn = document.getElementById('addScreenshot');
+
+        addScreenshotBtn.addEventListener('click', () => addScreenshotField());
+
+        function addScreenshotField(value = '') {
+            const id = Date.now();
+            screenshots.push({ id, src: value });
+            renderScreenshots();
+            updatePreview();
+        }
+
+        function renderScreenshots() {
+            screenshotList.innerHTML = '';
+            screenshots.forEach((s, i) => {
+                const item = document.createElement('div');
+                item.className = 'screenshot-item';
+                item.innerHTML = `
+                    <span style="color:var(--text-muted);font-size:0.75rem;min-width:1.5rem">${i + 1}.</span>
+                    <input class="form-input" type="text" placeholder="screenshots/screen1.png" value="${s.src}">
+                    <button class="remove-btn" title="Remove"><i class="fas fa-times"></i></button>
+                `;
+                item.querySelector('input').addEventListener('input', e => {
+                    s.src = e.target.value.trim();
+                    updatePreview();
+                });
+                item.querySelector('.remove-btn').addEventListener('click', () => {
+                    screenshots = screenshots.filter(x => x.id !== s.id);
+                    renderScreenshots();
+                    updatePreview();
+                });
+                screenshotList.appendChild(item);
+            });
+        }
+
+        // Build manifest object
+        function buildManifest() {
+            const manifest = {};
+            MANIFEST_FIELDS.forEach(field => {
+                const el = document.getElementById(field);
+                if (!el) return;
+                let val = el.value.trim();
+                if (!val) return;
+                if (field === 'prefer_related_applications') {
+                    if (val === 'true') manifest[field] = true;
+                    return;
+                }
+                if (field === 'categories') {
+                    const arr = val.split(',').map(c => c.trim()).filter(Boolean);
+                    if (arr.length) manifest[field] = arr;
+                    return;
+                }
+                manifest[field] = val;
+            });
+
+            if (generatedIcons.length) {
+                manifest.icons = generatedIcons.map(ic => ({
+                    src: ic.src,
+                    sizes: ic.sizes,
+                    type: ic.type,
+                    purpose: ic.purpose
+                }));
+            }
+
+            const validScreenshots = screenshots.filter(s => s.src);
+            if (validScreenshots.length) {
+                manifest.screenshots = validScreenshots.map(s => ({ src: s.src }));
+            }
+
+            return manifest;
+        }
+
+        // JSON syntax highlighting
+        function highlightJSON(json) {
+            const str = JSON.stringify(json, null, 2);
+            return str.replace(
+                /("(?:\\.|[^"\\])*")\s*:/g,
+                '<span class="json-key">$1</span>:'
+            ).replace(
+                /:\s*("(?:\\.|[^"\\])*")/g,
+                ': <span class="json-string">$1</span>'
+            ).replace(
+                /:\s*(\d+(?:\.\d+)?)/g,
+                ': <span class="json-number">$1</span>'
+            ).replace(
+                /:\s*(true|false)/g,
+                ': <span class="json-boolean">$1</span>'
+            ).replace(
+                /:\s*(null)/g,
+                ': <span class="json-null">$1</span>'
+            ).replace(
+                /("(?:\\.|[^"\\])*")(?!\s*:)/g,
+                (match, p1, offset, full) => {
+                    if (full[offset - 2] === ':' || full.substring(Math.max(0, offset - 6), offset).includes(':')) return match;
+                    return '<span class="json-string">' + p1 + '</span>';
+                }
+            );
+        }
+
+        function updatePreview() {
+            const manifest = buildManifest();
+            const raw = JSON.stringify(manifest, null, 2);
+            jsonPreview.innerHTML = highlightJSON(manifest);
+            const bytes = new Blob([raw]).size;
+            jsonSize.textContent = bytes < 1024 ? bytes + ' bytes' : (bytes / 1024).toFixed(1) + ' KB';
+            saveState();
+        }
+
+        // Listen for all form inputs
+        MANIFEST_FIELDS.forEach(field => {
+            const el = document.getElementById(field);
+            if (el) el.addEventListener('input', updatePreview);
+        });
+
+        // Copy
+        document.getElementById('copyBtn').addEventListener('click', () => {
+            const raw = JSON.stringify(buildManifest(), null, 2);
+            navigator.clipboard.writeText(raw).then(() => showToast('Copied to clipboard'));
+        });
+
+        // Download manifest
+        document.getElementById('downloadBtn').addEventListener('click', () => {
+            const raw = JSON.stringify(buildManifest(), null, 2);
+            const blob = new Blob([raw], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'manifest.json';
+            a.click();
+            URL.revokeObjectURL(a.href);
+            showToast('Downloaded manifest.json');
+        });
+
+        // Download icons as zip (if icons exist)
+        function downloadIconsNote() {
+            if (!generatedIcons.length) return;
+            generatedIcons.forEach(ic => {
+                const a = document.createElement('a');
+                a.href = ic.dataUrl;
+                a.download = ic.src.split('/').pop();
+                a.click();
+            });
+            showToast('Downloaded ' + generatedIcons.length + ' icons');
+        }
+
+        // Import
+        const importFileInput = document.getElementById('importFileInput');
+        document.getElementById('importBtn').addEventListener('click', () => importFileInput.click());
+        importFileInput.addEventListener('change', () => {
+            const file = importFileInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const data = JSON.parse(reader.result);
+                    populateFromManifest(data);
+                    showToast('Imported manifest');
+                } catch {
+                    showToast('Invalid JSON file');
+                }
+            };
+            reader.readAsText(file);
+            importFileInput.value = '';
+        });
+
+        function populateFromManifest(data) {
+            MANIFEST_FIELDS.forEach(field => {
+                const el = document.getElementById(field);
+                if (!el || data[field] === undefined) return;
+                if (field === 'categories' && Array.isArray(data[field])) {
+                    el.value = data[field].join(', ');
+                } else if (field === 'prefer_related_applications') {
+                    el.value = data[field] ? 'true' : 'false';
+                } else {
+                    el.value = data[field];
+                }
+            });
+
+            if (data.theme_color) document.getElementById('theme_color_picker').value = data.theme_color;
+            if (data.background_color) document.getElementById('background_color_picker').value = data.background_color;
+
+            if (data.icons && Array.isArray(data.icons)) {
+                generatedIcons = data.icons.map(ic => ({
+                    src: ic.src || '',
+                    sizes: ic.sizes || '',
+                    type: ic.type || 'image/png',
+                    purpose: ic.purpose || 'any',
+                    dataUrl: ''
+                }));
+                iconPreviewGrid.innerHTML = '<p style="font-size:0.75rem;color:var(--text-muted)"><i class="fas fa-info-circle"></i> ' + generatedIcons.length + ' icon entries imported (upload an image to generate previews)</p>';
+            }
+
+            screenshots = [];
+            if (data.screenshots && Array.isArray(data.screenshots)) {
+                data.screenshots.forEach(s => screenshots.push({ id: Date.now() + Math.random(), src: s.src || '' }));
+                renderScreenshots();
+            }
+
+            updatePreview();
+        }
+
+        // Reset
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            MANIFEST_FIELDS.forEach(field => {
+                const el = document.getElementById(field);
+                if (!el) return;
+                if (field === 'start_url' || field === 'scope') el.value = '/';
+                else if (field === 'display') el.value = 'standalone';
+                else if (field === 'orientation') el.value = 'any';
+                else if (field === 'dir') el.value = 'auto';
+                else if (field === 'lang') el.value = 'en-US';
+                else if (field === 'theme_color') { el.value = '#D04A02'; document.getElementById('theme_color_picker').value = '#D04A02'; }
+                else if (field === 'background_color') { el.value = '#FFFFFF'; document.getElementById('background_color_picker').value = '#FFFFFF'; }
+                else if (field === 'prefer_related_applications') el.value = 'false';
+                else el.value = '';
+            });
+            generatedIcons = [];
+            iconPreviewGrid.innerHTML = '';
+            screenshots = [];
+            screenshotList.innerHTML = '';
+            updatePreview();
+            showToast('Reset all fields');
+        });
+
+        // Toast
+        let toastTimer;
+        function showToast(msg) {
+            clearTimeout(toastTimer);
+            toastMsg.textContent = msg;
+            toastEl.classList.add('visible');
+            toastTimer = setTimeout(() => toastEl.classList.remove('visible'), 2500);
+        }
+
+        // Persist state to localStorage
+        function saveState() {
+            const state = {};
+            MANIFEST_FIELDS.forEach(f => {
+                const el = document.getElementById(f);
+                if (el) state[f] = el.value;
+            });
+            state._screenshots = screenshots.map(s => s.src);
+            localStorage.setItem('pwa-gen-state', JSON.stringify(state));
+        }
+
+        function loadState() {
+            try {
+                const raw = localStorage.getItem('pwa-gen-state');
+                if (!raw) return;
+                const state = JSON.parse(raw);
+                MANIFEST_FIELDS.forEach(f => {
+                    const el = document.getElementById(f);
+                    if (el && state[f] !== undefined) el.value = state[f];
+                });
+                if (state.theme_color) {
+                    const p = document.getElementById('theme_color_picker');
+                    if (/^#[0-9A-Fa-f]{6}$/.test(state.theme_color)) p.value = state.theme_color;
+                }
+                if (state.background_color) {
+                    const p = document.getElementById('background_color_picker');
+                    if (/^#[0-9A-Fa-f]{6}$/.test(state.background_color)) p.value = state.background_color;
+                }
+                if (state._screenshots && Array.isArray(state._screenshots)) {
+                    state._screenshots.forEach(src => {
+                        if (src) screenshots.push({ id: Date.now() + Math.random(), src });
+                    });
+                    renderScreenshots();
+                }
+            } catch {}
+        }
+
+        loadState();
+        updatePreview();
+    })();
+    </script>
+</body>
+</html>
