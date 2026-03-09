@@ -44,6 +44,15 @@ html, body {
   -webkit-user-select:none;
 }
 
+/* ── Camera feed ── */
+#cameraFeed {
+  position:fixed; top:0; left:0;
+  width:100%; height:100%;
+  object-fit:cover;
+  z-index:0;
+  display:none;
+}
+
 /* ── Canvas ── */
 #arCanvas {
   position:fixed; top:0; left:0;
@@ -425,6 +434,7 @@ body.oled-mode #loader {
 </head>
 <body>
 
+<video id="cameraFeed" autoplay playsinline muted></video>
 <canvas id="arCanvas"></canvas>
 <div id="tooltip"></div>
 
@@ -472,6 +482,10 @@ body.oled-mode #loader {
   <div class="sensor-toggle">
     <div class="sensor-label">Transparent OLED Mode<small>Optimized for transparent displays</small></div>
     <label class="sensor-switch"><input type="checkbox" id="toggleOLED"><span class="sensor-track"></span></label>
+  </div>
+  <div class="sensor-toggle">
+    <div class="sensor-label">Camera Background<small>Use rear camera as live backdrop</small></div>
+    <label class="sensor-switch"><input type="checkbox" id="toggleCamera"><span class="sensor-track"></span></label>
   </div>
 
   <!-- ── Position ── -->
@@ -1309,7 +1323,10 @@ document.getElementById('resetSettings').addEventListener('click',()=>{
   CFG = JSON.parse(JSON.stringify(DEFAULTS));
   localStorage.removeItem('arCfg');
   localStorage.removeItem('oledMode');
+  localStorage.removeItem('cameraOn');
   applyOLEDMode(false);
+  stopCamera();
+  document.getElementById('toggleCamera').checked = false;
   populateSettings();
 });
 
@@ -1578,6 +1595,49 @@ const savedOLED = localStorage.getItem('oledMode') === '1';
 toggleOLED.checked = savedOLED;
 applyOLEDMode(savedOLED);
 toggleOLED.addEventListener('change', () => applyOLEDMode(toggleOLED.checked));
+
+// ── Camera Background Toggle ──
+const toggleCamera = document.getElementById('toggleCamera');
+const cameraFeed = document.getElementById('cameraFeed');
+let cameraStream = null;
+
+async function startCamera() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+      audio: false
+    });
+    cameraFeed.srcObject = cameraStream;
+    cameraFeed.style.display = 'block';
+    document.body.style.background = 'transparent';
+    localStorage.setItem('cameraOn', '1');
+  } catch (err) {
+    console.warn('Camera access denied or unavailable:', err);
+    toggleCamera.checked = false;
+    localStorage.setItem('cameraOn', '0');
+  }
+}
+
+function stopCamera() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  cameraFeed.srcObject = null;
+  cameraFeed.style.display = 'none';
+  document.body.style.background = '';
+  localStorage.setItem('cameraOn', '0');
+}
+
+toggleCamera.addEventListener('change', () => {
+  if (toggleCamera.checked) startCamera();
+  else stopCamera();
+});
+
+if (localStorage.getItem('cameraOn') === '1') {
+  toggleCamera.checked = true;
+  startCamera();
+}
 
 setupLiveTypeChips();
 setupLiveFilters();
