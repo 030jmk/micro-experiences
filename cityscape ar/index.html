@@ -11,7 +11,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Frankfurt AR Building Overlay — Tower 185</title>
+<title>AR Building Overlay</title>
 <style>
 /* ══════════════════════════════════════════════════════════════
    DESIGN SYSTEM
@@ -559,14 +559,31 @@ body.oled-mode #loader {
   <!-- ── Labels ── -->
   <h3>🏷️ Building Labels</h3>
   <div class="sensor-toggle">
-    <div class="sensor-label">Show Labels<small>Display building names on the canvas</small></div>
+    <div class="sensor-label">Show Labels<small>Master toggle for all label text</small></div>
     <label class="sensor-switch"><input type="checkbox" id="toggleLabels" checked><span class="sensor-track"></span></label>
+  </div>
+  <div class="sensor-toggle" style="padding-left:16px;">
+    <div class="sensor-label">Names<small>Building name</small></div>
+    <label class="sensor-switch"><input type="checkbox" id="toggleNames" checked><span class="sensor-track"></span></label>
+  </div>
+  <div class="sensor-toggle" style="padding-left:16px;">
+    <div class="sensor-label">Height<small>Building height in metres</small></div>
+    <label class="sensor-switch"><input type="checkbox" id="toggleHeight" checked><span class="sensor-track"></span></label>
+  </div>
+  <div class="sensor-toggle" style="padding-left:16px;">
+    <div class="sensor-label">Distance<small>Distance from viewer</small></div>
+    <label class="sensor-switch"><input type="checkbox" id="toggleDistance" checked><span class="sensor-track"></span></label>
   </div>
   <div class="slider-group">
     <label>Label Size <span class="slider-val" id="valLabelSize">12</span>px</label>
     <input type="range" id="cfgLabelSize" min="8" max="24" step="1" value="12">
     <div class="range-labels"><span>8px</span><span>16px</span><span>24px</span></div>
   </div>
+
+  <!-- ── Rendering ── -->
+  <h3>🧱 Rendering</h3>
+  <label>Floor Height (m) <small style="color:var(--text-dim);">— used when only floor count is known</small></label>
+  <input type="number" id="cfgLevelHeight" step="0.1" min="1" max="10" value="3.2">
 
   <!-- ── Data Source ── -->
   <h3>🌐 Data Source</h3>
@@ -653,6 +670,9 @@ const DEFAULTS = Object.freeze({
   defaultBuildingHeight: 12,
   levelHeight: 3.2,
   showLabels: true,
+  showNames: true,
+  showDistance: true,
+  showHeight: true,
   labelSize: 12,
   oledMode: false,
 });
@@ -960,34 +980,44 @@ function render() {
     ctx.closePath(); ctx.stroke();
 
     // Label
-    if (CFG.showLabels && pb.building.name && pb.labelPt && (
+    if (CFG.showLabels && pb.labelPt && (
       pb.building.height >= 30 || pb.building.distance < 500 || isH || isS
     )) {
       const sz = CFG.labelSize;
       const hoverSz = Math.round(sz * 1.17);
       const badgeSz = Math.max(8, Math.round(sz * 0.8));
-      ctx.save();
-      ctx.font = isH ? `bold ${hoverSz}px "Segoe UI",sans-serif` : `${sz}px "Segoe UI",sans-serif`;
-      ctx.fillStyle = isH||isS ? '#fff' : hexToRGBA(col, oled ? 1.0 : 0.85);
-      ctx.textAlign = 'center';
-      if (oled) {
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 3;
-        ctx.lineJoin = 'round';
-        ctx.strokeText(pb.building.name, pb.labelPt.x, pb.labelPt.y - 10);
+      const showName = CFG.showNames && pb.building.name;
+      const showMeta = CFG.showHeight || CFG.showDistance;
+
+      if (showName || showMeta) {
+        ctx.save();
+        ctx.textAlign = 'center';
+        ctx.shadowColor = oled ? 'rgba(0,0,0,1)' : 'rgba(0,0,0,0.7)';
+        ctx.shadowBlur = oled ? 6 : 4;
+
+        let yOff = pb.labelPt.y - 10;
+
+        if (showName) {
+          ctx.font = isH ? `bold ${hoverSz}px "Segoe UI",sans-serif` : `${sz}px "Segoe UI",sans-serif`;
+          ctx.fillStyle = isH||isS ? '#fff' : hexToRGBA(col, oled ? 1.0 : 0.85);
+          if (oled) { ctx.strokeStyle='#000'; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.strokeText(pb.building.name, pb.labelPt.x, yOff); }
+          ctx.fillText(pb.building.name, pb.labelPt.x, yOff);
+          yOff += Math.round(sz * 1.15);
+        }
+
+        if (showMeta) {
+          const parts = [];
+          if (CFG.showHeight)   parts.push(`${pb.building.height.toFixed(0)}m`);
+          if (CFG.showDistance)  parts.push(`${(pb.building.distance/1000).toFixed(1)}km`);
+          const metaStr = parts.join(' · ');
+          if (!showName) yOff = pb.labelPt.y - 10;
+          ctx.font = `${badgeSz}px "Segoe UI",sans-serif`;
+          ctx.fillStyle = hexToRGBA(col, oled ? 0.8 : 0.55);
+          if (oled) { ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.strokeText(metaStr, pb.labelPt.x, yOff); }
+          ctx.fillText(metaStr, pb.labelPt.x, yOff);
+        }
+        ctx.restore();
       }
-      ctx.shadowColor = oled ? 'rgba(0,0,0,1)' : 'rgba(0,0,0,0.7)';
-      ctx.shadowBlur = oled ? 6 : 4;
-      ctx.fillText(pb.building.name, pb.labelPt.x, pb.labelPt.y - 10);
-      ctx.font = `${badgeSz}px "Segoe UI",sans-serif`;
-      ctx.fillStyle = hexToRGBA(col, oled ? 0.8 : 0.55);
-      if (oled) {
-        ctx.strokeStyle = '#000';
-        ctx.lineWidth = 2;
-        ctx.strokeText(`${pb.building.height.toFixed(0)}m · ${(pb.building.distance/1000).toFixed(1)}km`, pb.labelPt.x, pb.labelPt.y + 4);
-      }
-      ctx.fillText(`${pb.building.height.toFixed(0)}m · ${(pb.building.distance/1000).toFixed(1)}km`, pb.labelPt.x, pb.labelPt.y + 4);
-      ctx.restore();
     }
   }
 
@@ -1286,8 +1316,14 @@ function populateSettings() {
 
   // Labels
   document.getElementById('toggleLabels').checked = CFG.showLabels;
+  document.getElementById('toggleNames').checked = CFG.showNames;
+  document.getElementById('toggleHeight').checked = CFG.showHeight;
+  document.getElementById('toggleDistance').checked = CFG.showDistance;
   document.getElementById('cfgLabelSize').value = CFG.labelSize;
   document.getElementById('valLabelSize').textContent = CFG.labelSize;
+
+  // Rendering
+  document.getElementById('cfgLevelHeight').value = CFG.levelHeight;
 
   // OLED mode
   document.getElementById('toggleOLED').checked = CFG.oledMode;
@@ -1310,6 +1346,9 @@ document.getElementById('applySettings').addEventListener('click',()=>{
   CFG.maxDist   = distSliderToMeters(parseInt(document.getElementById('cfgMaxDist').value));
   CFG.minHeight = heightSliderToMeters(parseInt(document.getElementById('cfgMinHeight').value));
   CFG.maxHeight = heightSliderToMeters(parseInt(document.getElementById('cfgMaxHeight').value));
+
+  const lh = parseFloat(document.getElementById('cfgLevelHeight').value);
+  if (!isNaN(lh) && lh > 0) CFG.levelHeight = lh;
 
   // Type filters already updated via chip click handlers
 
@@ -1548,6 +1587,24 @@ function setupLiveFilters() {
     document.getElementById('valLabelSize').textContent = v;
     CFG.labelSize = v;
     if (buildings.length) render();
+  });
+
+  // Sub-label toggles (names, height, distance)
+  ['toggleNames', 'toggleHeight', 'toggleDistance'].forEach(id => {
+    const key = id.replace('toggle', 'show');
+    document.getElementById(id).checked = CFG[key];
+    document.getElementById(id).addEventListener('change', function() {
+      CFG[key] = this.checked;
+      if (buildings.length) render();
+    });
+  });
+
+  // Floor height
+  const cfgLevelHeight = document.getElementById('cfgLevelHeight');
+  cfgLevelHeight.value = CFG.levelHeight;
+  cfgLevelHeight.addEventListener('input', () => {
+    const v = parseFloat(cfgLevelHeight.value);
+    if (!isNaN(v) && v > 0) CFG.levelHeight = v;
   });
 }
 
