@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="96" fill="#000a14"/>
+  <!-- Skyline silhouette -->
+  <g fill="none" stroke="#00e5ff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Tower left -->
+    <polygon points="120,380 120,200 145,180 170,200 170,380" fill="rgba(0,229,255,0.06)"/>
+    <line x1="120" y1="220" x2="170" y2="220"/>
+    <line x1="120" y1="260" x2="170" y2="260"/>
+    <line x1="120" y1="300" x2="170" y2="300"/>
+    <line x1="120" y1="340" x2="170" y2="340"/>
+    <!-- Tower center (tallest) -->
+    <polygon points="210,380 210,120 240,90 270,120 270,380" fill="rgba(0,229,255,0.06)"/>
+    <line x1="210" y1="150" x2="270" y2="150"/>
+    <line x1="210" y1="190" x2="270" y2="190"/>
+    <line x1="210" y1="230" x2="270" y2="230"/>
+    <line x1="210" y1="270" x2="270" y2="270"/>
+    <line x1="210" y1="310" x2="270" y2="310"/>
+    <line x1="210" y1="350" x2="270" y2="350"/>
+    <!-- Tower right -->
+    <polygon points="310,380 310,240 350,240 350,380" fill="rgba(0,229,255,0.06)"/>
+    <line x1="310" y1="270" x2="350" y2="270"/>
+    <line x1="310" y1="310" x2="350" y2="310"/>
+    <line x1="310" y1="350" x2="350" y2="350"/>
+    <!-- Small building far right -->
+    <polygon points="380,380 380,300 410,300 410,380" fill="rgba(0,229,255,0.06)"/>
+    <line x1="380" y1="340" x2="410" y2="340"/>
+  </g>
+  <!-- Ground line -->
+  <line x1="80" y1="380" x2="432" y2="380" stroke="#00e5ff" stroke-width="2" opacity="0.4"/>
+  <!-- Compass indicator -->
+  <circle cx="400" cy="140" r="36" fill="none" stroke="#00e5ff" stroke-width="2" opacity="0.5"/>
+  <line x1="400" y1="140" x2="400" y2="108" stroke="#00e5ff" stroke-width="2.5"/>
+  <text x="400" y="104" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="bold" fill="rgba(255,255,255,0.6)">N</text>
+  <!-- AR label -->
+  <text x="256" y="450" text-anchor="middle" font-family="sans-serif" font-size="42" font-weight="700" fill="#00e5ff" letter-spacing="6">AR</text>
+</svg>
