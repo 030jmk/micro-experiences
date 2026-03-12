@@ -279,7 +279,7 @@
       "id": 19,
       "mediaType": "image",
       "contentA": {
-        "path": "content/images/Iga_Cembrzyńska_(1963).jpg",
+        "path": "content/images/Iga_Cembrzynska_(1963).jpg",
         "isAI": false
       },
       "contentB": {
@@ -296,7 +296,7 @@
         "isAI": true
       },
       "contentB": {
-        "path": "content/images/Kędzierzawska_Dorota.jpg",
+        "path": "content/images/Kedzierzawska_Dorota.jpg",
         "isAI": false
       },
       "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://de.wikipedia.org/wiki/Datei:K%C4%99dzierzawska_Dorota.jpg<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
@@ -335,7 +335,7 @@
         "isAI": true
       },
       "contentB": {
-        "path": "content/images/Reichstagsgebäude_von_Westen.jpg",
+        "path": "content/images/Reichstagsgebaeude_von_Westen.jpg",
         "isAI": false
       },
       "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://de.wikipedia.org/wiki/Reichstagsgeb%C3%A4ude<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
@@ -348,7 +348,7 @@
         "isAI": true
       },
       "contentB": {
-        "path": "content/images/Ravensburg_Bäckereischild.jpg",
+        "path": "content/images/Ravensburg_Baeckereischild.jpg",
         "isAI": false
       },
       "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:&nbsp;</span>https://de.wikipedia.org/wiki/Datei:Ravensburg_B%C3%A4ckereischild.jpg<div><span style=\"font-size: 15.2px; font-weight: bolder; letter-spacing: -0.4px;\">Fake Image:&nbsp;</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">generated with Nano Banana Pro</span></div>"

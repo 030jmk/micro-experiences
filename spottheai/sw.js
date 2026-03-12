@@ -36,6 +36,7 @@ self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
 
   if (event.request.method !== 'GET') return;
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
 
   // content/* media files: cache-first (large, rarely change)
   if (url.pathname.includes('/content/')) {
