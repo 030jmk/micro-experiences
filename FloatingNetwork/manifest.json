@@ -1,0 +1,17 @@
+{
+  "name": "Floating Network",
+  "short_name": "FloatNet",
+  "description": "Interactive floating network visualization",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' fill='%23000'/><circle cx='256' cy='200' r='8' fill='white'/><circle cx='180' cy='300' r='6' fill='white'/><circle cx='332' cy='300' r='6' fill='white'/><circle cx='200' cy='150' r='5' fill='white'/><circle cx='312' cy='150' r='5' fill='white'/><circle cx='150' cy='250' r='4' fill='white'/><circle cx='362' cy='250' r='4' fill='white'/><line x1='256' y1='200' x2='180' y2='300' stroke='white' stroke-width='1' opacity='0.5'/><line x1='256' y1='200' x2='332' y2='300' stroke='white' stroke-width='1' opacity='0.5'/><line x1='180' y1='300' x2='332' y2='300' stroke='white' stroke-width='1' opacity='0.4'/><line x1='200' y1='150' x2='312' y2='150' stroke='white' stroke-width='1' opacity='0.4'/><line x1='200' y1='150' x2='256' y2='200' stroke='white' stroke-width='1' opacity='0.5'/><line x1='312' y1='150' x2='256' y2='200' stroke='white' stroke-width='1' opacity='0.5'/><line x1='150' y1='250' x2='180' y2='300' stroke='white' stroke-width='1' opacity='0.3'/><line x1='362' y1='250' x2='332' y2='300' stroke='white' stroke-width='1' opacity='0.3'/></svg>",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
