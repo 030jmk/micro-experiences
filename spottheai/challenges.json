@@ -170,6 +170,253 @@
         "Notice if the instrumental backing feels naturally performed or artificially perfect."
       ],
       "detectionTips": "Human vocal performances have subtle variations in timing and pitch that AI often struggles to replicate naturally."
+    },
+    {
+      "id": 11,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/Vincent_A._Jockin.jpg",
+        "isAI": false
+      },
+      "contentB": {
+        "path": "content/images/unnamed-21.jpg",
+        "isAI": true
+      },
+      "explanation": "<b>Real Image:</b>&nbsp;https://en.wikipedia.org/wiki/Vincent_A._Jockin - Vincent A Jockin&nbsp;<div><b>Fake Image: </b>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 12,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/_To_the_Manor_Born__(Christina_Crosby_with_Moxie).jpg",
+        "isAI": false
+      },
+      "contentB": {
+        "path": "content/images/unnamed_Kopie.jpg",
+        "isAI": true
+      },
+      "explanation": "<span style=\"font-size: 15.2px; font-weight: bolder; letter-spacing: -0.4px;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://de.wikipedia.org/wiki/Datei:%22To_the_Manor_Born%22_(Christina_Crosby_with_Moxie).jpg<span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span><div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 13,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/unnamed-6.jpg",
+        "isAI": true
+      },
+      "contentB": {
+        "path": "content/images/6fa8c4c4-b4bb-40f6-b3d1-c3251ead50b0.jpg",
+        "isAI": false
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://en.wikipedia.org/wiki/Kazuyuki_Kaneda<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 14,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/unnamed-5.jpg",
+        "isAI": true
+      },
+      "contentB": {
+        "path": "content/images/23d3baec-94c5-43d2-b3ba-129e5a7ccb1c.jpg",
+        "isAI": false
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://en.wikipedia.org/wiki/Microstylum_morosum<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 15,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/Hania_Moro_African_games_2019.jpg",
+        "isAI": false
+      },
+      "contentB": {
+        "path": "content/images/unnamed_Kopie_2.jpg",
+        "isAI": true
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://en.wikipedia.org/wiki/Hania_Moro<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 16,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/unnamed-11.jpg",
+        "isAI": true
+      },
+      "contentB": {
+        "path": "content/images/a5d52ea7-248b-475d-8531-9bd631b5a1c4.jpg",
+        "isAI": false
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://de.wikipedia.org/wiki/Johnny_Blowers&nbsp;<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 17,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/Bafetimbi_Gomis_2015_(cropped).jpg",
+        "isAI": false
+      },
+      "contentB": {
+        "path": "content/images/unnamed-19.jpg",
+        "isAI": true
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://de.wikipedia.org/wiki/Baf%C3%A9timbi_Gomis<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 18,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/unnamed-17.jpg",
+        "isAI": true
+      },
+      "contentB": {
+        "path": "content/images/Bitterballen_mosterd_mayo.jpg",
+        "isAI": false
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://en.wikipedia.org/wiki/Bitterballen<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 19,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/Iga_Cembrzyńska_(1963).jpg",
+        "isAI": false
+      },
+      "contentB": {
+        "path": "content/images/unnamed-13.jpg",
+        "isAI": true
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://de.wikipedia.org/wiki/Datei:Iga_Cembrzy%C5%84ska_(1963).jpg<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 20,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/unnamed-3.jpg",
+        "isAI": true
+      },
+      "contentB": {
+        "path": "content/images/Kędzierzawska_Dorota.jpg",
+        "isAI": false
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://de.wikipedia.org/wiki/Datei:K%C4%99dzierzawska_Dorota.jpg<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 21,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/Northeast_Science_Station_View.jpg",
+        "isAI": false
+      },
+      "contentB": {
+        "path": "content/images/unnamed-20.jpg",
+        "isAI": true
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://ceb.wikipedia.org/wiki/Nizhnekolymskiy_Rayon<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 22,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/Osney_cemetery_-_geograph.org.uk_-_1263022.jpg",
+        "isAI": false
+      },
+      "contentB": {
+        "path": "content/images/unnamed-10.jpg",
+        "isAI": true
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://en.wikipedia.org/wiki/Osney_Cemetery<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 23,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/unnamed-24.jpg",
+        "isAI": true
+      },
+      "contentB": {
+        "path": "content/images/Reichstagsgebäude_von_Westen.jpg",
+        "isAI": false
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">&nbsp;</span>https://de.wikipedia.org/wiki/Reichstagsgeb%C3%A4ude<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder;\">Fake Image:&nbsp;</span>generated with Nano Banana Pro</div>"
+    },
+    {
+      "id": 24,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/unnamed-25.jpg",
+        "isAI": true
+      },
+      "contentB": {
+        "path": "content/images/Ravensburg_Bäckereischild.jpg",
+        "isAI": false
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:&nbsp;</span>https://de.wikipedia.org/wiki/Datei:Ravensburg_B%C3%A4ckereischild.jpg<div><span style=\"font-size: 15.2px; font-weight: bolder; letter-spacing: -0.4px;\">Fake Image:&nbsp;</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">generated with Nano Banana Pro</span></div>"
+    },
+    {
+      "id": 25,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/unnamed-23.jpg",
+        "isAI": true
+      },
+      "contentB": {
+        "path": "content/images/Wiertz_burial.jpg",
+        "isAI": false
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:&nbsp;</span>https://de.wikipedia.org/wiki/Datei:Wiertz_burial.jpg<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder; letter-spacing: -0.4px;\">Fake Image:&nbsp;</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">generated with Nano Banana Pro</span></div>"
+    },
+    {
+      "id": 26,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/Yenisahra1.jpg",
+        "isAI": false
+      },
+      "contentB": {
+        "path": "content/images/unnamed-9.jpg",
+        "isAI": true
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:&nbsp;</span>https://de.wikipedia.org/wiki/Datei:Yenisahra1.JPG<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder; letter-spacing: -0.4px;\">Fake Image:&nbsp;</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">generated with Nano Banana Pro</span></div>"
+    },
+    {
+      "id": 27,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/unnamed-22.jpg",
+        "isAI": true
+      },
+      "contentB": {
+        "path": "content/images/Matthew_Dayes_2018_(cropped).jpg",
+        "isAI": false
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:&nbsp;</span>https://en.wikipedia.org/wiki/Matthew_Dayes<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder; letter-spacing: -0.4px;\">Fake Image:&nbsp;</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">generated with Nano Banana Pro</span></div>"
+    },
+    {
+      "id": 28,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/unnamed-14.jpg",
+        "isAI": true
+      },
+      "contentB": {
+        "path": "content/images/Matias_Paredes.jpg",
+        "isAI": false
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:&nbsp;</span>https://de.wikipedia.org/wiki/Mat%C3%ADas_Paredes<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder; letter-spacing: -0.4px;\">Fake Image:&nbsp;</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">generated with Nano Banana Pro</span></div>"
+    },
+    {
+      "id": 29,
+      "mediaType": "image",
+      "contentA": {
+        "path": "content/images/BrockZeman_(2).jpg",
+        "isAI": false
+      },
+      "contentB": {
+        "path": "content/images/unnamed-7.jpg",
+        "isAI": true
+      },
+      "explanation": "<span style=\"font-size: 15.2px; letter-spacing: -0.4px; font-weight: bolder;\">Real Image:&nbsp;</span>https://en.wikipedia.org/wiki/Brock_Zeman<div style=\"font-size: 15.2px; letter-spacing: -0.4px;\"><span style=\"font-size: 15.2px; font-weight: bolder; letter-spacing: -0.4px;\">Fake Image:&nbsp;</span><span style=\"font-size: 15.2px; letter-spacing: -0.4px;\">generated with Nano Banana Pro</span></div>"
     }
   ]
 }
