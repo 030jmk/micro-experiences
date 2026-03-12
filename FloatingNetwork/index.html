@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#000000">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black">
-    <meta name="description" content="Interactive floating network visualization with configurable nodes, connections, and backgrounds. Runs as a Progressive Web App with shareable URL settings.">
+    <meta name="description" content="Floating network as screensaver. Trippe click to open settings.">
     <link rel="manifest" href="manifest.json">
     <title>Floating Network</title>
     <style>
@@ -570,11 +570,12 @@
             createNodes() {
                 this.nodes = [];
                 const color = '#' + this.settings.nodeColor;
+                const pad = this.settings.overflow;
                 for (let i = 0; i < this.settings.nodeCount; i++) {
                     const speed = this.settings.speed;
                     this.nodes.push({
-                        x: Math.random() * this.canvas.width,
-                        y: Math.random() * this.canvas.height,
+                        x: -pad + Math.random() * (this.canvas.width + 2 * pad),
+                        y: -pad + Math.random() * (this.canvas.height + 2 * pad),
                         vx: (Math.random() - 0.5) * speed,
                         vy: (Math.random() - 0.5) * speed,
                         radius: Math.random() * NetworkVisualization.NODE_RADIUS_MAX + NetworkVisualization.NODE_RADIUS_MIN,
@@ -589,10 +590,17 @@
                     newSettings.nodeCount !== this.settings.nodeCount ||
                     newSettings.nodeColor !== this.settings.nodeColor
                 );
+                const speedChanged = newSettings.speed !== this.settings.speed;
                 this.settings = newSettings;
 
                 if (needRecreate) {
                     this.createNodes();
+                } else if (speedChanged) {
+                    const maxVel = newSettings.speed;
+                    this.nodes.forEach(node => {
+                        node.vx = (Math.random() - 0.5) * maxVel;
+                        node.vy = (Math.random() - 0.5) * maxVel;
+                    });
                 }
             }
 
