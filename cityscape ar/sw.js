@@ -29,6 +29,7 @@ self.addEventListener('activate', e => {
 
 self.addEventListener('fetch', e => {
   const url = new URL(e.request.url);
+  if (url.protocol !== 'http:' && url.protocol !== 'https:') return;
 
   if (url.hostname.includes(OVERPASS_ORIGIN)) {
     e.respondWith(networkThenCache(e.request));
