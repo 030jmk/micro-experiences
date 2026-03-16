@@ -204,6 +204,22 @@ body {
   color: var(--primary);
 }
 
+.home-btn {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+  transition: color var(--transition-speed) var(--transition-timing),
+              border-color var(--transition-speed) var(--transition-timing);
+}
+.home-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
 /* Navigation styles */
 .nav {
   display: flex;
@@ -3013,6 +3029,9 @@ footer a:hover {
             <div class="header-logo">
                 <h1 id="logoTitle">Spot The AI</h1>
             </div>
+            <button class="home-btn" id="homeBtn" aria-label="Back to start screen" style="display:none;">
+                <i class="fas fa-home"></i>
+            </button>
         </div>
     </header>
 
@@ -3038,6 +3057,13 @@ footer a:hover {
                         <span class="toggle-label">Keep Screen On</span>
                         <label class="toggle-switch">
                             <input type="checkbox" id="wakeLockToggle" checked>
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Home Button</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="homeBtnToggle">
                             <span class="toggle-track"></span>
                         </label>
                     </div>
@@ -3818,6 +3844,8 @@ footer a:hover {
             const closeBtn = document.getElementById('settingsClose');
             const logo = document.getElementById('logoTitle');
             const darkToggle = document.getElementById('darkModeToggle');
+            const homeBtnToggle = document.getElementById('homeBtnToggle');
+            const homeBtn = document.getElementById('homeBtn');
             const pills = document.querySelectorAll('.media-pill');
             const loadBtn = document.getElementById('settingsLoadJson');
             const fileInput = document.getElementById('settingsFileInput');
@@ -3838,6 +3866,12 @@ footer a:hover {
                 if (params.get('dark') === '1' || localStorage.getItem('dark') === '1') {
                     darkToggle.checked = true;
                     document.body.setAttribute('data-theme', 'dark');
+                }
+
+                // Home button: ?homeBtn=1 or localStorage
+                if (params.get('homeBtn') === '1' || localStorage.getItem('homeBtn') === '1') {
+                    homeBtnToggle.checked = true;
+                    homeBtn.style.display = '';
                 }
 
                 // Media types: ?types=image,text (only those) or ?exclude=video (all except those)
@@ -3884,6 +3918,10 @@ footer a:hover {
                 // Dark mode
                 if (darkToggle.checked) params.set('dark', '1');
                 else params.delete('dark');
+
+                // Home button
+                if (homeBtnToggle.checked) params.set('homeBtn', '1');
+                else params.delete('homeBtn');
 
                 // Media types — only write if not all four are active
                 params.delete('types');
@@ -3965,6 +4003,20 @@ footer a:hover {
                 }
                 writeURLState();
             });
+
+            // Home button toggle
+            homeBtnToggle.addEventListener('change', () => {
+                if (homeBtnToggle.checked) {
+                    homeBtn.style.display = '';
+                    localStorage.setItem('homeBtn', '1');
+                } else {
+                    homeBtn.style.display = 'none';
+                    localStorage.removeItem('homeBtn');
+                }
+                writeURLState();
+            });
+
+            homeBtn.addEventListener('click', () => location.reload());
 
             // Timeout selects
             globalTimeoutSelect.addEventListener('change', () => {
