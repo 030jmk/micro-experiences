@@ -502,11 +502,11 @@ body.oled-mode #loader {
   </div>
   <div class="row">
     <div>
-      <label>Ground Elevation (m ASL)</label>
+      <label>Ground Elevation (m ASL) <small style="color:var(--text-dim);">— terrain height above sea level; auto-set by GPS</small></label>
       <input type="number" id="cfgGroundAlt" step="0.1">
     </div>
     <div>
-      <label>Viewer Height (m above ground)</label>
+      <label>Viewer Height (m above ground) <small style="color:var(--text-dim);">— your eye level above terrain, e.g. 1.7 m standing or 125 m on a high floor</small></label>
       <input type="number" id="cfgViewerHeight" step="0.5">
     </div>
   </div>
@@ -1427,6 +1427,8 @@ function startGPS() {
       if (pos.coords.altitude != null) {
         CFG.groundAlt = Math.round(pos.coords.altitude);
         document.getElementById('cfgGroundAlt').value = CFG.groundAlt;
+        CFG.viewerHeight = 1.7;
+        document.getElementById('cfgViewerHeight').value = CFG.viewerHeight;
       }
       applyFiltersAndRender();
     },
@@ -1730,9 +1732,38 @@ document.getElementById('cfgRadius').addEventListener('input', () => {
 });
 
 // ═══════════════════════════════════════════════════════════════════
+// DEVICE DETECTION & AUTO-DEFAULTS
+// ═══════════════════════════════════════════════════════════════════
+const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+                 || (navigator.maxTouchPoints > 1);
+
+function applyDeviceDefaults() {
+  if (localStorage.getItem('arCfg')) return;
+
+  if (isMobile) {
+    CFG.maxDist = 500;
+    CFG.viewerHeight = 1.7;
+    toggleGPS.checked = true;
+    startGPS();
+    toggleOrientation.checked = true;
+    startOrientation();
+    toggleCamera.checked = true;
+    startCamera();
+  } else {
+    CFG.maxDist = 1000;
+    toggleCursor.checked = true;
+    document.body.style.cursor = 'auto';
+    document.querySelector('#arCanvas').style.cursor = 'auto';
+    toggleGPS.checked = true;
+    startGPS();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════
 // BOOT
 // ═══════════════════════════════════════════════════════════════════
 loadSaved();
+applyDeviceDefaults();
 populateSettings();
 resize();
 fetchBuildings();
