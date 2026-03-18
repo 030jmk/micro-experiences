@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="What happens to your mind when AI does the thinking? An interactive visualization of cognitive debt research.">
+<meta name="theme-color" content="#0a0a0a">
+<title>Cognitive Debt</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0a;
+  --bg-card: #141414;
+  --bg-card-hover: #1a1a1a;
+  --text: #e8e8e8;
+  --text-dim: #888;
+  --text-muted: #555;
+  --accent: #e8913a;
+  --accent-light: #f0b060;
+  --accent-glow: rgba(232,145,58,0.25);
+  --success: #4ade80;
+  --danger: #f87171;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Inter', -apple-system, sans-serif;
+}
+
+*, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection { background: var(--accent); color: #000; }
+
+section {
+  position: relative;
+  min-height: 100vh;
+  padding: 6rem 2rem;
+  display: flex;
+  flex-direction: column;
+  overflow-x: clip;
+  align-items: center;
+  justify-content: center;
+}
+
+.container { max-width: 800px; width: 100%; }
+
+.reveal { opacity: 0; transform: translateY(40px); }
+
+/* ── Section 1: Hook ── */
+#hook {
+  min-height: 100vh;
+  text-align: center;
+  padding: 0 2rem;
+}
+
+#hook h1 {
+  font-size: clamp(2rem, 6vw, 4rem);
+  font-weight: 300;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  max-width: 700px;
+}
+
+#hook h1 em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+#hook .subtext {
+  margin-top: 3rem;
+  font-size: clamp(0.95rem, 2vw, 1.125rem);
+  color: var(--text-dim);
+  max-width: 520px;
+  line-height: 1.8;
+}
+
+.scroll-hint {
+  position: absolute;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* ── Section 2: Experiment ── */
+#experiment { background: var(--bg); }
+
+#experiment .section-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 2rem;
+  font-weight: 600;
+}
+
+#experiment h2 {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+
+.stat-line {
+  font-size: 1rem;
+  color: var(--text-dim);
+  margin-bottom: 2.5rem;
+}
+
+.groups {
+  display: flex;
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.group-card {
+  flex: 1;
+  min-width: 200px;
+  max-width: 240px;
+  background: var(--bg-card);
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 1.5rem;
+  text-align: center;
+}
+
+.group-card .icon { font-size: 2rem; margin-bottom: 0.75rem; }
+
+.group-card h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+  color: var(--text);
+}
+
+.group-card p {
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.timeline {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  margin: 2.5rem 0;
+  position: relative;
+}
+
+.timeline-bar {
+  flex: 1;
+  height: 2px;
+  background: #222;
+  position: relative;
+}
+
+.timeline-bar .fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  background: var(--accent);
+}
+
+.timeline-node {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #333;
+  border: 2px solid #444;
+  position: relative;
+  z-index: 2;
+  flex-shrink: 0;
+  transition: background 0.4s, border-color 0.4s;
+}
+
+.timeline-node.active {
+  background: var(--accent);
+  border-color: var(--accent-light);
+}
+
+.timeline-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+}
+
+.experiment-body {
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.9;
+  margin-top: 2rem;
+}
+
+.experiment-body strong { color: var(--text); }
+
+.flip-callout {
+  margin-top: 2rem;
+  padding: 1.25rem 1.5rem;
+  background: rgba(232,145,58,0.08);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 8px 8px 0;
+  font-size: 1rem;
+  color: var(--accent-light);
+  line-height: 1.7;
+}
+
+.source-note {
+  margin-top: 2rem;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.source-note a { color: var(--accent); text-decoration: none; }
+.source-note a:hover { text-decoration: underline; }
+
+/* ── Section 3: Gym Metaphor ── */
+#gym {
+  min-height: 100vh;
+  padding: 4rem 2rem;
+}
+
+#gym .section-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+#gym h2 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 300;
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.gym-toggles {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  margin-bottom: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.gym-toggle {
+  padding: 0.6rem 1.25rem;
+  border: 1px solid #333;
+  border-radius: 8px;
+  background: var(--bg-card);
+  color: var(--text-dim);
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.gym-toggle:hover { border-color: #555; color: var(--text); }
+
+.gym-toggle.active {
+  border-color: var(--accent);
+  background: rgba(232,145,58,0.1);
+  color: var(--accent-light);
+}
+
+.silhouette-area {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 4rem;
+  margin-bottom: 2rem;
+}
+
+.figure-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 300px;
+}
+
+.figure-wrap svg {
+  width: 260px;
+  height: auto;
+}
+
+.brain-figure svg {
+  width: 280px;
+  filter: drop-shadow(0 0 12px rgba(232,145,58,0.05));
+}
+
+.muscle-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  width: 100%;
+}
+
+.muscle-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  transition: opacity 0.5s, color 0.5s;
+}
+
+.muscle-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  transition: background 0.5s, box-shadow 0.5s;
+}
+
+.muscle-label.active .muscle-dot {
+  box-shadow: 0 0 8px 2px var(--accent-glow);
+}
+
+.muscle-label.active { color: var(--accent-light); }
+.muscle-label.dim { opacity: 0.25; color: var(--text-muted); }
+.muscle-label.dim .muscle-dot { background: #333 !important; box-shadow: none !important; }
+
+.gym-description {
+  text-align: center;
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  max-width: 500px;
+  min-height: 3.5rem;
+  transition: opacity 0.4s;
+  margin: 0 auto;
+}
+
+.section-bridge {
+  text-align: center;
+  font-size: clamp(1rem, 2.5vw, 1.2rem);
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: 3rem;
+  letter-spacing: 0.01em;
+}
+
+/* ── Section 4: Debt Statement ── */
+#debt { background: var(--bg); }
+
+#debt .section-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.debt-card {
+  background: #0d0d0d;
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 2rem 2.5rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  line-height: 2;
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
+  overflow: hidden;
+}
+
+.debt-card .card-header {
+  font-weight: 500;
+  color: var(--accent-light);
+  margin-bottom: 0.25rem;
+}
+
+.debt-card .card-sub { color: var(--text-muted); margin-bottom: 1.25rem; }
+
+.debt-line {
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-dim);
+  opacity: 0;
+}
+
+.debt-line .amount { color: var(--danger); white-space: nowrap; }
+
+.debt-divider {
+  border: none;
+  border-top: 1px dashed #333;
+  margin: 0.75rem 0;
+  opacity: 0;
+}
+
+.debt-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 500;
+  color: var(--text);
+  opacity: 0;
+}
+
+.debt-total .amount { color: var(--danger); font-size: 1rem; }
+
+.debt-notice {
+  margin-top: 1rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--text-dim);
+  line-height: 1.7;
+  opacity: 0;
+}
+
+.debt-surplus {
+  margin-top: 0.75rem;
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--success);
+  line-height: 1.7;
+  opacity: 0;
+}
+
+.debt-reflection {
+  text-align: center;
+  max-width: 500px;
+  margin: 0 auto;
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  line-height: 1.9;
+}
+
+/* ── Section 5: The Switch ── */
+#switch-section { background: var(--bg); padding: 6rem 2rem; }
+
+#switch-section .section-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+#switch-section h2 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 300;
+  text-align: center;
+  margin-bottom: 3rem;
+}
+
+.switch-narrative {
+  max-width: 650px;
+  margin: 0 auto;
+}
+
+.switch-block {
+  margin-bottom: 3rem;
+}
+
+.switch-block h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--accent-light);
+  margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.switch-block p {
+  font-size: 1rem;
+  color: var(--text-dim);
+  line-height: 1.9;
+  margin-bottom: 1rem;
+}
+
+.switch-figures {
+  display: flex;
+  justify-content: center;
+  gap: 3rem;
+  margin: 2rem 0;
+  flex-wrap: wrap;
+}
+
+.switch-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.switch-figure svg { width: 160px; height: auto; }
+
+.switch-figure-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.switch-figure-label.struggling { color: var(--danger); }
+.switch-figure-label.supercharged { color: var(--success); }
+
+.key-quote {
+  text-align: center;
+  font-size: clamp(1.2rem, 3vw, 1.6rem);
+  font-weight: 300;
+  color: var(--accent-light);
+  max-width: 600px;
+  margin: 3rem auto;
+  line-height: 1.5;
+  padding: 2rem;
+  border-top: 1px solid #222;
+  border-bottom: 1px solid #222;
+}
+
+/* ── Section 6: Memory Test ── */
+#memory-test { background: var(--bg); }
+
+#memory-test .section-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+#memory-test h2 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 300;
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.memory-passage {
+  background: var(--bg-card);
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 2rem;
+  font-size: 1.05rem;
+  line-height: 1.9;
+  color: var(--text);
+  max-width: 600px;
+  margin: 0 auto 2rem;
+  transition: opacity 0.5s;
+}
+
+.memory-input-area {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  display: none;
+}
+
+.memory-input-area p {
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  margin-bottom: 1.5rem;
+  line-height: 1.7;
+}
+
+.memory-input-area textarea {
+  width: 100%;
+  min-height: 100px;
+  background: var(--bg-card);
+  border: 1px solid #333;
+  border-radius: 8px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 1rem;
+  padding: 1rem;
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.memory-input-area textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.memory-btn {
+  margin-top: 1rem;
+  padding: 0.7rem 2rem;
+  background: var(--accent);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.memory-btn:hover { background: var(--accent-light); }
+
+.memory-result {
+  max-width: 600px;
+  margin: 2rem auto 0;
+  display: none;
+}
+
+.memory-result .original {
+  background: var(--bg-card);
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 1.5rem;
+  font-size: 1rem;
+  line-height: 1.9;
+  margin-bottom: 1.5rem;
+}
+
+.memory-result .original .match { color: var(--success); font-weight: 500; }
+
+.memory-finding {
+  background: rgba(232,145,58,0.06);
+  border: 1px solid #2a2218;
+  border-radius: 12px;
+  padding: 1.5rem;
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  line-height: 1.8;
+}
+
+.memory-finding strong { color: var(--accent-light); }
+
+/* ── Section 7: Evidence Wall ── */
+#evidence { background: var(--bg); padding: 6rem 0; }
+
+#evidence .section-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 0 2rem;
+}
+
+#evidence h2 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 300;
+  text-align: center;
+  margin-bottom: 0.75rem;
+  padding: 0 2rem;
+}
+
+#evidence .evidence-sub {
+  text-align: center;
+  color: var(--text-dim);
+  margin-bottom: 3rem;
+  padding: 0 2rem;
+}
+
+.evidence-scroll {
+  display: flex;
+  gap: 1.25rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding: 0 2rem 1.5rem;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100vw;
+}
+
+.evidence-scroll::-webkit-scrollbar { height: 4px; }
+.evidence-scroll::-webkit-scrollbar-track { background: transparent; }
+.evidence-scroll::-webkit-scrollbar-thumb { background: #333; border-radius: 2px; }
+
+.study-card {
+  flex-shrink: 0;
+  width: 320px;
+  background: var(--bg-card);
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 1.5rem;
+  scroll-snap-align: start;
+  transition: border-color 0.3s;
+}
+
+.study-card:hover { border-color: #444; }
+
+.study-card .card-icon { font-size: 1.5rem; margin-bottom: 0.75rem; }
+
+.study-card h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.study-card .card-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+}
+
+.study-card blockquote {
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1.6;
+  border-left: 2px solid #333;
+  padding-left: 0.75rem;
+  margin-bottom: 1rem;
+  font-style: italic;
+}
+
+.study-card .card-pub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-bottom: 0.5rem;
+}
+
+.study-card .card-link {
+  font-size: 0.75rem;
+  color: var(--accent);
+  text-decoration: none;
+}
+.study-card .card-link:hover { text-decoration: underline; }
+
+.evidence-conclusion {
+  text-align: center;
+  max-width: 550px;
+  margin: 3rem auto 0;
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  line-height: 1.9;
+  padding: 0 2rem;
+}
+
+.evidence-conclusion strong { color: var(--text); }
+
+/* ── Section 8: What You Can Do ── */
+#actions { background: var(--bg); }
+
+#actions .section-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1.5rem;
+  font-weight: 600;
+}
+
+#actions h2 {
+  font-size: clamp(1.5rem, 4vw, 2.2rem);
+  font-weight: 300;
+  margin-bottom: 0.5rem;
+}
+
+#actions .actions-sub {
+  color: var(--text-dim);
+  margin-bottom: 3rem;
+  font-size: 1rem;
+}
+
+.action-item {
+  background: var(--bg-card);
+  border: 1px solid #222;
+  border-radius: 12px;
+  padding: 1.25rem 1.5rem;
+  margin-bottom: 1rem;
+  cursor: pointer;
+  transition: border-color 0.3s, background 0.3s;
+}
+
+.action-item:hover { border-color: #444; background: var(--bg-card-hover); }
+
+.action-item.featured {
+  border-color: var(--accent);
+  background: rgba(232,145,58,0.05);
+}
+
+.action-item.featured .action-badge {
+  display: inline-block;
+}
+
+.action-badge {
+  display: none;
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: rgba(232,145,58,0.12);
+  padding: 0.2rem 0.6rem;
+  border-radius: 4px;
+  margin-left: 0.75rem;
+  vertical-align: middle;
+}
+
+.action-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.action-num {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--mono);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.action-content h3 {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+.action-expand {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-left: auto;
+  flex-shrink: 0;
+  transition: transform 0.3s;
+}
+
+.action-item.open .action-expand { transform: rotate(180deg); }
+
+.action-body {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.4s ease, margin-top 0.3s ease;
+}
+
+.action-item.open .action-body {
+  max-height: 200px;
+  margin-top: 1rem;
+}
+
+.action-body p {
+  font-size: 0.95rem;
+  color: var(--text-dim);
+  line-height: 1.8;
+  padding-left: 2.5rem;
+}
+
+/* ── Section 9: Exit ── */
+#exit {
+  background: var(--bg);
+  text-align: center;
+  min-height: auto;
+  padding: 6rem 2rem 3rem;
+}
+
+#exit .exit-text {
+  font-size: clamp(1.1rem, 2.5vw, 1.3rem);
+  color: var(--text-dim);
+  line-height: 1.9;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+/* ── Go Deeper ── */
+.go-deeper {
+  background: var(--bg-card);
+  padding: 4rem 2rem;
+  text-align: center;
+  min-height: auto;
+}
+
+.go-deeper h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.exit-links {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+}
+
+.exit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  color: var(--text-dim);
+  text-decoration: none;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid #222;
+  border-radius: 8px;
+  transition: border-color 0.3s, color 0.3s;
+  max-width: 500px;
+  width: 100%;
+  justify-content: center;
+}
+
+.exit-link:hover { border-color: var(--accent); color: var(--accent-light); }
+
+/* ── Site Footer ── */
+.site-footer {
+  background: var(--bg);
+  padding: 4rem 2rem 3rem;
+  text-align: center;
+  min-height: auto;
+}
+
+.exit-footer {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.8;
+  margin-bottom: 3rem;
+  font-style: italic;
+}
+
+details.integrity {
+  max-width: 650px;
+  margin: 0 auto;
+  text-align: left;
+}
+
+details.integrity summary {
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.75rem 0;
+  border-top: 1px solid #222;
+  text-align: center;
+  list-style: none;
+}
+
+details.integrity summary::-webkit-details-marker { display: none; }
+details.integrity summary::marker { display: none; content: ''; }
+
+details.integrity[open] summary { margin-bottom: 1rem; }
+
+details.integrity .notes {
+  font-size: 0.82rem;
+  color: var(--text-dim);
+  line-height: 1.8;
+  padding: 1.5rem;
+  background: var(--bg-card);
+  border: 1px solid #222;
+  border-radius: 12px;
+}
+
+details.integrity .notes p { margin-bottom: 0.75rem; }
+details.integrity .notes p:last-child { margin-bottom: 0; }
+details.integrity .notes strong { color: var(--text); }
+
+/* ── Responsive ── */
+@media (max-width: 768px) {
+  section { padding: 4rem 1.25rem; }
+  .groups { flex-direction: column; align-items: center; }
+  .group-card { max-width: 100%; }
+  .silhouette-area { flex-direction: column; align-items: center; gap: 2rem; }
+  .switch-figures { flex-direction: column; align-items: center; }
+  .debt-card { padding: 1.5rem; font-size: 0.75rem; }
+  .study-card { width: 280px; }
+  .action-item { padding: 1rem 1.25rem; }
+  .action-body p { padding-left: 0; }
+  #evidence { padding: 4rem 0; }
+}
+
+@media (max-width: 480px) {
+  #hook h1 { font-size: 1.75rem; }
+  .gym-toggles { flex-direction: column; align-items: center; }
+  .debt-card { padding: 1.25rem 1rem; font-size: 0.7rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 1: THE HOOK                                            -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<section id="hook">
+  <h1>What if every shortcut cost you something <em>you couldn't see?</em></h1>
+  <p class="subtext reveal">
+    Researchers at MIT put EEG caps on 54 people and watched
+    what happened to their brains over 4 months of writing
+    — with ChatGPT, with Google, and with nothing but their own minds.<br><br>
+    What they found is worth 3 minutes of your attention.
+  </p>
+  <span class="scroll-hint">Scroll to begin</span>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 2: THE EXPERIMENT                                      -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<section id="experiment">
+  <div class="container">
+    <div class="section-label reveal">The Setup</div>
+    <h2 class="reveal">54 participants. 3 groups. 4 sessions. 4 months.</h2>
+
+    <div class="groups">
+      <div class="group-card reveal">
+        <div class="icon">🤖</div>
+        <h3>LLM Group</h3>
+        <p>Wrote essays using ChatGPT</p>
+      </div>
+      <div class="group-card reveal">
+        <div class="icon">🔍</div>
+        <h3>Search Group</h3>
+        <p>Wrote essays using Google</p>
+      </div>
+      <div class="group-card reveal">
+        <div class="icon">🧠</div>
+        <h3>Brain-only Group</h3>
+        <p>Wrote essays with no tools at all</p>
+      </div>
+    </div>
+
+    <div class="timeline reveal">
+      <div class="timeline-node" data-session="1"></div>
+      <div class="timeline-bar"><div class="fill" id="timelineFill"></div></div>
+      <div class="timeline-node" data-session="2"></div>
+      <div class="timeline-bar"><div class="fill"></div></div>
+      <div class="timeline-node" data-session="3"></div>
+      <div class="timeline-bar"><div class="fill"></div></div>
+      <div class="timeline-node" data-session="4"></div>
+    </div>
+    <div class="timeline-labels reveal">
+      <span>Session 1</span><span>Session 2</span><span>Session 3</span><span>Session 4</span>
+    </div>
+
+    <div class="experiment-body reveal">
+      Their brain activity was recorded with EEG while they wrote.
+      Their essays were analyzed with NLP.
+      They were interviewed after every session.
+    </div>
+
+    <div class="flip-callout reveal">
+      In the 4th session, the researchers did something unexpected.<br><br>
+      <strong>They flipped the groups.</strong><br><br>
+      More on that later.
+    </div>
+
+    <div class="source-note reveal">
+      MIT Media Lab, "Your Brain on ChatGPT: Accumulation of Cognitive Debt when Using an AI Assistant for Essay Writing Task," Kosmyna et al., June 2025. Preprint — not yet peer-reviewed.
+      <a href="https://arxiv.org/abs/2506.08872" target="_blank" rel="noopener noreferrer">arxiv.org/abs/2506.08872</a>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 3: THE GYM METAPHOR                                    -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<section id="gym">
+  <div class="container">
+    <div class="section-label reveal">The Cognitive Gym</div>
+    <h2 class="reveal">Your brain has muscles too. Here's what happens when AI does the lifting.</h2>
+
+    <div class="gym-toggles reveal">
+      <button class="gym-toggle active" data-mode="brain">🧠 Brain-only</button>
+      <button class="gym-toggle" data-mode="search">🔍 Search Engine</button>
+      <button class="gym-toggle" data-mode="llm">🤖 LLM</button>
+    </div>
+
+    <div class="silhouette-area reveal">
+      <div class="figure-wrap brain-figure">
+        <svg viewBox="0 0 260 220" fill="none" xmlns="http://www.w3.org/2000/svg" id="gymFigure">
+          <!-- Abstract brain outline -->
+          <path d="M130 20 C170 20, 200 35, 215 60 C230 85, 235 115, 220 145 C210 165, 185 185, 160 195 C145 200, 135 200, 130 198 C125 200, 115 200, 100 195 C75 185, 50 165, 40 145 C25 115, 30 85, 45 60 C60 35, 90 20, 130 20 Z"
+                stroke="#444" stroke-width="1.5" fill="none" class="brain-outline"/>
+          <!-- Central fissure -->
+          <path d="M130 28 C128 60, 132 90, 128 120 C125 145, 131 170, 130 192"
+                stroke="#333" stroke-width="1" fill="none" opacity="0.5" stroke-dasharray="4,3"/>
+          <!-- Subtle sulci (brain folds) -->
+          <path d="M80 55 C95 65, 105 50, 120 58" stroke="#333" stroke-width="0.8" fill="none" opacity="0.3"/>
+          <path d="M140 58 C155 50, 165 65, 180 55" stroke="#333" stroke-width="0.8" fill="none" opacity="0.3"/>
+          <path d="M55 100 C75 110, 85 90, 105 100" stroke="#333" stroke-width="0.8" fill="none" opacity="0.3"/>
+          <path d="M155 100 C175 90, 185 110, 205 100" stroke="#333" stroke-width="0.8" fill="none" opacity="0.3"/>
+          <path d="M70 145 C90 135, 100 150, 115 140" stroke="#333" stroke-width="0.8" fill="none" opacity="0.3"/>
+          <path d="M145 140 C160 150, 170 135, 190 145" stroke="#333" stroke-width="0.8" fill="none" opacity="0.3"/>
+          <!-- Region glow points -->
+          <circle cx="110" cy="50"  r="16" id="m-planning"    class="muscle-glow" fill="transparent"/>
+          <circle cx="75"  cy="110" r="14" id="m-memory"      class="muscle-glow" fill="transparent"/>
+          <circle cx="65"  cy="155" r="13" id="m-language"     class="muscle-glow" fill="transparent"/>
+          <circle cx="165" cy="85"  r="14" id="m-focus"        class="muscle-glow" fill="transparent"/>
+          <circle cx="130" cy="125" r="13" id="m-integration"  class="muscle-glow" fill="transparent"/>
+        </svg>
+
+        <div class="muscle-labels">
+          <div class="muscle-label active" data-muscle="planning">
+            <span class="muscle-dot" style="background: var(--accent)"></span>
+            <span>💡 Planning — <em>"What do I want to say?"</em></span>
+          </div>
+          <div class="muscle-label active" data-muscle="memory">
+            <span class="muscle-dot" style="background: var(--accent)"></span>
+            <span>🔍 Memory Recall — <em>"What do I already know?"</em></span>
+          </div>
+          <div class="muscle-label active" data-muscle="language">
+            <span class="muscle-dot" style="background: var(--accent)"></span>
+            <span>✍️ Language — <em>"How do I phrase this?"</em></span>
+          </div>
+          <div class="muscle-label active" data-muscle="focus">
+            <span class="muscle-dot" style="background: var(--accent)"></span>
+            <span>🎯 Focus — <em>"Stay on track."</em></span>
+          </div>
+          <div class="muscle-label active" data-muscle="integration">
+            <span class="muscle-dot" style="background: var(--accent)"></span>
+            <span>🧩 Integration — <em>"Connect the dots."</em></span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <p class="gym-description reveal" id="gymDesc">
+      All cognitive muscles engaged.<br>Hard work — but you're getting stronger.
+    </p>
+
+    <p class="section-bridge reveal">Think that doesn't apply to you?</p>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 4: THE MEMORY TEST                                     -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<section id="memory-test">
+  <div class="container">
+    <div class="section-label reveal">Try It Yourself</div>
+    <h2 class="reveal">A quick experiment</h2>
+
+    <div class="memory-passage reveal" id="memoryPassage">
+      The human brain processes approximately 11 million bits of sensory information every second, yet our conscious mind can only handle roughly 50 bits per second. This staggering gap means that the vast majority of what our brains do happens beneath our awareness — filtering, prioritizing, and pattern-matching without any conscious effort. When we outsource cognitive tasks to AI, we don't just save time; we potentially reduce the volume of information our brains actively process, narrowing the neural pathways that would otherwise strengthen through use.
+    </div>
+
+    <div class="memory-input-area" id="memoryInput">
+      <p>The passage is gone.<br>Can you type one specific sentence you just read? From memory.</p>
+      <textarea id="memoryRecall" placeholder="Type what you remember..."></textarea>
+      <br>
+      <button class="memory-btn" id="memorySubmit">Check my recall</button>
+    </div>
+
+    <div class="memory-result" id="memoryResult">
+      <div class="original" id="memoryOriginal"></div>
+      <div class="memory-finding">
+        <strong>From the MIT study:</strong><br><br>
+        In the MIT study, LLM users couldn't accurately quote their own essays — essays they had just written minutes before.<br><br>
+        6 out of 18 LLM participants couldn't provide a single correct quote in Session 3. Only 2 out of 18 in the Brain-only group had the same difficulty.<br><br>
+        <em>If you can't remember it, did you really learn it?</em>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 5: THE DEBT STATEMENT                                  -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<section id="debt">
+  <div class="container">
+    <p class="section-bridge reveal">Now imagine that happening every day, for months.</p>
+    <div class="section-label reveal">The Accumulation</div>
+
+    <div class="debt-card" id="debtCard">
+      <div class="card-header">🧠 COGNITIVE DEBT STATEMENT</div>
+      <div class="card-sub">Account holder: You</div>
+
+      <div class="debt-line" data-amount="5">
+        <span>Session 1 — AI drafted your intro</span>
+        <span class="amount">−$5 🧠</span>
+      </div>
+      <div class="debt-line" data-amount="8">
+        <span>Session 1 — AI structured your argument</span>
+        <span class="amount">−$8 🧠</span>
+      </div>
+      <div class="debt-line" data-amount="15">
+        <span>Session 2 — AI wrote most of your essay</span>
+        <span class="amount">−$15 🧠</span>
+      </div>
+      <div class="debt-line" data-amount="3">
+        <span>Session 2 — You edited AI's output</span>
+        <span class="amount">−$3 🧠</span>
+      </div>
+      <div class="debt-line" data-amount="25">
+        <span>Session 3 — AI handled everything</span>
+        <span class="amount">−$25 🧠</span>
+      </div>
+
+      <hr class="debt-divider">
+
+      <div class="debt-total">
+        <span>TOTAL COGNITIVE DEBT:</span>
+        <span class="amount">−$56 🧠</span>
+      </div>
+
+      <div class="debt-notice">
+        ⚠️ Over 4 months and 4 sessions, LLM users consistently underperformed Brain-only participants at every level measured — neural, linguistic, and scoring.
+      </div>
+
+      <div class="debt-surplus">
+        💡 Meanwhile, Brain-only users built a SURPLUS of +$72 🧠 from regular cognitive exercise.
+      </div>
+    </div>
+
+    <div class="debt-reflection reveal">
+      The researchers call this "cognitive debt."<br><br>
+      It's not dramatic. It's not sudden.
+      It's the quiet accumulation of small deferrals —
+      moments where you could have thought, but didn't.<br><br>
+      Each one is barely noticeable.<br>
+      Together, over months, they reshape your neural landscape.
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 6: THE SWITCH                                          -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<section id="switch-section">
+  <div class="container">
+    <div class="section-label reveal">Month 4</div>
+    <h2 class="reveal">The Switch</h2>
+
+    <div class="switch-narrative">
+      <div class="switch-block reveal">
+        <h3>LLM → Brain-only</h3>
+        <p>After 3 sessions with ChatGPT, LLM users were asked to write alone for the first time.</p>
+        <p>Their cognitive muscles had been resting for months.</p>
+      </div>
+
+      <div class="switch-figures reveal">
+        <div class="switch-figure" id="switchLLM">
+          <svg viewBox="0 0 260 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M130 20 C170 20, 200 35, 215 60 C230 85, 235 115, 220 145 C210 165, 185 185, 160 195 C145 200, 135 200, 130 198 C125 200, 115 200, 100 195 C75 185, 50 165, 40 145 C25 115, 30 85, 45 60 C60 35, 90 20, 130 20 Z"
+                  stroke="#383838" stroke-width="1.5" fill="none" opacity="0.6"/>
+            <path d="M130 28 C128 60, 132 90, 128 120 C125 145, 131 170, 130 192"
+                  stroke="#2a2a2a" stroke-width="1" fill="none" opacity="0.3" stroke-dasharray="4,3"/>
+            <circle cx="110" cy="50"  r="16" fill="rgba(248,113,113,0.06)" class="switch-muscle-dim"/>
+            <circle cx="130" cy="125" r="13" fill="rgba(248,113,113,0.10)" class="switch-muscle-weak"/>
+          </svg>
+          <span class="switch-figure-label struggling">Struggling</span>
+        </div>
+        <div class="switch-figure" id="switchBrain">
+          <svg viewBox="0 0 260 220" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M130 20 C170 20, 200 35, 215 60 C230 85, 235 115, 220 145 C210 165, 185 185, 160 195 C145 200, 135 200, 130 198 C125 200, 115 200, 100 195 C75 185, 50 165, 40 145 C25 115, 30 85, 45 60 C60 35, 90 20, 130 20 Z"
+                  stroke="#555" stroke-width="1.5" fill="none"/>
+            <path d="M130 28 C128 60, 132 90, 128 120 C125 145, 131 170, 130 192"
+                  stroke="#444" stroke-width="1" fill="none" opacity="0.4" stroke-dasharray="4,3"/>
+            <circle cx="110" cy="50"  r="18" fill="rgba(232,145,58,0.3)"  class="switch-muscle-bright"/>
+            <circle cx="75"  cy="110" r="15" fill="rgba(232,145,58,0.25)" class="switch-muscle-bright"/>
+            <circle cx="65"  cy="155" r="13" fill="rgba(232,145,58,0.2)"  class="switch-muscle-bright"/>
+            <circle cx="165" cy="85"  r="15" fill="rgba(232,145,58,0.3)"  class="switch-muscle-bright"/>
+            <circle cx="130" cy="125" r="14" fill="rgba(232,145,58,0.35)" class="switch-muscle-bright"/>
+          </svg>
+          <span class="switch-figure-label supercharged">Supercharged</span>
+        </div>
+      </div>
+
+      <div class="switch-block reveal">
+        <p>They still tried. Their delta and theta bands showed effort. But the higher-frequency processes — the ones that organize ideas, sustain reasoning, drive self-expression — were significantly weaker.</p>
+        <p><strong style="color:var(--text)">They couldn't fully bounce back.</strong></p>
+      </div>
+
+      <div class="switch-block reveal">
+        <h3>Brain-only → LLM</h3>
+        <p>Meanwhile, Brain-only users were given ChatGPT for the first time.</p>
+        <p>Their well-trained brains didn't become passive. They activated <em>more</em> — memory recall surged, prefrontal and occipito-parietal regions lit up. They used AI to amplify what they'd already built.</p>
+        <p><strong style="color:var(--text)">The tool didn't replace their thinking. It supercharged it.</strong></p>
+      </div>
+    </div>
+
+    <div class="key-quote reveal">
+      "AI amplifies what you've already built.<br>
+      It can't build the foundation for you."
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 7: THE EVIDENCE WALL                                   -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<section id="evidence">
+  <div class="section-label reveal">The Pattern</div>
+  <h2 class="reveal">It's not just one study.</h2>
+  <p class="evidence-sub reveal">Five independent research groups. Different methods. Different populations. The same conclusion.</p>
+
+  <div class="evidence-scroll">
+    <div class="study-card">
+      <div class="card-icon">🧠</div>
+      <h3>MIT Media Lab</h3>
+      <div class="card-meta">Kosmyna et al., 2025 · 54 participants · EEG brain monitoring · 4 months</div>
+      <blockquote>"Brain connectivity systematically scaled down with the amount of external support."</blockquote>
+      <div class="card-pub">Preprint — not yet peer-reviewed.</div>
+      <a class="card-link" href="https://arxiv.org/abs/2506.08872" target="_blank" rel="noopener noreferrer">→ arxiv.org/abs/2506.08872</a>
+    </div>
+
+    <div class="study-card">
+      <div class="card-icon">🎓</div>
+      <h3>Wharton / UPenn</h3>
+      <div class="card-meta">Bastani et al., 2024 · ~1,000 high school students · Math field experiment</div>
+      <blockquote>"Students using unguarded ChatGPT performed 48% better WITH AI — but 17% WORSE on exams without it. A tutoring version with guardrails eliminated the harm."</blockquote>
+      <div class="card-pub">Published in PNAS, June 2025.</div>
+      <a class="card-link" href="https://pnas.org/doi/abs/10.1073/pnas.2422633122" target="_blank" rel="noopener noreferrer">→ pnas.org/doi/abs/10.1073/pnas.2422633122</a>
+    </div>
+
+    <div class="study-card">
+      <div class="card-icon">🪞</div>
+      <h3>Fernandes et al.</h3>
+      <div class="card-meta">2026 · 698 participants · Two experiments · LSAT-style problems</div>
+      <blockquote>"AI improved performance by 3 points — but users overestimated their own ability by 4 points. The more AI-literate, the worse the self-awareness."</blockquote>
+      <div class="card-pub">Published in Computers in Human Behavior.</div>
+      <a class="card-link" href="https://doi.org/10.1016/j.chb.2025.108779" target="_blank" rel="noopener noreferrer">→ doi.org/10.1016/j.chb.2025.108779</a>
+    </div>
+
+    <div class="study-card">
+      <div class="card-icon">🧩</div>
+      <h3>Yurt &amp; Kuşci</h3>
+      <div class="card-meta">2026 · 422 university students · Structural equation modeling</div>
+      <blockquote>"AI usage negatively predicted critical thinking (β = −0.37). Mediated by 'epistemic laziness' — the tendency to stop seeking deeper understanding when AI gives quick answers."</blockquote>
+      <div class="card-pub">Published in Current Psychology.</div>
+      <a class="card-link" href="https://doi.org/10.1007/s12144-025-08800-0" target="_blank" rel="noopener noreferrer">→ doi.org/10.1007/s12144-025-08800-0</a>
+    </div>
+
+    <div class="study-card">
+      <div class="card-icon">🌐</div>
+      <h3>Gerlich</h3>
+      <div class="card-meta">2025 · 666 participants · Mixed methods · Diverse age groups</div>
+      <blockquote>"Significant negative correlation between frequent AI use and critical thinking. Younger users (17-25) most affected. Higher education provided some protective effect."</blockquote>
+      <div class="card-pub">Published in Societies (MDPI).</div>
+      <a class="card-link" href="https://doi.org/10.3390/soc15010006" target="_blank" rel="noopener noreferrer">→ doi.org/10.3390/soc15010006</a>
+    </div>
+  </div>
+
+  <div class="evidence-conclusion reveal">
+    Different labs. Different countries. Different methods.<br><br>
+    <strong>One consistent finding:</strong><br><br>
+    AI boosts your output today.
+    But it can erode your ability to produce output on your own tomorrow.<br><br>
+    — unless you build the skill first.
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 8: WHAT YOU CAN DO                                    -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<section id="actions">
+  <div class="container">
+    <div class="section-label reveal">What You Can Do</div>
+    <h2 class="reveal">This isn't about quitting AI.</h2>
+    <p class="actions-sub reveal">It's about using it in the right order.</p>
+
+    <div class="action-item featured open reveal" data-action>
+      <div class="action-header">
+        <span class="action-num">01</span>
+        <div class="action-content"><h3>Think first, then amplify<span class="action-badge">Start here</span></h3></div>
+        <span class="action-expand">▾</span>
+      </div>
+      <div class="action-body">
+        <p>Write the first draft yourself. Use AI for the second pass. The MIT study showed that people who built skills first got MORE out of AI when they finally used it.</p>
+      </div>
+    </div>
+
+    <div class="action-item reveal" data-action>
+      <div class="action-header">
+        <span class="action-num">02</span>
+        <div class="action-content"><h3>If you can't explain it without AI, you don't understand it</h3></div>
+        <span class="action-expand">▾</span>
+      </div>
+      <div class="action-body">
+        <p>After using AI to help with something, close the tab and try to explain it to someone. If you can't — you consumed, you didn't learn.</p>
+      </div>
+    </div>
+
+    <div class="action-item reveal" data-action>
+      <div class="action-header">
+        <span class="action-num">03</span>
+        <div class="action-content"><h3>Treat AI like a sparring partner, not a ghostwriter</h3></div>
+        <span class="action-expand">▾</span>
+      </div>
+      <div class="action-body">
+        <p>Ask it to challenge your ideas, not generate them. Ask it to find flaws in your argument, not make the argument for you. The Wharton study found that AI tutors designed to give hints — not answers — completely eliminated the negative learning effects.</p>
+      </div>
+    </div>
+
+    <div class="action-item reveal" data-action>
+      <div class="action-header">
+        <span class="action-num">04</span>
+        <div class="action-content"><h3>Practice the hard thing regularly</h3></div>
+        <span class="action-expand">▾</span>
+      </div>
+      <div class="action-body">
+        <p>The Brain-only group didn't have a genetic advantage. They just practiced thinking without tools — consistently. Three sessions of unassisted work built neural networks that LLM users couldn't match even after 4 months.</p>
+      </div>
+    </div>
+
+    <div class="action-item reveal" data-action>
+      <div class="action-header">
+        <span class="action-num">05</span>
+        <div class="action-content"><h3>Notice the comfort</h3></div>
+        <span class="action-expand">▾</span>
+      </div>
+      <div class="action-body">
+        <p>The most dangerous part of cognitive debt is that it feels good. Convenience feels like competence. If everything feels easy, ask yourself what muscle isn't being used.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- SECTION 9B: GO DEEPER — LINKS                                  -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<div class="go-deeper">
+  <h2 class="reveal">Go Deeper</h2>
+  <div class="exit-links reveal">
+    <a class="exit-link" href="https://arxiv.org/abs/2506.08872" target="_blank" rel="noopener noreferrer">📄 The full study (preprint) — arxiv.org/abs/2506.08872</a>
+    <a class="exit-link" href="https://media.mit.edu/projects/your-brain-on-chatgpt/overview" target="_blank" rel="noopener noreferrer">🔬 MIT Media Lab project page</a>
+    <a class="exit-link" href="https://pnas.org/doi/abs/10.1073/pnas.2422633122" target="_blank" rel="noopener noreferrer">🎓 "Generative AI Can Harm Learning" — Bastani et al.</a>
+    <a class="exit-link" href="https://media.mit.edu/projects/your-brain-on-chatgpt/overview" target="_blank" rel="noopener noreferrer">🧠 MIT Media Lab FAQ — what the researchers actually want you to know</a>
+  </div>
+</div>
+
+
+  <details class="integrity reveal">
+    <summary>▾ Important Context &amp; Limitations</summary>
+    <div class="notes">
+      <p>• The MIT study is a preprint (as of June 2025). It has not yet been peer-reviewed. The authors themselves urge caution in interpreting the conclusions.</p>
+      <p>• The sample was 54 participants from the Boston area — a specific demographic. Larger, more diverse studies are needed.</p>
+      <p>• The study used ChatGPT specifically. Results may not generalize to all LLMs.</p>
+      <p>• The findings are context-specific: essay writing in an educational setting.</p>
+      <p>• The researchers explicitly ask that media and readers do <strong>not</strong> use words like "stupid," "dumb," "brain rot," "brain damage," or "harm" to describe the findings. These misrepresent the work.</p>
+      <p>• The correct framing: <strong>"cognitive debt"</strong> — an accumulation of small deferrals that may reshape cognitive engagement over time. Not damage. Not rot. Debt.</p>
+      <p>We include these caveats because intellectual honesty matters more than persuasion. If the evidence can't stand on its own with full context, it shouldn't be presented at all.</p>
+    </div>
+  </details>
+</footer>
+
+<!-- ════════════════════════════════════════════════════════════════ -->
+<!-- SCRIPTS                                                        -->
+<!-- ════════════════════════════════════════════════════════════════ -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
+<script>
+gsap.registerPlugin(ScrollTrigger);
+
+// ── Scroll Reveals ──
+gsap.utils.toArray('.reveal').forEach(el => {
+  gsap.to(el, {
+    opacity: 1,
+    y: 0,
+    duration: 0.8,
+    ease: 'power2.out',
+    scrollTrigger: {
+      trigger: el,
+      start: 'top 85%',
+      toggleActions: 'play none none none',
+    }
+  });
+});
+
+// ── Section 1: Hook fade-in ──
+gsap.from('#hook h1', { opacity: 0, y: 30, duration: 1.2, delay: 0.3, ease: 'power3.out' });
+
+// ── Section 2: Timeline animation ──
+ScrollTrigger.create({
+  trigger: '#experiment .timeline',
+  start: 'top 80%',
+  onEnter: () => {
+    const nodes = document.querySelectorAll('.timeline-node');
+    const fills = document.querySelectorAll('.timeline-bar .fill');
+    nodes.forEach((n, i) => {
+      gsap.to(n, { delay: i * 0.4, onStart: () => n.classList.add('active') });
+    });
+    fills.forEach((f, i) => {
+      gsap.to(f, { width: '100%', duration: 0.4, delay: i * 0.4 + 0.2, ease: 'power1.inOut' });
+    });
+  },
+  once: true,
+});
+
+// ── Section 3: Gym Metaphor ──
+const muscleStates = {
+  brain:  { planning: true, memory: true, language: true, focus: true, integration: true },
+  search: { planning: true, memory: false, language: true, focus: true, integration: true },
+  llm:    { planning: false, memory: false, language: false, focus: true, integration: false },
+};
+
+const gymDescriptions = {
+  brain:  'All cognitive muscles engaged.<br>Hard work — but you\'re getting stronger.',
+  search: 'You\'re skipping one exercise,<br>but still getting a decent workout.',
+  llm:    'You\'re watching someone else exercise<br>and calling it your workout.',
+};
+
+const glowColors = {
+  brain:  'rgba(232,145,58,0.35)',
+  search: 'rgba(232,145,58,0.25)',
+  llm:    'rgba(248,113,113,0.12)',
+};
+
+function setGymMode(mode) {
+  document.querySelectorAll('.gym-toggle').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === mode);
+  });
+
+  const state = muscleStates[mode];
+  const glowColor = glowColors[mode];
+
+  document.querySelectorAll('.muscle-label').forEach(label => {
+    const muscle = label.dataset.muscle;
+    const active = state[muscle];
+    label.classList.toggle('active', active);
+    label.classList.toggle('dim', !active);
+    const dot = label.querySelector('.muscle-dot');
+    dot.style.background = active ? 'var(--accent)' : '#333';
+  });
+
+  const regionSizes = { planning: [16,20], memory: [14,18], language: [13,17], focus: [14,18], integration: [13,17] };
+  ['planning', 'memory', 'language', 'focus', 'integration'].forEach(m => {
+    const el = document.getElementById('m-' + m);
+    const [rOff, rOn] = regionSizes[m];
+    if (state[m]) {
+      gsap.to(el, { attr: { fill: glowColor, r: rOn }, duration: 0.5 });
+    } else {
+      gsap.to(el, { attr: { fill: 'transparent', r: rOff }, duration: 0.5 });
+    }
+  });
+
+  document.getElementById('gymDesc').innerHTML = gymDescriptions[mode];
+}
+
+document.querySelectorAll('.gym-toggle').forEach(btn => {
+  btn.addEventListener('click', () => setGymMode(btn.dataset.mode));
+});
+
+// ── Section 4: Debt Statement ──
+ScrollTrigger.create({
+  trigger: '#debtCard',
+  start: 'top 70%',
+  onEnter: () => {
+    const lines = document.querySelectorAll('#debtCard .debt-line');
+    const divider = document.querySelector('#debtCard .debt-divider');
+    const total = document.querySelector('#debtCard .debt-total');
+    const notice = document.querySelector('#debtCard .debt-notice');
+    const surplus = document.querySelector('#debtCard .debt-surplus');
+
+    lines.forEach((line, i) => {
+      gsap.to(line, { opacity: 1, duration: 0.4, delay: i * 0.35, ease: 'power1.out' });
+    });
+
+    const lineCount = lines.length;
+    gsap.to(divider, { opacity: 1, duration: 0.3, delay: lineCount * 0.35 });
+    gsap.to(total, { opacity: 1, duration: 0.4, delay: lineCount * 0.35 + 0.3 });
+    gsap.to(notice, { opacity: 1, duration: 0.5, delay: lineCount * 0.35 + 0.7 });
+    gsap.to(surplus, { opacity: 1, duration: 0.5, delay: lineCount * 0.35 + 1.1 });
+  },
+  once: true,
+});
+
+// ── Section 5: Switch animation ──
+ScrollTrigger.create({
+  trigger: '#switchLLM',
+  start: 'top 75%',
+  onEnter: () => {
+    gsap.to('#switchLLM .switch-muscle-dim', {
+      attr: { fill: 'rgba(248,113,113,0.12)' },
+      duration: 0.8,
+      repeat: 2,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+    gsap.to('#switchLLM .switch-muscle-weak', {
+      attr: { fill: 'rgba(248,113,113,0.2)' },
+      duration: 1,
+      repeat: 2,
+      yoyo: true,
+      ease: 'sine.inOut'
+    });
+
+    gsap.to('#switchBrain .switch-muscle-bright', {
+      attr: { fill: 'rgba(232,145,58,0.5)' },
+      duration: 1.2,
+      stagger: 0.15,
+      ease: 'power2.out'
+    });
+
+    gsap.to('#switchBrain svg path:first-child', {
+      attr: { stroke: '#888' },
+      duration: 1,
+      ease: 'power2.out'
+    });
+    gsap.to('#switchBrain svg circle:first-child', {
+      attr: { stroke: '#888' },
+      duration: 1,
+      ease: 'power2.out'
+    });
+  },
+  once: true,
+});
+
+// ── Section 6: Memory Test ──
+const passage = document.getElementById('memoryPassage');
+const inputArea = document.getElementById('memoryInput');
+const resultArea = document.getElementById('memoryResult');
+const originalDisplay = document.getElementById('memoryOriginal');
+const passageText = passage.textContent.trim();
+let memoryTestStarted = false;
+
+ScrollTrigger.create({
+  trigger: '#memoryPassage',
+  start: 'top 40%',
+  onEnter: () => {
+    if (memoryTestStarted) return;
+    memoryTestStarted = true;
+
+    gsap.delayedCall(6, () => {
+      gsap.to(passage, {
+        opacity: 0,
+        duration: 0.5,
+        onComplete: () => {
+          passage.style.display = 'none';
+          inputArea.style.display = 'block';
+          gsap.from(inputArea, { opacity: 0, y: 20, duration: 0.5 });
+        }
+      });
+    });
+  },
+  once: true,
+});
+
+document.getElementById('memorySubmit').addEventListener('click', () => {
+  const recall = document.getElementById('memoryRecall').value.trim();
+  if (!recall) return;
+
+  const recallWords = new Set(
+    recall.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3)
+  );
+
+  const words = passageText.split(/\s+/);
+  const highlighted = words.map(word => {
+    const clean = word.toLowerCase().replace(/[^a-z0-9]/g, '');
+    if (clean.length > 3 && recallWords.has(clean)) {
+      return `<span class="match">${word}</span>`;
+    }
+    return word;
+  }).join(' ');
+
+  originalDisplay.innerHTML = '<strong style="color:var(--text-dim);font-size:0.8rem;display:block;margin-bottom:0.75rem;">ORIGINAL PASSAGE (your matched words highlighted):</strong>' + highlighted;
+
+  inputArea.style.display = 'none';
+  resultArea.style.display = 'block';
+  gsap.from(resultArea, { opacity: 0, y: 20, duration: 0.6 });
+});
+
+// ── Section 7: Evidence cards stagger ──
+gsap.set('.study-card', { opacity: 0, x: 60 });
+ScrollTrigger.create({
+  trigger: '.evidence-scroll',
+  start: 'top 85%',
+  once: true,
+  onEnter: () => {
+    gsap.utils.toArray('.study-card').forEach((card, i) => {
+      gsap.to(card, {
+        opacity: 1,
+        x: 0,
+        duration: 0.6,
+        delay: i * 0.15,
+        ease: 'power2.out',
+      });
+    });
+  }
+});
+
+// ── Section 8: Action item accordions ──
+document.querySelectorAll('[data-action]').forEach(item => {
+  item.addEventListener('click', () => {
+    const wasOpen = item.classList.contains('open');
+    document.querySelectorAll('[data-action]').forEach(a => a.classList.remove('open'));
+    if (!wasOpen) item.classList.add('open');
+  });
+});
+</script>
+</body>
+</html>
