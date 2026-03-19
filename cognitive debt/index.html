@@ -55,6 +55,14 @@ section {
 
 .reveal { opacity: 0; transform: translateY(40px); }
 
+.section-bridge {
+  text-align: center;
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  color: var(--text-muted);
+  padding: 4rem 2rem;
+  font-style: italic;
+}
+
 /* ── Section 1: Hook ── */
 #hook {
   min-height: 100vh;
@@ -116,12 +124,6 @@ section {
   font-size: clamp(1.5rem, 4vw, 2.5rem);
   font-weight: 300;
   margin-bottom: 0.5rem;
-}
-
-.stat-line {
-  font-size: 1rem;
-  color: var(--text-dim);
-  margin-bottom: 2.5rem;
 }
 
 .groups {
@@ -355,15 +357,6 @@ section {
   margin: 0 auto;
 }
 
-.section-bridge {
-  text-align: center;
-  font-size: clamp(1rem, 2.5vw, 1.2rem);
-  color: var(--text-muted);
-  font-style: italic;
-  margin-top: 3rem;
-  letter-spacing: 0.01em;
-}
-
 /* ── Section 4: Debt Statement ── */
 #debt { background: var(--bg); }
 
@@ -513,6 +506,12 @@ section {
 
 .switch-figure svg { width: 160px; height: auto; }
 
+.switch-figure-group {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  margin-bottom: 0.15rem;
+}
 .switch-figure-label {
   font-size: 0.75rem;
   text-transform: uppercase;
@@ -536,119 +535,7 @@ section {
   border-bottom: 1px solid #222;
 }
 
-/* ── Section 6: Memory Test ── */
-#memory-test { background: var(--bg); }
-
-#memory-test .section-label {
-  font-size: 0.75rem;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 1.5rem;
-  font-weight: 600;
-  text-align: center;
-}
-
-#memory-test h2 {
-  font-size: clamp(1.5rem, 4vw, 2.2rem);
-  font-weight: 300;
-  text-align: center;
-  margin-bottom: 2.5rem;
-}
-
-.memory-passage {
-  background: var(--bg-card);
-  border: 1px solid #222;
-  border-radius: 12px;
-  padding: 2rem;
-  font-size: 1.05rem;
-  line-height: 1.9;
-  color: var(--text);
-  max-width: 600px;
-  margin: 0 auto 2rem;
-  transition: opacity 0.5s;
-}
-
-.memory-input-area {
-  max-width: 600px;
-  margin: 0 auto;
-  text-align: center;
-  display: none;
-}
-
-.memory-input-area p {
-  font-size: 1.05rem;
-  color: var(--text-dim);
-  margin-bottom: 1.5rem;
-  line-height: 1.7;
-}
-
-.memory-input-area textarea {
-  width: 100%;
-  min-height: 100px;
-  background: var(--bg-card);
-  border: 1px solid #333;
-  border-radius: 8px;
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 1rem;
-  padding: 1rem;
-  resize: vertical;
-  line-height: 1.6;
-}
-
-.memory-input-area textarea:focus {
-  outline: none;
-  border-color: var(--accent);
-}
-
-.memory-btn {
-  margin-top: 1rem;
-  padding: 0.7rem 2rem;
-  background: var(--accent);
-  color: #000;
-  border: none;
-  border-radius: 8px;
-  font-family: var(--sans);
-  font-size: 0.9rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.memory-btn:hover { background: var(--accent-light); }
-
-.memory-result {
-  max-width: 600px;
-  margin: 2rem auto 0;
-  display: none;
-}
-
-.memory-result .original {
-  background: var(--bg-card);
-  border: 1px solid #222;
-  border-radius: 12px;
-  padding: 1.5rem;
-  font-size: 1rem;
-  line-height: 1.9;
-  margin-bottom: 1.5rem;
-}
-
-.memory-result .original .match { color: var(--success); font-weight: 500; }
-
-.memory-finding {
-  background: rgba(232,145,58,0.06);
-  border: 1px solid #2a2218;
-  border-radius: 12px;
-  padding: 1.5rem;
-  font-size: 0.95rem;
-  color: var(--text-dim);
-  line-height: 1.8;
-}
-
-.memory-finding strong { color: var(--accent-light); }
-
-/* ── Section 7: Evidence Wall ── */
+/* ── Section 6: Evidence Wall ── */
 #evidence { background: var(--bg); padding: 6rem 0; }
 
 #evidence .section-label {
@@ -677,6 +564,7 @@ section {
   padding: 0 2rem;
 }
 
+.evidence-scroll-wrap { position: relative; max-width: 100vw; }
 .evidence-scroll {
   display: flex;
   gap: 1.25rem;
@@ -686,6 +574,19 @@ section {
   -webkit-overflow-scrolling: touch;
   max-width: 100vw;
 }
+.scroll-hint {
+  position: absolute;
+  bottom: 0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  opacity: 0.7;
+  transition: opacity 0.4s;
+  pointer-events: none;
+}
+.scroll-hint.hidden { opacity: 0; }
+@media (min-width: 1100px) { .scroll-hint { display: none; } }
 
 .evidence-scroll::-webkit-scrollbar { height: 4px; }
 .evidence-scroll::-webkit-scrollbar-track { background: transparent; }
@@ -754,7 +655,7 @@ section {
 
 .evidence-conclusion strong { color: var(--text); }
 
-/* ── Section 8: What You Can Do ── */
+/* ── Section 7: What You Can Do ── */
 #actions { background: var(--bg); }
 
 #actions .section-label {
@@ -778,55 +679,27 @@ section {
   font-size: 1rem;
 }
 
+.action-group-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 2rem 0 1rem;
+}
+
+.action-group-label:first-of-type { margin-top: 0; }
+
 .action-item {
   background: var(--bg-card);
   border: 1px solid #222;
   border-radius: 12px;
-  padding: 1.25rem 1.5rem;
+  padding: 1.5rem 1.75rem;
   margin-bottom: 1rem;
-  cursor: pointer;
-  transition: border-color 0.3s, background 0.3s;
+  transition: border-color 0.3s;
 }
 
-.action-item:hover { border-color: #444; background: var(--bg-card-hover); }
-
-.action-item.featured {
-  border-color: var(--accent);
-  background: rgba(232,145,58,0.05);
-}
-
-.action-item.featured .action-badge {
-  display: inline-block;
-}
-
-.action-badge {
-  display: none;
-  font-size: 0.65rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
-  background: rgba(232,145,58,0.12);
-  padding: 0.2rem 0.6rem;
-  border-radius: 4px;
-  margin-left: 0.75rem;
-  vertical-align: middle;
-}
-
-.action-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-}
-
-.action-num {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--accent);
-  font-family: var(--mono);
-  line-height: 1;
-  flex-shrink: 0;
-}
+.action-item:hover { border-color: #444; }
 
 .action-content h3 {
   font-size: 0.95rem;
@@ -834,38 +707,16 @@ section {
   color: var(--text);
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  margin: 0;
+  margin-bottom: 0.5rem;
 }
 
-.action-expand {
-  font-size: 0.85rem;
-  color: var(--text-muted);
-  margin-left: auto;
-  flex-shrink: 0;
-  transition: transform 0.3s;
-}
-
-.action-item.open .action-expand { transform: rotate(180deg); }
-
-.action-body {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.4s ease, margin-top 0.3s ease;
-}
-
-.action-item.open .action-body {
-  max-height: 200px;
-  margin-top: 1rem;
-}
-
-.action-body p {
+.action-content p {
   font-size: 0.95rem;
   color: var(--text-dim);
   line-height: 1.8;
-  padding-left: 2.5rem;
 }
 
-/* ── Section 9: Exit ── */
+/* ── Section 8: Exit & Footer ── */
 #exit {
   background: var(--bg);
   text-align: center;
@@ -985,8 +836,7 @@ details.integrity .notes strong { color: var(--text); }
   .switch-figures { flex-direction: column; align-items: center; }
   .debt-card { padding: 1.5rem; font-size: 0.75rem; }
   .study-card { width: 280px; }
-  .action-item { padding: 1rem 1.25rem; }
-  .action-body p { padding-left: 0; }
+  .action-item { padding: 1.25rem; }
   #evidence { padding: 4rem 0; }
 }
 
@@ -1006,8 +856,8 @@ details.integrity .notes strong { color: var(--text); }
   <h1>What if every shortcut cost you something <em>you couldn't see?</em></h1>
   <p class="subtext reveal">
     Researchers at MIT put EEG caps on 54 people and watched
-    what happened to their brains over 4 months of writing
-    — with ChatGPT, with Google, and with nothing but their own minds.<br><br>
+    what happened to their brains over 4 months of writing:
+    with ChatGPT, with Google, and with nothing but their own minds.<br><br>
     What they found is worth 3 minutes of your attention.
   </p>
   <span class="scroll-hint">Scroll to begin</span>
@@ -1065,7 +915,7 @@ details.integrity .notes strong { color: var(--text); }
     </div>
 
     <div class="source-note reveal">
-      MIT Media Lab, "Your Brain on ChatGPT: Accumulation of Cognitive Debt when Using an AI Assistant for Essay Writing Task," Kosmyna et al., June 2025. Preprint — not yet peer-reviewed.
+      MIT Media Lab, "Your Brain on ChatGPT: Accumulation of Cognitive Debt when Using an AI Assistant for Essay Writing Task," Kosmyna et al., June 2025. Preprint, not yet peer-reviewed.
       <a href="https://arxiv.org/abs/2506.08872" target="_blank" rel="noopener noreferrer">arxiv.org/abs/2506.08872</a>
     </div>
   </div>
@@ -1135,50 +985,21 @@ details.integrity .notes strong { color: var(--text); }
     </div>
 
     <p class="gym-description reveal" id="gymDesc">
-      All cognitive muscles engaged.<br>Hard work — but you're getting stronger.
+      All cognitive muscles engaged.<br>Hard work, but you're getting stronger.
     </p>
 
-    <p class="section-bridge reveal">Think that doesn't apply to you?</p>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 4: THE MEMORY TEST                                     -->
-<!-- ════════════════════════════════════════════════════════════════ -->
-<section id="memory-test">
-  <div class="container">
-    <div class="section-label reveal">Try It Yourself</div>
-    <h2 class="reveal">A quick experiment</h2>
-
-    <div class="memory-passage reveal" id="memoryPassage">
-      The human brain processes approximately 11 million bits of sensory information every second, yet our conscious mind can only handle roughly 50 bits per second. This staggering gap means that the vast majority of what our brains do happens beneath our awareness — filtering, prioritizing, and pattern-matching without any conscious effort. When we outsource cognitive tasks to AI, we don't just save time; we potentially reduce the volume of information our brains actively process, narrowing the neural pathways that would otherwise strengthen through use.
-    </div>
-
-    <div class="memory-input-area" id="memoryInput">
-      <p>The passage is gone.<br>Can you type one specific sentence you just read? From memory.</p>
-      <textarea id="memoryRecall" placeholder="Type what you remember..."></textarea>
-      <br>
-      <button class="memory-btn" id="memorySubmit">Check my recall</button>
-    </div>
-
-    <div class="memory-result" id="memoryResult">
-      <div class="original" id="memoryOriginal"></div>
-      <div class="memory-finding">
-        <strong>From the MIT study:</strong><br><br>
-        In the MIT study, LLM users couldn't accurately quote their own essays — essays they had just written minutes before.<br><br>
-        6 out of 18 LLM participants couldn't provide a single correct quote in Session 3. Only 2 out of 18 in the Brain-only group had the same difficulty.<br><br>
-        <em>If you can't remember it, did you really learn it?</em>
-      </div>
-    </div>
-  </div>
-</section>
+<div class="section-bridge reveal">
+  Now imagine outsourcing that work, session after session.
+</div>
 
 <!-- ════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 5: THE DEBT STATEMENT                                  -->
+<!-- SECTION 4: THE DEBT STATEMENT                                  -->
 <!-- ════════════════════════════════════════════════════════════════ -->
 <section id="debt">
   <div class="container">
-    <p class="section-bridge reveal">Now imagine that happening every day, for months.</p>
     <div class="section-label reveal">The Accumulation</div>
 
     <div class="debt-card" id="debtCard">
@@ -1214,7 +1035,7 @@ details.integrity .notes strong { color: var(--text); }
       </div>
 
       <div class="debt-notice">
-        ⚠️ Over 4 months and 4 sessions, LLM users consistently underperformed Brain-only participants at every level measured — neural, linguistic, and scoring.
+        ⚠️ Over 4 months and 4 sessions, LLM users consistently underperformed Brain-only participants at every level measured: neural, linguistic, and scoring.
       </div>
 
       <div class="debt-surplus">
@@ -1225,7 +1046,7 @@ details.integrity .notes strong { color: var(--text); }
     <div class="debt-reflection reveal">
       The researchers call this "cognitive debt."<br><br>
       It's not dramatic. It's not sudden.
-      It's the quiet accumulation of small deferrals —
+      It's the quiet accumulation of small deferrals,
       moments where you could have thought, but didn't.<br><br>
       Each one is barely noticeable.<br>
       Together, over months, they reshape your neural landscape.
@@ -1234,7 +1055,7 @@ details.integrity .notes strong { color: var(--text); }
 </section>
 
 <!-- ════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 6: THE SWITCH                                          -->
+<!-- SECTION 5: THE SWITCH                                          -->
 <!-- ════════════════════════════════════════════════════════════════ -->
 <section id="switch-section">
   <div class="container">
@@ -1258,6 +1079,7 @@ details.integrity .notes strong { color: var(--text); }
             <circle cx="110" cy="50"  r="16" fill="rgba(248,113,113,0.06)" class="switch-muscle-dim"/>
             <circle cx="130" cy="125" r="13" fill="rgba(248,113,113,0.10)" class="switch-muscle-weak"/>
           </svg>
+          <span class="switch-figure-group">LLM group, writing alone</span>
           <span class="switch-figure-label struggling">Struggling</span>
         </div>
         <div class="switch-figure" id="switchBrain">
@@ -1272,19 +1094,20 @@ details.integrity .notes strong { color: var(--text); }
             <circle cx="165" cy="85"  r="15" fill="rgba(232,145,58,0.3)"  class="switch-muscle-bright"/>
             <circle cx="130" cy="125" r="14" fill="rgba(232,145,58,0.35)" class="switch-muscle-bright"/>
           </svg>
+          <span class="switch-figure-group">Brain-only group, using AI</span>
           <span class="switch-figure-label supercharged">Supercharged</span>
         </div>
       </div>
 
       <div class="switch-block reveal">
-        <p>They still tried. Their delta and theta bands showed effort. But the higher-frequency processes — the ones that organize ideas, sustain reasoning, drive self-expression — were significantly weaker.</p>
+        <p>They still tried. Their delta and theta bands showed effort. But the higher-frequency processes, the ones that organize ideas, sustain reasoning, and drive self-expression, were significantly weaker.</p>
         <p><strong style="color:var(--text)">They couldn't fully bounce back.</strong></p>
       </div>
 
       <div class="switch-block reveal">
         <h3>Brain-only → LLM</h3>
         <p>Meanwhile, Brain-only users were given ChatGPT for the first time.</p>
-        <p>Their well-trained brains didn't become passive. They activated <em>more</em> — memory recall surged, prefrontal and occipito-parietal regions lit up. They used AI to amplify what they'd already built.</p>
+        <p>Their well-trained brains didn't become passive. They activated <em>more</em>. Memory recall surged, prefrontal and occipito-parietal regions lit up. They used AI to amplify what they'd already built.</p>
         <p><strong style="color:var(--text)">The tool didn't replace their thinking. It supercharged it.</strong></p>
       </div>
     </div>
@@ -1297,71 +1120,72 @@ details.integrity .notes strong { color: var(--text); }
 </section>
 
 <!-- ════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 7: THE EVIDENCE WALL                                   -->
+<!-- SECTION 6: THE EVIDENCE WALL                                   -->
 <!-- ════════════════════════════════════════════════════════════════ -->
 <section id="evidence">
   <div class="section-label reveal">The Pattern</div>
   <h2 class="reveal">It's not just one study.</h2>
-  <p class="evidence-sub reveal">Five independent research groups. Different methods. Different populations. The same conclusion.</p>
+  <p class="evidence-sub reveal">Researchers are coming to similar conclusions.</p>
 
-  <div class="evidence-scroll">
-    <div class="study-card">
-      <div class="card-icon">🧠</div>
-      <h3>MIT Media Lab</h3>
-      <div class="card-meta">Kosmyna et al., 2025 · 54 participants · EEG brain monitoring · 4 months</div>
-      <blockquote>"Brain connectivity systematically scaled down with the amount of external support."</blockquote>
-      <div class="card-pub">Preprint — not yet peer-reviewed.</div>
-      <a class="card-link" href="https://arxiv.org/abs/2506.08872" target="_blank" rel="noopener noreferrer">→ arxiv.org/abs/2506.08872</a>
-    </div>
+  <div class="evidence-scroll-wrap">
+    <div class="evidence-scroll" id="evidenceScroll">
+      <div class="study-card">
+        <div class="card-icon">🧠</div>
+        <h3>MIT Media Lab</h3>
+        <div class="card-meta">Kosmyna et al., 2025 · 54 participants · EEG brain monitoring · 4 months</div>
+        <blockquote>"Brain connectivity systematically scaled down with the amount of external support."</blockquote>
+        <div class="card-pub">Preprint, not yet peer-reviewed.</div>
+        <a class="card-link" href="https://arxiv.org/abs/2506.08872" target="_blank" rel="noopener noreferrer">→ arxiv.org/abs/2506.08872</a>
+      </div>
 
-    <div class="study-card">
-      <div class="card-icon">🎓</div>
-      <h3>Wharton / UPenn</h3>
-      <div class="card-meta">Bastani et al., 2024 · ~1,000 high school students · Math field experiment</div>
-      <blockquote>"Students using unguarded ChatGPT performed 48% better WITH AI — but 17% WORSE on exams without it. A tutoring version with guardrails eliminated the harm."</blockquote>
-      <div class="card-pub">Published in PNAS, June 2025.</div>
-      <a class="card-link" href="https://pnas.org/doi/abs/10.1073/pnas.2422633122" target="_blank" rel="noopener noreferrer">→ pnas.org/doi/abs/10.1073/pnas.2422633122</a>
-    </div>
+      <div class="study-card">
+        <div class="card-icon">🎓</div>
+        <h3>Wharton / UPenn</h3>
+        <div class="card-meta">Bastani et al., 2024 · ~1,000 high school students · Math field experiment</div>
+        <blockquote>"Students using unguarded ChatGPT performed 48% better WITH AI, but 17% WORSE on exams without it. A tutoring version with guardrails eliminated the harm."</blockquote>
+        <div class="card-pub">Published in PNAS, June 2025.</div>
+        <a class="card-link" href="https://pnas.org/doi/abs/10.1073/pnas.2422633122" target="_blank" rel="noopener noreferrer">→ pnas.org/doi/abs/10.1073/pnas.2422633122</a>
+      </div>
 
-    <div class="study-card">
-      <div class="card-icon">🪞</div>
-      <h3>Fernandes et al.</h3>
-      <div class="card-meta">2026 · 698 participants · Two experiments · LSAT-style problems</div>
-      <blockquote>"AI improved performance by 3 points — but users overestimated their own ability by 4 points. The more AI-literate, the worse the self-awareness."</blockquote>
-      <div class="card-pub">Published in Computers in Human Behavior.</div>
-      <a class="card-link" href="https://doi.org/10.1016/j.chb.2025.108779" target="_blank" rel="noopener noreferrer">→ doi.org/10.1016/j.chb.2025.108779</a>
-    </div>
+      <div class="study-card">
+        <div class="card-icon">🪞</div>
+        <h3>Fernandes et al.</h3>
+        <div class="card-meta">2026 · 698 participants · Two experiments · LSAT-style problems</div>
+        <blockquote>"AI improved performance by 3 points, but users overestimated their own ability by 4 points. The more AI-literate, the worse the self-awareness."</blockquote>
+        <div class="card-pub">Published in Computers in Human Behavior.</div>
+        <a class="card-link" href="https://doi.org/10.1016/j.chb.2025.108779" target="_blank" rel="noopener noreferrer">→ doi.org/10.1016/j.chb.2025.108779</a>
+      </div>
 
-    <div class="study-card">
-      <div class="card-icon">🧩</div>
-      <h3>Yurt &amp; Kuşci</h3>
-      <div class="card-meta">2026 · 422 university students · Structural equation modeling</div>
-      <blockquote>"AI usage negatively predicted critical thinking (β = −0.37). Mediated by 'epistemic laziness' — the tendency to stop seeking deeper understanding when AI gives quick answers."</blockquote>
-      <div class="card-pub">Published in Current Psychology.</div>
-      <a class="card-link" href="https://doi.org/10.1007/s12144-025-08800-0" target="_blank" rel="noopener noreferrer">→ doi.org/10.1007/s12144-025-08800-0</a>
-    </div>
+      <div class="study-card">
+        <div class="card-icon">🧩</div>
+        <h3>Yurt &amp; Kuşci</h3>
+        <div class="card-meta">2026 · 422 university students · Structural equation modeling</div>
+        <blockquote>"AI usage negatively predicted critical thinking (β = −0.37). Mediated by 'epistemic laziness,' the tendency to stop seeking deeper understanding when AI gives quick answers."</blockquote>
+        <div class="card-pub">Published in Current Psychology.</div>
+        <a class="card-link" href="https://doi.org/10.1007/s12144-025-08800-0" target="_blank" rel="noopener noreferrer">→ doi.org/10.1007/s12144-025-08800-0</a>
+      </div>
 
-    <div class="study-card">
-      <div class="card-icon">🌐</div>
-      <h3>Gerlich</h3>
-      <div class="card-meta">2025 · 666 participants · Mixed methods · Diverse age groups</div>
-      <blockquote>"Significant negative correlation between frequent AI use and critical thinking. Younger users (17-25) most affected. Higher education provided some protective effect."</blockquote>
-      <div class="card-pub">Published in Societies (MDPI).</div>
-      <a class="card-link" href="https://doi.org/10.3390/soc15010006" target="_blank" rel="noopener noreferrer">→ doi.org/10.3390/soc15010006</a>
+      <div class="study-card">
+        <div class="card-icon">🌐</div>
+        <h3>Gerlich</h3>
+        <div class="card-meta">2025 · 666 participants · Mixed methods · Diverse age groups</div>
+        <blockquote>"Significant negative correlation between frequent AI use and critical thinking. Younger users (17-25) most affected. Higher education provided some protective effect."</blockquote>
+        <div class="card-pub">Published in Societies (MDPI).</div>
+        <a class="card-link" href="https://doi.org/10.3390/soc15010006" target="_blank" rel="noopener noreferrer">→ doi.org/10.3390/soc15010006</a>
+      </div>
     </div>
+    <span class="scroll-hint" id="scrollHint">← swipe to see more →</span>
   </div>
 
   <div class="evidence-conclusion reveal">
-    Different labs. Different countries. Different methods.<br><br>
-    <strong>One consistent finding:</strong><br><br>
-    AI boosts your output today.
+    AI boosts your output today.<br>
     But it can erode your ability to produce output on your own tomorrow.<br><br>
-    — unless you build the skill first.
+    Unless you build the skill first.
   </div>
 </section>
 
 <!-- ════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 8: WHAT YOU CAN DO                                    -->
+<!-- SECTION 7: WHAT YOU CAN DO                                     -->
 <!-- ════════════════════════════════════════════════════════════════ -->
 <section id="actions">
   <div class="container">
@@ -1369,57 +1193,41 @@ details.integrity .notes strong { color: var(--text); }
     <h2 class="reveal">This isn't about quitting AI.</h2>
     <p class="actions-sub reveal">It's about using it in the right order.</p>
 
-    <div class="action-item featured open reveal" data-action>
-      <div class="action-header">
-        <span class="action-num">01</span>
-        <div class="action-content"><h3>Think first, then amplify<span class="action-badge">Start here</span></h3></div>
-        <span class="action-expand">▾</span>
-      </div>
-      <div class="action-body">
+    <h3 class="action-group-label reveal">During AI use</h3>
+
+    <div class="action-item">
+      <div class="action-content">
+        <h3>Think first, then amplify</h3>
         <p>Write the first draft yourself. Use AI for the second pass. The MIT study showed that people who built skills first got MORE out of AI when they finally used it.</p>
       </div>
     </div>
 
-    <div class="action-item reveal" data-action>
-      <div class="action-header">
-        <span class="action-num">02</span>
-        <div class="action-content"><h3>If you can't explain it without AI, you don't understand it</h3></div>
-        <span class="action-expand">▾</span>
-      </div>
-      <div class="action-body">
-        <p>After using AI to help with something, close the tab and try to explain it to someone. If you can't — you consumed, you didn't learn.</p>
+    <div class="action-item">
+      <div class="action-content">
+        <h3>If you can't explain it without AI, you don't understand it</h3>
+        <p>After using AI to help with something, close the tab and try to explain it to someone. If you can't, you consumed. You didn't learn.</p>
       </div>
     </div>
 
-    <div class="action-item reveal" data-action>
-      <div class="action-header">
-        <span class="action-num">03</span>
-        <div class="action-content"><h3>Treat AI like a sparring partner, not a ghostwriter</h3></div>
-        <span class="action-expand">▾</span>
-      </div>
-      <div class="action-body">
-        <p>Ask it to challenge your ideas, not generate them. Ask it to find flaws in your argument, not make the argument for you. The Wharton study found that AI tutors designed to give hints — not answers — completely eliminated the negative learning effects.</p>
+    <div class="action-item">
+      <div class="action-content">
+        <h3>Treat AI like a sparring partner, not a ghostwriter</h3>
+        <p>Ask it to challenge your ideas, not generate them. Ask it to find flaws in your argument, not make the argument for you. The Wharton study found that AI tutors designed to give hints, not answers, completely eliminated the negative learning effects.</p>
       </div>
     </div>
 
-    <div class="action-item reveal" data-action>
-      <div class="action-header">
-        <span class="action-num">04</span>
-        <div class="action-content"><h3>Practice the hard thing regularly</h3></div>
-        <span class="action-expand">▾</span>
-      </div>
-      <div class="action-body">
-        <p>The Brain-only group didn't have a genetic advantage. They just practiced thinking without tools — consistently. Three sessions of unassisted work built neural networks that LLM users couldn't match even after 4 months.</p>
+    <h3 class="action-group-label reveal">Building your baseline</h3>
+
+    <div class="action-item">
+      <div class="action-content">
+        <h3>Practice the hard thing regularly</h3>
+        <p>The Brain-only group didn't have a genetic advantage. They just practiced thinking without tools, consistently. Three sessions of unassisted work built neural networks that LLM users couldn't match even after 4 months.</p>
       </div>
     </div>
 
-    <div class="action-item reveal" data-action>
-      <div class="action-header">
-        <span class="action-num">05</span>
-        <div class="action-content"><h3>Notice the comfort</h3></div>
-        <span class="action-expand">▾</span>
-      </div>
-      <div class="action-body">
+    <div class="action-item">
+      <div class="action-content">
+        <h3>Notice the comfort</h3>
         <p>The most dangerous part of cognitive debt is that it feels good. Convenience feels like competence. If everything feels easy, ask yourself what muscle isn't being used.</p>
       </div>
     </div>
@@ -1429,28 +1237,35 @@ details.integrity .notes strong { color: var(--text); }
 
 
 <!-- ════════════════════════════════════════════════════════════════ -->
-<!-- SECTION 9B: GO DEEPER — LINKS                                  -->
+<!-- SECTION 8: GO DEEPER & FOOTER                                  -->
 <!-- ════════════════════════════════════════════════════════════════ -->
 <div class="go-deeper">
   <h2 class="reveal">Go Deeper</h2>
   <div class="exit-links reveal">
-    <a class="exit-link" href="https://arxiv.org/abs/2506.08872" target="_blank" rel="noopener noreferrer">📄 The full study (preprint) — arxiv.org/abs/2506.08872</a>
+    <a class="exit-link" href="https://arxiv.org/abs/2506.08872" target="_blank" rel="noopener noreferrer">📄 The full study (preprint): arxiv.org/abs/2506.08872</a>
     <a class="exit-link" href="https://media.mit.edu/projects/your-brain-on-chatgpt/overview" target="_blank" rel="noopener noreferrer">🔬 MIT Media Lab project page</a>
-    <a class="exit-link" href="https://pnas.org/doi/abs/10.1073/pnas.2422633122" target="_blank" rel="noopener noreferrer">🎓 "Generative AI Can Harm Learning" — Bastani et al.</a>
-    <a class="exit-link" href="https://media.mit.edu/projects/your-brain-on-chatgpt/overview" target="_blank" rel="noopener noreferrer">🧠 MIT Media Lab FAQ — what the researchers actually want you to know</a>
+    <a class="exit-link" href="https://pnas.org/doi/abs/10.1073/pnas.2422633122" target="_blank" rel="noopener noreferrer">🎓 "Generative AI Can Harm Learning," Bastani et al.</a>
+    <a class="exit-link" href="https://media.mit.edu/projects/your-brain-on-chatgpt/overview" target="_blank" rel="noopener noreferrer">🧠 MIT Media Lab FAQ: what the researchers actually want you to know</a>
   </div>
 </div>
 
+<footer class="site-footer">
+  <p class="exit-footer reveal">
+    This page was designed by a human.<br>
+    The research was read by a human.<br>
+    The thinking was done by a human, with some help from AI.<br><br>
+    In that order.
+  </p>
 
   <details class="integrity reveal">
     <summary>▾ Important Context &amp; Limitations</summary>
     <div class="notes">
       <p>• The MIT study is a preprint (as of June 2025). It has not yet been peer-reviewed. The authors themselves urge caution in interpreting the conclusions.</p>
-      <p>• The sample was 54 participants from the Boston area — a specific demographic. Larger, more diverse studies are needed.</p>
+      <p>• The sample was 54 participants from the Boston area, a specific demographic. Larger, more diverse studies are needed.</p>
       <p>• The study used ChatGPT specifically. Results may not generalize to all LLMs.</p>
       <p>• The findings are context-specific: essay writing in an educational setting.</p>
       <p>• The researchers explicitly ask that media and readers do <strong>not</strong> use words like "stupid," "dumb," "brain rot," "brain damage," or "harm" to describe the findings. These misrepresent the work.</p>
-      <p>• The correct framing: <strong>"cognitive debt"</strong> — an accumulation of small deferrals that may reshape cognitive engagement over time. Not damage. Not rot. Debt.</p>
+      <p>• The correct framing: <strong>"cognitive debt,"</strong> an accumulation of small deferrals that may reshape cognitive engagement over time. Not damage. Not rot. Debt.</p>
       <p>We include these caveats because intellectual honesty matters more than persuasion. If the evidence can't stand on its own with full context, it shouldn't be presented at all.</p>
     </div>
   </details>
@@ -1507,7 +1322,7 @@ const muscleStates = {
 };
 
 const gymDescriptions = {
-  brain:  'All cognitive muscles engaged.<br>Hard work — but you\'re getting stronger.',
+  brain:  'All cognitive muscles engaged.<br>Hard work, but you\'re getting stronger.',
   search: 'You\'re skipping one exercise,<br>but still getting a decent workout.',
   llm:    'You\'re watching someone else exercise<br>and calling it your workout.',
 };
@@ -1552,6 +1367,7 @@ function setGymMode(mode) {
 document.querySelectorAll('.gym-toggle').forEach(btn => {
   btn.addEventListener('click', () => setGymMode(btn.dataset.mode));
 });
+setGymMode('brain');
 
 // ── Section 4: Debt Statement ──
 ScrollTrigger.create({
@@ -1618,61 +1434,7 @@ ScrollTrigger.create({
   once: true,
 });
 
-// ── Section 6: Memory Test ──
-const passage = document.getElementById('memoryPassage');
-const inputArea = document.getElementById('memoryInput');
-const resultArea = document.getElementById('memoryResult');
-const originalDisplay = document.getElementById('memoryOriginal');
-const passageText = passage.textContent.trim();
-let memoryTestStarted = false;
-
-ScrollTrigger.create({
-  trigger: '#memoryPassage',
-  start: 'top 40%',
-  onEnter: () => {
-    if (memoryTestStarted) return;
-    memoryTestStarted = true;
-
-    gsap.delayedCall(6, () => {
-      gsap.to(passage, {
-        opacity: 0,
-        duration: 0.5,
-        onComplete: () => {
-          passage.style.display = 'none';
-          inputArea.style.display = 'block';
-          gsap.from(inputArea, { opacity: 0, y: 20, duration: 0.5 });
-        }
-      });
-    });
-  },
-  once: true,
-});
-
-document.getElementById('memorySubmit').addEventListener('click', () => {
-  const recall = document.getElementById('memoryRecall').value.trim();
-  if (!recall) return;
-
-  const recallWords = new Set(
-    recall.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 3)
-  );
-
-  const words = passageText.split(/\s+/);
-  const highlighted = words.map(word => {
-    const clean = word.toLowerCase().replace(/[^a-z0-9]/g, '');
-    if (clean.length > 3 && recallWords.has(clean)) {
-      return `<span class="match">${word}</span>`;
-    }
-    return word;
-  }).join(' ');
-
-  originalDisplay.innerHTML = '<strong style="color:var(--text-dim);font-size:0.8rem;display:block;margin-bottom:0.75rem;">ORIGINAL PASSAGE (your matched words highlighted):</strong>' + highlighted;
-
-  inputArea.style.display = 'none';
-  resultArea.style.display = 'block';
-  gsap.from(resultArea, { opacity: 0, y: 20, duration: 0.6 });
-});
-
-// ── Section 7: Evidence cards stagger ──
+// ── Section 6: Evidence cards stagger ──
 gsap.set('.study-card', { opacity: 0, x: 60 });
 ScrollTrigger.create({
   trigger: '.evidence-scroll',
@@ -1691,13 +1453,34 @@ ScrollTrigger.create({
   }
 });
 
-// ── Section 8: Action item accordions ──
-document.querySelectorAll('[data-action]').forEach(item => {
-  item.addEventListener('click', () => {
-    const wasOpen = item.classList.contains('open');
-    document.querySelectorAll('[data-action]').forEach(a => a.classList.remove('open'));
-    if (!wasOpen) item.classList.add('open');
-  });
+// ── Evidence scroll hint ──
+(function() {
+  const scroller = document.getElementById('evidenceScroll');
+  const hint = document.getElementById('scrollHint');
+  if (scroller && hint) {
+    scroller.addEventListener('scroll', function() {
+      hint.classList.add('hidden');
+    }, { once: true });
+  }
+})();
+
+// ── Section 7: Stacked scroll reveal ──
+gsap.set('.action-item', { opacity: 0, y: 80 });
+ScrollTrigger.create({
+  trigger: '#actions',
+  start: 'top 70%',
+  once: true,
+  onEnter: () => {
+    gsap.utils.toArray('.action-item').forEach((item, i) => {
+      gsap.to(item, {
+        opacity: 1,
+        y: 0,
+        duration: 0.7,
+        delay: i * 0.2,
+        ease: 'power2.out',
+      });
+    });
+  }
 });
 </script>
 </body>
