@@ -1337,10 +1337,6 @@ footer a:hover {
         margin-bottom: var(--spacing-md);
     }
     
-    .challenge-option {
-        margin-bottom: var(--spacing-lg);
-    }
-    
     .modal-dialog {
         margin: var(--spacing-sm);
     }
@@ -1497,7 +1493,7 @@ footer a:hover {
 .media-comparison-container {
   display: grid;
   grid-template-columns: 1fr;
-  gap: var(--spacing-md);
+  gap: var(--spacing-lg);
   margin-bottom: var(--spacing-lg);
 }
 
@@ -1505,7 +1501,16 @@ footer a:hover {
 @media (min-width: 768px) {
   .media-comparison-container {
     grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
   }
+}
+
+/* Challenge option wrapper */
+.challenge-option {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  z-index: 1;
 }
 
 /* Media comparison card - base styles for all media types */
@@ -1516,9 +1521,14 @@ footer a:hover {
   border: 2px solid var(--border-color);
   background-color: var(--bg-card);
   overflow: hidden;
-  height: 100%;
   transition: transform var(--transition-speed) var(--transition-timing),
               box-shadow var(--transition-speed) var(--transition-timing);
+}
+
+@media (min-width: 768px) {
+  .media-comparison-card {
+    height: 100%;
+  }
 }
 
 .media-comparison-card:hover {
@@ -1655,17 +1665,23 @@ footer a:hover {
 /* Responsive adjustments for different screen sizes */
 @media (max-width: 576px) {
   .media-comparison-body {
-    min-height: 150px;
+    min-height: 120px;
+    padding: var(--spacing-sm);
   }
-  
+
   .media-comparison-text {
-    max-height: 300px;
+    max-height: 250px;
     font-size: 0.875rem;
   }
-  
+
   .media-comparison-image,
   .media-comparison-video {
-    max-height: 300px;
+    max-height: 250px;
+  }
+
+  .media-comparison-action {
+    position: relative;
+    z-index: 2;
   }
 }
 
@@ -3010,6 +3026,40 @@ footer a:hover {
   gap: 0.3rem;
 }
 .settings-current-source i { font-size: 0.7rem; }
+
+.settings-tier-label {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-top: 0.65rem;
+  margin-bottom: 0.2rem;
+}
+.settings-tier-label i { font-size: 0.75rem; }
+.settings-tier-range {
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+}
+
+/* ── End Modal Custom Message ── */
+.end-custom-message {
+  margin: 1rem auto 1.25rem;
+  max-width: 26rem;
+  padding: 0.875rem 1rem;
+  border-left: 3px solid var(--primary);
+  background: var(--off-white);
+  border-radius: var(--border-radius-md);
+  font-size: 0.9rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+  text-align: left;
+}
+[data-theme="dark"] .end-custom-message {
+  background: var(--light-gray);
+}
     </style>
 </head>
 <body>
@@ -3098,6 +3148,23 @@ footer a:hover {
                     </div>
                 </div>
 
+                <!-- Max Questions -->
+                <div class="settings-section">
+                    <div class="settings-section-title">Game Length</div>
+                    <div class="toggle-row">
+                        <span class="toggle-label">Max questions</span>
+                        <select id="settingsMaxQuestions" class="settings-select">
+                            <option value="0" selected>All</option>
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                            <option value="15">15</option>
+                            <option value="20">20</option>
+                            <option value="25">25</option>
+                            <option value="30">30</option>
+                        </select>
+                    </div>
+                </div>
+
                 <!-- Timers -->
                 <div class="settings-section">
                     <div class="settings-section-title">Inactivity Timers</div>
@@ -3137,6 +3204,20 @@ footer a:hover {
                         </label>
                     </div>
                     <textarea id="footerInput" class="settings-textarea" rows="3" placeholder="Enter footer text (HTML supported)"></textarea>
+                </div>
+
+                <!-- End Screen Messages (per tier) -->
+                <div class="settings-section">
+                    <div class="settings-section-title">End Screen Messages</div>
+                    <div class="settings-current-source" style="margin-top:0;margin-bottom:0.6rem;">
+                        <i class="fas fa-info-circle"></i> Custom HTML shown on the results screen per score tier
+                    </div>
+                    <label class="settings-tier-label" for="endMsgExcellent"><i class="fas fa-trophy" style="color:var(--success)"></i> Expert <span class="settings-tier-range">(&ge; 95%)</span></label>
+                    <textarea id="endMsgExcellent" class="settings-textarea" rows="2" placeholder="Message for top scorers (HTML supported)"></textarea>
+                    <label class="settings-tier-label" for="endMsgGood"><i class="fas fa-thumbs-up" style="color:var(--info)"></i> Good <span class="settings-tier-range">(&ge; 60%)</span></label>
+                    <textarea id="endMsgGood" class="settings-textarea" rows="2" placeholder="Message for mid-range scorers (HTML supported)"></textarea>
+                    <label class="settings-tier-label" for="endMsgPractice"><i class="fas fa-seedling" style="color:var(--warning)"></i> Keep Practicing <span class="settings-tier-range">(&lt; 60%)</span></label>
+                    <textarea id="endMsgPractice" class="settings-textarea" rows="2" placeholder="Message for lower scorers (HTML supported)"></textarea>
                 </div>
 
                 <!-- Tools -->
@@ -3204,7 +3285,8 @@ footer a:hover {
                         <div id="end-icon" style="font-size:3rem;margin-bottom:1rem;" aria-hidden="true"></div>
                         <h4 class="modal-title" id="endModalTitle" style="margin-bottom:0.5rem;">Challenge Complete!</h4>
                         <div id="final-score" style="font-size:2.5rem;font-weight:700;color:var(--primary);margin:1rem 0;" aria-live="polite">0 / 0</div>
-                        <div id="score-message" style="margin-bottom:1.5rem;"></div>
+                        <div id="score-message" style="margin-bottom:1rem;"></div>
+                        <div id="endCustomMessage" class="end-custom-message" style="display:none;"></div>
                         <div style="display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap;">
                             <button type="button" class="btn btn-primary play-again-btn">
                                 <i class="fas fa-redo me-2" aria-hidden="true"></i>Play Again
@@ -3271,9 +3353,10 @@ footer a:hover {
         // Settings state
         let customChallengesData = null;
         let activeMediaTypes = ['text', 'image', 'audio', 'video'];
+        let maxQuestions = 0; // 0 = all available
         
         // Constants
-        const EXCELLENT_THRESHOLD = 80;
+        const EXCELLENT_THRESHOLD = 95;
         const GOOD_THRESHOLD = 60;
         const TRANSITION_DURATION = 300;
 
@@ -3319,6 +3402,11 @@ footer a:hover {
                         challenge.contentB = temp;
                     }
                 });
+
+                // Limit to maxQuestions if set
+                if (maxQuestions > 0 && challenges.length > maxQuestions) {
+                    challenges = challenges.slice(0, maxQuestions);
+                }
                 
                 // Add transition to progress bar
                 const progressBar = document.getElementById('progressBar');
@@ -3759,6 +3847,21 @@ footer a:hover {
             }
             scoreMessage.querySelectorAll('a[target="_blank"]').forEach(a => a.setAttribute('rel', 'noopener noreferrer'));
 
+            // Custom end-screen message (tier-specific)
+            const endCustomMsg = document.getElementById('endCustomMessage');
+            let tierKey;
+            if (percentage >= EXCELLENT_THRESHOLD) tierKey = 'endMsgExcellent';
+            else if (percentage >= GOOD_THRESHOLD) tierKey = 'endMsgGood';
+            else tierKey = 'endMsgPractice';
+            const savedEndMsg = (localStorage.getItem(tierKey) || '').trim();
+            if (savedEndMsg) {
+                endCustomMsg.innerHTML = savedEndMsg;
+                endCustomMsg.style.display = '';
+                endCustomMsg.querySelectorAll('a[target="_blank"]').forEach(a => a.setAttribute('rel', 'noopener noreferrer'));
+            } else {
+                endCustomMsg.style.display = 'none';
+            }
+
             modal.show();
         }
         
@@ -3855,8 +3958,10 @@ footer a:hover {
             const sourceLabel = document.getElementById('settingsSource');
             const globalTimeoutSelect = document.getElementById('settingsGlobalTimeout');
             const endTimeoutSelect = document.getElementById('settingsEndTimeout');
+            const maxQuestionsSelect = document.getElementById('settingsMaxQuestions');
             const DEFAULT_GLOBAL = 300;
             const DEFAULT_END = 120;
+            const DEFAULT_MAX_QUESTIONS = 0;
 
             // ── Read URL params on load and apply to UI ──
             function readURLState() {
@@ -3909,6 +4014,16 @@ footer a:hover {
                         endTimeoutSelect.value = String(sec);
                     }
                 }
+
+                // Max questions: ?maxQ=10 or localStorage
+                const mq = params.get('maxQ') ?? localStorage.getItem('maxQuestions');
+                if (mq !== null) {
+                    const val = parseInt(mq, 10);
+                    if (!isNaN(val) && val >= 0) {
+                        maxQuestions = val;
+                        maxQuestionsSelect.value = String(val);
+                    }
+                }
             }
 
             // ── Write current settings into the URL (no page reload) ──
@@ -3954,6 +4069,17 @@ footer a:hover {
                 } else {
                     params.delete('endTimeout');
                     localStorage.removeItem('endTimeout');
+                }
+
+                // Max questions
+                const mqVal = parseInt(maxQuestionsSelect.value, 10);
+                maxQuestions = mqVal;
+                if (mqVal !== DEFAULT_MAX_QUESTIONS) {
+                    params.set('maxQ', String(mqVal));
+                    localStorage.setItem('maxQuestions', String(mqVal));
+                } else {
+                    params.delete('maxQ');
+                    localStorage.removeItem('maxQuestions');
                 }
 
                 const qs = params.toString();
@@ -4120,6 +4246,13 @@ footer a:hover {
             footerInput.addEventListener('input', () => {
                 localStorage.setItem('footerText', footerInput.value);
                 applyFooter();
+            });
+
+            // End screen custom messages (per tier)
+            ['endMsgExcellent', 'endMsgGood', 'endMsgPractice'].forEach(id => {
+                const ta = document.getElementById(id);
+                ta.value = localStorage.getItem(id) || '';
+                ta.addEventListener('input', () => localStorage.setItem(id, ta.value));
             });
 
             // Apply & Restart
