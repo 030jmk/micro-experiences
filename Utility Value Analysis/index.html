@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Compare alternatives with weighted criteria using this interactive utility value analysis tool.">
+    <title>Simple Utility Value Analysis</title>
+    <style>
+        :root {
+            --bg-default: #F3F3F3;
+            --bg-container: #FFFFFF;
+            --bg-container-alt: #F3F3F3;
+            --bg-hover: #F3F3F3;
+            --bg-selected: #E8E8E8;
+            --bg-border: #D1D1D1;
+            --bg-primary: #D04A02;
+            --bg-primary-hover: #C34C2F;
+            --bg-success: #21812D;
+            --bg-success-hover: #206A2C;
+            --bg-danger: #C52A1A;
+            --bg-danger-hover: #A4291D;
+            --text-heading: #252525;
+            --text-body: #474747;
+            --text-light: #696969;
+            --text-primary: #D04A02;
+            --text-error: #C52A1A;
+            --text-success: #21812D;
+            --text-secondary: #FFFFFF;
+            --neutral-03: #E8E8E8;
+            --neutral-04: #DDDDDD;
+            --neutral-05: #D1D1D1;
+            --neutral-17: #474747;
+            --orange-01: #FEDACC;
+            --orange-03: #FB7C4D;
+            --orange-05: #D04A02;
+            --orange-07: #A7452C;
+            --orange-08: #773829;
+            --blue-04: #415385;
+            --blue-05: #203570;
+            --success-01: #D3EBD5;
+            --success-04: #4EAD58;
+            --error-01: #F3D4D1;
+            --shadow-medium: rgba(71, 71, 71, 0.24) 0px 0.25rem 0.5rem -0.125rem;
+            --shadow-low: rgba(71, 71, 71, 0.24) 0px 0.125rem 0.25rem -0.125rem;
+            --radius-2: 0.25rem;
+            --radius-3: 0.5rem;
+            --spacing-2: 0.25rem;
+            --spacing-3: 0.5rem;
+            --spacing-4: 0.75rem;
+            --spacing-5: 1rem;
+            --spacing-6: 1.25rem;
+            --spacing-7: 1.5rem;
+            --spacing-8: 3rem;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'PwC Helvetica Neue', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            background: var(--bg-default);
+            color: var(--text-body);
+            padding: var(--spacing-6);
+            font-size: 1rem;
+            line-height: 1.5rem;
+        }
+
+        .container { max-width: 1200px; margin: 0 auto; }
+
+        .controls {
+            display: flex;
+            gap: var(--spacing-4);
+            margin-bottom: var(--spacing-6);
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            padding: var(--spacing-4) var(--spacing-6);
+            border: none;
+            border-radius: var(--radius-3);
+            cursor: pointer;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+            font-weight: 500;
+            transition: background-color 0.15s ease;
+        }
+
+        .btn-primary {
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+        }
+        .btn-primary:hover { background: var(--bg-primary-hover); }
+
+        .btn-secondary {
+            background: var(--bg-success);
+            color: var(--text-secondary);
+        }
+        .btn-secondary:hover { background: var(--bg-success-hover); }
+
+        .btn-danger {
+            background: var(--bg-danger);
+            color: var(--text-secondary);
+        }
+        .btn-danger:hover { background: var(--bg-danger-hover); }
+
+        .btn-export {
+            background: var(--neutral-17);
+            color: var(--text-secondary);
+        }
+        .btn-export:hover { background: var(--text-heading); }
+
+        .table-wrapper {
+            overflow-x: auto;
+            background: var(--bg-container);
+            border-radius: var(--radius-3);
+            box-shadow: var(--shadow-medium);
+            padding: var(--spacing-6);
+            margin-bottom: var(--spacing-6);
+            border: 1px solid var(--bg-border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 700px;
+        }
+
+        thead th {
+            background: var(--orange-08);
+            color: var(--text-secondary);
+            padding: var(--spacing-4) var(--spacing-3);
+            font-size: 0.75rem;
+            line-height: 0.875rem;
+            font-weight: 500;
+            text-align: center;
+            position: sticky;
+            top: 0;
+        }
+
+        thead th:first-child {
+            text-align: left;
+        }
+
+        thead th.alt-header { min-width: 80px; }
+
+        thead .sub-header th {
+            background: var(--orange-07);
+            font-size: 0.75rem;
+            line-height: 0.875rem;
+            padding: var(--spacing-2) var(--spacing-3);
+            font-weight: 500;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid var(--neutral-03);
+            transition: background-color 0.15s ease;
+        }
+
+        tbody tr:hover { background: var(--bg-hover); }
+
+        tbody tr.total-row {
+            background: var(--orange-01);
+            font-weight: 700;
+            border-top: 3px solid var(--orange-05);
+        }
+
+        tbody tr.total-row td {
+            padding: 0.875rem var(--spacing-3);
+        }
+
+        td {
+            padding: var(--spacing-3);
+            text-align: center;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        td:first-child { text-align: left; }
+
+        .criterion-input {
+            width: 100%;
+            border: 1px solid var(--bg-border);
+            padding: var(--spacing-2) var(--spacing-3);
+            border-radius: var(--radius-2);
+            font-size: 0.875rem;
+            background: var(--bg-container);
+            color: var(--text-body);
+        }
+
+        .criterion-input:focus {
+            outline: none;
+            border-color: var(--orange-05);
+            box-shadow: 0 0 0 2px var(--orange-01);
+        }
+
+        .weight-input, .score-input {
+            width: 65px;
+            text-align: center;
+            border: 1px solid var(--bg-border);
+            padding: var(--spacing-2);
+            border-radius: var(--radius-2);
+            font-size: 0.875rem;
+            background: var(--bg-container);
+            color: var(--text-body);
+        }
+
+        .weight-input:focus, .score-input:focus {
+            outline: none;
+            border-color: var(--orange-05);
+            box-shadow: 0 0 0 2px var(--orange-01);
+        }
+
+        .score-input { width: 55px; }
+
+        .slider-cell {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            justify-content: center;
+        }
+        .slider-cell input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            height: 6px;
+            border-radius: 3px;
+            background: var(--neutral-05);
+            outline: none;
+            flex: 1;
+            min-width: 60px;
+            max-width: 100px;
+        }
+        .slider-cell input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--orange-05);
+            cursor: pointer;
+            border: 2px solid var(--bg-container);
+            box-shadow: var(--shadow-low);
+        }
+        .slider-cell input[type="range"]::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: var(--orange-05);
+            cursor: pointer;
+            border: 2px solid var(--bg-container);
+            box-shadow: var(--shadow-low);
+        }
+        .slider-val {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-body);
+            min-width: 28px;
+            text-align: right;
+        }
+
+        .nw-cell {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .total-score {
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+
+        .best-score {
+            color: var(--text-success);
+            background: var(--success-01);
+            border-radius: var(--radius-2);
+            padding: var(--spacing-2) var(--spacing-3);
+        }
+
+        .weight-sum { font-weight: 700; font-size: 0.875rem; }
+        .weight-ok { color: var(--text-success); }
+        .weight-warn { color: var(--text-error); }
+
+        .delete-btn {
+            background: none;
+            border: none;
+            color: var(--bg-danger);
+            cursor: pointer;
+            font-size: 1.1rem;
+            padding: var(--spacing-2);
+            border-radius: var(--radius-2);
+            transition: background-color 0.15s ease;
+        }
+        .delete-btn:hover { background: var(--error-01); }
+
+        .alt-header-group { position: relative; }
+
+        .alt-delete-btn {
+            position: absolute;
+            top: 2px;
+            right: 4px;
+            background: none;
+            border: none;
+            color: rgba(255,255,255,0.6);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 2px 4px;
+            border-radius: var(--radius-2);
+        }
+        .alt-delete-btn:hover {
+            color: var(--text-secondary);
+            background: rgba(255,255,255,0.15);
+        }
+
+        .alt-name-input {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.25);
+            color: var(--text-secondary);
+            text-align: center;
+            padding: var(--spacing-2) var(--spacing-2);
+            border-radius: var(--radius-2);
+            font-size: 0.75rem;
+            font-weight: 500;
+            width: 100px;
+        }
+        .alt-name-input:focus {
+            outline: none;
+            border-color: rgba(255,255,255,0.6);
+            background: rgba(255,255,255,0.1);
+        }
+        .alt-name-input::placeholder { color: rgba(255,255,255,0.45); }
+
+        .legend {
+            background: var(--bg-container);
+            border-radius: var(--radius-3);
+            box-shadow: var(--shadow-low);
+            padding: var(--spacing-6);
+            margin-bottom: var(--spacing-6);
+            border: 1px solid var(--bg-border);
+        }
+
+        .legend h3 {
+            margin-bottom: var(--spacing-3);
+            color: var(--text-heading);
+            font-size: 0.875rem;
+            font-weight: 700;
+        }
+
+        .legend-items {
+            display: flex;
+            gap: var(--spacing-6);
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+            line-height: 0.875rem;
+            color: var(--text-light);
+        }
+
+        .result-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: var(--spacing-5);
+            margin-bottom: var(--spacing-6);
+        }
+
+        .result-card {
+            background: var(--bg-container);
+            border-radius: var(--radius-3);
+            box-shadow: var(--shadow-low);
+            padding: var(--spacing-6);
+            text-align: center;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            border: 1px solid var(--bg-border);
+        }
+        .result-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-medium);
+        }
+        .result-card.winner {
+            background: var(--orange-05);
+            color: var(--text-secondary);
+            border-color: var(--orange-05);
+        }
+        .result-card .rank { font-size: 2rem; margin-bottom: var(--spacing-2); }
+        .result-card .name {
+            font-weight: 700;
+            font-size: 1rem;
+            line-height: 1.5rem;
+            margin-bottom: var(--spacing-3);
+        }
+        .result-card .score {
+            font-size: 3rem;
+            line-height: 3rem;
+            font-weight: 700;
+        }
+        .result-card .score-label {
+            font-size: 0.75rem;
+            opacity: 0.72;
+        }
+
+        /* ─── Navbar ─── */
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-container);
+            border-bottom: 1px solid var(--bg-border);
+            padding: var(--spacing-4) var(--spacing-6);
+            margin: calc(-1 * var(--spacing-6)) calc(-1 * var(--spacing-6)) var(--spacing-7) calc(-1 * var(--spacing-6));
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: var(--shadow-low);
+        }
+        .navbar-title {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+        .navbar-actions { display: flex; align-items: center; gap: var(--spacing-4); }
+        .settings-toggle {
+            background: none;
+            border: 1px solid var(--bg-border);
+            border-radius: var(--radius-3);
+            padding: var(--spacing-2) var(--spacing-4);
+            cursor: pointer;
+            font-size: 0.875rem;
+            color: var(--text-body);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+            transition: background-color 0.15s ease, border-color 0.15s ease;
+        }
+        .settings-toggle:hover {
+            background: var(--bg-hover);
+            border-color: var(--text-light);
+        }
+        .settings-toggle svg {
+            width: 16px;
+            height: 16px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+        .settings-panel {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: var(--spacing-2);
+            background: var(--bg-container);
+            border: 1px solid var(--bg-border);
+            border-radius: var(--radius-3);
+            box-shadow: var(--shadow-medium);
+            min-width: 240px;
+            padding: var(--spacing-4);
+            z-index: 200;
+        }
+        .settings-panel.open { display: block; }
+        .settings-panel h4 {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-light);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: var(--spacing-3);
+        }
+        .setting-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: var(--spacing-3) 0;
+            border-bottom: 1px solid var(--neutral-03);
+        }
+        .setting-row:last-child { border-bottom: none; }
+        .setting-label {
+            font-size: 0.875rem;
+            color: var(--text-body);
+        }
+        .toggle-switch {
+            position: relative;
+            width: 40px;
+            height: 22px;
+            flex-shrink: 0;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .toggle-track {
+            position: absolute;
+            inset: 0;
+            background: var(--neutral-05);
+            border-radius: 11px;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        .toggle-track::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 18px;
+            height: 18px;
+            background: var(--bg-container);
+            border-radius: 50%;
+            box-shadow: var(--shadow-low);
+            transition: transform 0.2s ease;
+        }
+        .toggle-switch input:checked + .toggle-track {
+            background: var(--orange-05);
+        }
+        .toggle-switch input:checked + .toggle-track::after {
+            transform: translateX(18px);
+        }
+        .settings-anchor { position: relative; }
+
+        /* ─── Dark Mode ─── */
+        [data-theme="dark"] {
+            --bg-default: #191919;
+            --bg-container: #252525;
+            --bg-container-alt: #3B3B3B;
+            --bg-hover: #303030;
+            --bg-selected: #3B3B3B;
+            --bg-border: #696969;
+            --text-heading: #FFFFFF;
+            --text-body: #D1D1D1;
+            --text-light: #979797;
+            --text-primary: #FB7C4D;
+            --neutral-03: #3B3B3B;
+            --neutral-17: #D1D1D1;
+            --orange-01: #472B24;
+            --orange-07: #A7452C;
+            --orange-08: #773829;
+            --success-01: #1F3B29;
+            --error-01: #3F2425;
+            --shadow-medium: rgba(0, 0, 0, 0.4) 0px 0.25rem 0.5rem -0.125rem;
+            --shadow-low: rgba(0, 0, 0, 0.4) 0px 0.125rem 0.25rem -0.125rem;
+        }
+
+        .explanation {
+            background: var(--bg-container);
+            border-radius: var(--radius-3);
+            box-shadow: var(--shadow-low);
+            padding: var(--spacing-6);
+            margin-bottom: var(--spacing-6);
+            border: 1px solid var(--bg-border);
+            font-size: 0.875rem;
+            line-height: 1.5;
+            color: var(--text-body);
+        }
+        .explanation h3 {
+            color: var(--text-heading);
+            font-size: 0.9375rem;
+            font-weight: 700;
+            margin-bottom: var(--spacing-3);
+        }
+        .explanation ol {
+            padding-left: 1.25rem;
+            margin: var(--spacing-3) 0 0;
+        }
+        .explanation li { margin-bottom: var(--spacing-2); }
+        .explanation li::marker { color: var(--text-primary); font-weight: 600; }
+
+        .section-hidden { display: none; }
+
+        .add-row td {
+            padding: var(--spacing-3);
+        }
+        .add-link {
+            background: none;
+            border: none;
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            padding: var(--spacing-2) 0;
+        }
+        .add-link:hover { text-decoration: underline; }
+        .add-alt-btn {
+            background: none;
+            border: 1px dashed var(--bg-border);
+            border-radius: var(--radius-2);
+            color: var(--text-primary);
+            cursor: pointer;
+            font-size: 0.6875rem;
+            font-weight: 500;
+            padding: var(--spacing-2) var(--spacing-3);
+            white-space: nowrap;
+        }
+        .add-alt-btn:hover { border-color: var(--text-primary); background: var(--orange-01); }
+        .reset-link {
+            display: inline-block;
+            margin-top: var(--spacing-3);
+            background: none;
+            border: none;
+            color: var(--bg-danger);
+            cursor: pointer;
+            font-size: 0.8125rem;
+        }
+        .reset-link:hover { text-decoration: underline; }
+
+        .radar-section {
+            background: var(--bg-container);
+            border-radius: var(--radius-3);
+            box-shadow: var(--shadow-low);
+            padding: var(--spacing-6);
+            margin-bottom: var(--spacing-6);
+            border: 1px solid var(--bg-border);
+            text-align: center;
+        }
+        .radar-section canvas {
+            display: block;
+            margin: 0 auto;
+            max-width: 480px;
+            width: 100%;
+        }
+        .radar-legend {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-6);
+            flex-wrap: wrap;
+            margin-top: var(--spacing-4);
+            font-size: 0.8125rem;
+            color: var(--text-body);
+        }
+        .radar-legend-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-2);
+        }
+        .radar-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+        .radar-mode-toggle {
+            display: inline-flex;
+            border: 1px solid var(--bg-border);
+            border-radius: var(--radius-3);
+            overflow: hidden;
+            margin-bottom: var(--spacing-4);
+        }
+        .radar-mode-btn {
+            background: var(--bg-container);
+            border: none;
+            padding: var(--spacing-2) var(--spacing-5);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-light);
+            cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+        .radar-mode-btn + .radar-mode-btn { border-left: 1px solid var(--bg-border); }
+        .radar-mode-btn.active {
+            background: var(--orange-05);
+            color: var(--text-secondary);
+        }
+
+        @media (max-width: 768px) {
+            .controls { justify-content: center; }
+            .controls button { flex: 1; min-width: 140px; }
+            .navbar { padding: var(--spacing-3) var(--spacing-4); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <nav class="navbar">
+        <span class="navbar-title">Utility Value Analysis</span>
+        <div class="navbar-actions">
+            <div class="settings-anchor">
+                <button class="settings-toggle" onclick="toggleSettings()" aria-label="Settings">
+                    <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+                    Settings
+                </button>
+                <div id="settingsPanel" class="settings-panel">
+                    <h4>Appearance</h4>
+                    <div class="setting-row">
+                        <span class="setting-label">Dark Mode</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="darkToggle" onchange="toggleDarkMode(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Heat Map</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="heatMapToggle" onchange="toggleHeatMap(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    <h4 style="margin-top:var(--spacing-4)">Input Mode</h4>
+                    <div class="setting-row">
+                        <span class="setting-label">Relative Weights</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="relativeWeightsToggle" onchange="toggleRelativeWeights(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Weight Slider</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="weightSliderToggle" onchange="toggleWeightSlider(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Score Slider</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="scoreSliderToggle" onchange="toggleScoreSlider(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    <h4 style="margin-top:var(--spacing-4)">Sections</h4>
+                    <div class="setting-row">
+                        <span class="setting-label">Show How-To</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showHowtoToggle" checked onchange="toggleShowHowto(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Show Editing</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showEditingToggle" onchange="toggleShowEditing(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Show Results</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showResultsToggle" onchange="toggleShowResults(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Show Radar Chart</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showRadarToggle" onchange="toggleShowRadar(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                    <div class="setting-row">
+                        <span class="setting-label">Show Export</span>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="showExportToggle" onchange="toggleShowExport(this.checked)">
+                            <span class="toggle-track"></span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div id="howtoSection" class="explanation">
+        <h3>How to Use a Utility Value Analysis</h3>
+        <p>A utility value analysis (Nutzwertanalyse) is a structured decision-making method that helps you compare multiple alternatives against a set of criteria you define. It is especially useful when a decision cannot be made on cost alone and qualitative factors matter.</p>
+        <ol>
+            <li><strong>Define alternatives</strong> &mdash; list the options you are choosing between.</li>
+            <li><strong>Define criteria</strong> &mdash; identify what matters for the decision (e.g. cost, quality, time-to-market).</li>
+            <li><strong>Assign weights</strong> &mdash; distribute 100% across criteria to reflect their relative importance. You can also enable <em>Relative Weights</em> in settings to enter priorities that auto-normalize.</li>
+            <li><strong>Score each alternative</strong> &mdash; rate how well each alternative satisfies each criterion on a scale of 1&ndash;5 (1&nbsp;=&nbsp;Poor, 2&nbsp;=&nbsp;Fair, 3&nbsp;=&nbsp;Satisfactory, 4&nbsp;=&nbsp;Good, 5&nbsp;=&nbsp;Excellent).</li>
+            <li><strong>Read the result</strong> &mdash; the utility value (UV&nbsp;=&nbsp;Score&nbsp;&times;&nbsp;Weight) is computed per cell; the totals reveal which alternative best meets your requirements.</li>
+        </ol>
+    </div>
+
+    <div id="resultCards" class="result-cards"></div>
+
+    <div class="table-wrapper">
+        <table id="nwaTable">
+            <thead id="tableHead"></thead>
+            <tbody id="tableBody"></tbody>
+        </table>
+    </div>
+
+    <div id="weightInfo" style="text-align:center; margin-top:var(--spacing-3); font-size:0.875rem;"></div>
+
+    <div id="radarSection" class="radar-section section-hidden">
+        <div class="radar-mode-toggle">
+            <button id="radarModeScore" class="radar-mode-btn active" onclick="setRadarMode('score')">Raw Score</button>
+            <button id="radarModeWeighted" class="radar-mode-btn" onclick="setRadarMode('weighted')">Weighted Score</button>
+        </div>
+        <canvas id="radarCanvas"></canvas>
+        <div id="radarLegend" class="radar-legend"></div>
+    </div>
+
+    <div id="exportControls" class="controls section-hidden" style="margin-top:var(--spacing-6); justify-content:center;">
+        <button class="btn-export" onclick="exportCSV()">CSV Export</button>
+    </div>
+
+</div>
+
+<script>
+    var settings = { weightSlider: false, scoreSlider: false, relativeWeights: false, heatMap: false, showHowto: true, showEditing: false, showResults: false, showRadar: false, showExport: false };
+
+    let data = {
+        alternatives: ['Alternative A', 'Alternative B'],
+        criteria: [
+            { name: '', weight: 0 },
+            { name: '', weight: 0 },
+            { name: '', weight: 0 }
+        ],
+        scores: {}
+    };
+
+    function initScores() {
+        data.alternatives.forEach(alt => {
+            if (!data.scores[alt]) data.scores[alt] = {};
+            data.criteria.forEach((_, i) => {
+                if (data.scores[alt][i] === undefined) data.scores[alt][i] = 0;
+            });
+        });
+    }
+
+    function getEffectiveWeights() {
+        if (!settings.relativeWeights) {
+            return data.criteria.map(c => c.weight);
+        }
+        var rawSum = data.criteria.reduce((s, c) => s + Number(c.weight), 0);
+        if (rawSum === 0) return data.criteria.map(() => 0);
+        return data.criteria.map(c => Math.round(Number(c.weight) / rawSum * 1000) / 10);
+    }
+
+    function render() {
+        initScores();
+        renderHead();
+        renderBody();
+        renderResults();
+        renderRadar();
+        renderWeightInfo();
+    }
+
+    function renderHead() {
+        var editing = settings.showEditing;
+        const thead = document.getElementById('tableHead');
+        let h1 = '<tr><th rowspan="2" style="min-width:200px;">Criterion</th>';
+        if (settings.relativeWeights) {
+            h1 += '<th rowspan="2" style="min-width:80px;">Priority</th>';
+            h1 += '<th rowspan="2" style="min-width:60px;">Wt. (%)</th>';
+        } else {
+            h1 += '<th rowspan="2" style="min-width:80px;">Wt. (%)</th>';
+        }
+        data.alternatives.forEach((alt, i) => {
+            h1 += '<th colspan="2" class="alt-header alt-header-group">' +
+                '<input class="alt-name-input" value="' + alt + '" ' +
+                'onchange="renameAlternative(' + i + ', this.value)" title="Edit name"/>';
+            if (editing) {
+                h1 += '<button class="alt-delete-btn" onclick="removeAlternative(' + i + ')" title="Remove">&#10005;</button>';
+            }
+            h1 += '</th>';
+        });
+        if (editing) {
+            h1 += '<th rowspan="2" style="min-width:40px;"></th>';
+            h1 += '<th rowspan="2"><button class="add-alt-btn" onclick="addAlternative()">+ Alternative</button></th>';
+        }
+        h1 += '</tr>';
+
+        let h2 = '<tr class="sub-header">';
+        data.alternatives.forEach(() => { h2 += '<th>Score</th><th>UV</th>'; });
+        h2 += '</tr>';
+
+        thead.innerHTML = h1 + h2;
+    }
+
+    function heatColor(value, max) {
+        if (max <= 0 || value <= 0) return 'transparent';
+        var t = Math.min(value / max, 1);
+        var r, g, b;
+        if (t < 0.5) {
+            var p = t / 0.5;
+            r = 243 + (254 - 243) * p; g = 212 + (218 - 212) * p; b = 209 + (204 - 209) * p;
+        } else {
+            var p = (t - 0.5) / 0.5;
+            r = 254 + (211 - 254) * p; g = 218 + (235 - 218) * p; b = 204 + (213 - 204) * p;
+        }
+        return 'rgb(' + Math.round(r) + ',' + Math.round(g) + ',' + Math.round(b) + ')';
+    }
+
+    function renderBody() {
+        var editing = settings.showEditing;
+        const tbody = document.getElementById('tableBody');
+        const ew = getEffectiveWeights();
+        var colCount = 1 + (settings.relativeWeights ? 2 : 1) + data.alternatives.length * 2 + (editing ? 2 : 0);
+        let html = '';
+
+        data.criteria.forEach((crit, ci) => {
+            html += '<tr>';
+            html += '<td><input class="criterion-input" value="' + crit.name + '" ' +
+                'placeholder="Enter criterion" onchange="renameCriterion(' + ci + ', this.value)"/></td>';
+
+            if (settings.relativeWeights) {
+                if (settings.weightSlider) {
+                    html += '<td><div class="slider-cell">' +
+                        '<input type="range" min="0" max="100" step="1" value="' + crit.weight + '" ' +
+                        'oninput="changeWeight(' + ci + ', this.value)" onchange="render()">' +
+                        '<span class="slider-val" data-wlabel="' + ci + '">' + crit.weight + '</span>' +
+                        '</div></td>';
+                } else {
+                    html += '<td><input class="weight-input" type="number" min="0" step="1" value="' + crit.weight + '" ' +
+                        'onchange="changeWeight(' + ci + ', this.value)"/></td>';
+                }
+                html += '<td class="nw-cell" data-ewcell="' + ci + '">' + ew[ci] + '%</td>';
+            } else {
+                if (settings.weightSlider) {
+                    html += '<td><div class="slider-cell">' +
+                        '<input type="range" min="0" max="100" step="1" value="' + crit.weight + '" ' +
+                        'oninput="changeWeight(' + ci + ', this.value)" onchange="render()">' +
+                        '<span class="slider-val" data-wlabel="' + ci + '">' + crit.weight + '%</span>' +
+                        '</div></td>';
+                } else {
+                    html += '<td><input class="weight-input" type="number" min="0" max="100" value="' + crit.weight + '" ' +
+                        'onchange="changeWeight(' + ci + ', this.value)"/></td>';
+                }
+            }
+
+            data.alternatives.forEach(function(alt, ai) {
+                const score = data.scores[alt][ci] || 0;
+                const nw = (score * ew[ci] / 100).toFixed(2);
+                var escapedAlt = alt.replace(/'/g, "\\'");
+                var sBg = settings.heatMap ? ' style="background:' + heatColor(score, 5) + '"' : '';
+                var nBg = settings.heatMap ? ' style="background:' + heatColor(Number(nw), 5) + '"' : '';
+
+                if (settings.scoreSlider) {
+                    html += '<td data-scell="' + ci + '-' + ai + '"' + sBg + '><div class="slider-cell">' +
+                        '<input type="range" min="0" max="5" step="0.5" value="' + score + '" ' +
+                        'oninput="changeScore(\'' + escapedAlt + '\', ' + ci + ', this.value)" onchange="render()">' +
+                        '<span class="slider-val" data-slabel="' + ci + '-' + ai + '">' + score + '</span>' +
+                        '</div></td>';
+                } else {
+                    html += '<td data-scell="' + ci + '-' + ai + '"' + sBg + '><input class="score-input" type="number" min="0" max="5" step="0.5" value="' + score + '" ' +
+                        'onchange="changeScore(\'' + escapedAlt + '\', ' + ci + ', this.value)"/></td>';
+                }
+                html += '<td class="nw-cell" data-nw="' + ci + '-' + ai + '"' + nBg + '>' + nw + '</td>';
+            });
+
+            if (editing) {
+                html += '<td><button class="delete-btn" onclick="removeCriterion(' + ci + ')" title="Remove criterion">&#128465;</button></td>';
+                html += '<td></td>';
+            }
+            html += '</tr>';
+        });
+
+        if (editing) {
+            html += '<tr class="add-row"><td colspan="' + colCount + '">' +
+                '<button class="add-link" onclick="addCriterion()">+ Add Criterion</button>' +
+                '</td></tr>';
+        }
+
+        html += '<tr class="total-row">';
+        html += '<td><strong>Total Utility Value</strong></td>';
+        if (settings.relativeWeights) {
+            html += '<td></td>';
+        }
+        html += '<td class="weight-sum" id="weightSum"></td>';
+
+        const totals = {};
+        data.alternatives.forEach(alt => {
+            let total = 0;
+            data.criteria.forEach((crit, ci) => {
+                total += (data.scores[alt][ci] || 0) * ew[ci] / 100;
+            });
+            totals[alt] = total;
+        });
+
+        const maxTotal = Math.max(...Object.values(totals));
+
+        data.alternatives.forEach(function(alt, ai) {
+            const t = totals[alt].toFixed(2);
+            const isBest = totals[alt] === maxTotal && maxTotal > 0;
+            html += '<td>&mdash;</td>';
+            html += '<td class="total-score ' + (isBest ? 'best-score' : '') + '" data-total="' + ai + '">' + t + '</td>';
+        });
+
+        if (editing) { html += '<td></td><td></td>'; }
+        html += '</tr>';
+        tbody.innerHTML = html;
+    }
+
+    function renderWeightInfo() {
+        const ew = getEffectiveWeights();
+        const effectiveSum = Math.round(ew.reduce((s, w) => s + w, 0) * 10) / 10;
+        const rawSum = data.criteria.reduce((s, c) => s + Number(c.weight), 0);
+        const el = document.getElementById('weightSum');
+        const infoEl = document.getElementById('weightInfo');
+        var out = '';
+
+        if (settings.relativeWeights) {
+            if (el) {
+                el.textContent = effectiveSum + '%';
+                el.className = 'weight-sum weight-ok';
+            }
+            if (rawSum === 0) {
+                out = '<span style="color:var(--text-error);">Set at least one weight</span>';
+            } else {
+                out = '<span style="color:var(--text-success);">Relative weighting active &mdash; sum always 100%</span>';
+            }
+        } else {
+            if (el) {
+                el.textContent = rawSum + '%';
+                el.className = 'weight-sum ' + (rawSum === 100 ? 'weight-ok' : 'weight-warn');
+            }
+            if (rawSum !== 100) {
+                out = '<span style="color:var(--text-error);">Weight total = <strong>' + rawSum + '%</strong> (should be 100%)</span>';
+            } else {
+                out = '<span style="color:var(--text-success);">Weight total = <strong>100%</strong></span>';
+            }
+        }
+
+        if (settings.showEditing) {
+            out += '<br><button class="reset-link" onclick="resetAll()">Reset all scores</button>';
+        }
+        infoEl.innerHTML = out;
+    }
+
+    function renderResults() {
+        const container = document.getElementById('resultCards');
+        if (!settings.showResults) { container.innerHTML = ''; return; }
+        const ew = getEffectiveWeights();
+        const totals = [];
+
+        data.alternatives.forEach(alt => {
+            let total = 0;
+            data.criteria.forEach((crit, ci) => {
+                total += (data.scores[alt][ci] || 0) * ew[ci] / 100;
+            });
+            totals.push({ name: alt, score: total });
+        });
+
+        totals.sort((a, b) => b.score - a.score);
+        const ranks = ['\u{1F947}', '\u{1F948}', '\u{1F949}'];
+
+        let html = '';
+        totals.forEach((item, i) => {
+            const isWinner = i === 0;
+            html += '<div class="result-card ' + (isWinner ? 'winner' : '') + '">' +
+                '<div class="rank">' + (ranks[i] || '#' + (i + 1)) + '</div>' +
+                '<div class="name">' + item.name + '</div>' +
+                '<div class="score">' + item.score.toFixed(2) + '</div>' +
+                '<div class="score-label">out of max. 5.00</div>' +
+                '</div>';
+        });
+
+        container.innerHTML = html;
+    }
+
+    var RADAR_COLORS = ['#D04A02', '#203570', '#21812D', '#FB7C4D', '#415385', '#4EAD58'];
+    var radarMode = 'score';
+
+    function setRadarMode(mode) {
+        radarMode = mode;
+        document.getElementById('radarModeScore').className = 'radar-mode-btn' + (mode === 'score' ? ' active' : '');
+        document.getElementById('radarModeWeighted').className = 'radar-mode-btn' + (mode === 'weighted' ? ' active' : '');
+        renderRadar();
+    }
+
+    function renderRadar() {
+        var section = document.getElementById('radarSection');
+        var legend = document.getElementById('radarLegend');
+        if (!settings.showRadar) {
+            section.classList.add('section-hidden');
+            return;
+        }
+        section.classList.remove('section-hidden');
+
+        var canvas = document.getElementById('radarCanvas');
+        var n = data.criteria.length;
+        if (n < 3) {
+            canvas.width = 0; canvas.height = 0;
+            legend.innerHTML = '<span style="color:var(--text-light);font-size:0.8125rem;">Add at least 3 criteria to display the radar chart.</span>';
+            return;
+        }
+
+        var ew = getEffectiveWeights();
+        var weighted = radarMode === 'weighted';
+        var maxVal = weighted ? 5 : 5;
+
+        var dpr = window.devicePixelRatio || 1;
+        var cssSize = Math.min(480, section.clientWidth - 40);
+        canvas.style.width = cssSize + 'px';
+        canvas.style.height = cssSize + 'px';
+        canvas.width = cssSize * dpr;
+        canvas.height = cssSize * dpr;
+        var ctx = canvas.getContext('2d');
+        ctx.scale(dpr, dpr);
+
+        var cx = cssSize / 2;
+        var cy = cssSize / 2;
+        var maxR = cssSize / 2 - 50;
+        var steps = 5;
+        var angleStep = (2 * Math.PI) / n;
+        var startAngle = -Math.PI / 2;
+
+        ctx.clearRect(0, 0, cssSize, cssSize);
+
+        var isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        var gridColor = isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)';
+        var labelColor = isDark ? '#D1D1D1' : '#474747';
+
+        for (var s = 1; s <= steps; s++) {
+            var r = (s / steps) * maxR;
+            ctx.beginPath();
+            for (var i = 0; i <= n; i++) {
+                var a = startAngle + i * angleStep;
+                var px = cx + r * Math.cos(a);
+                var py = cy + r * Math.sin(a);
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        ctx.font = '11px sans-serif';
+        ctx.fillStyle = labelColor;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (var i = 0; i < n; i++) {
+            var a = startAngle + i * angleStep;
+            var lx = cx + (maxR + 28) * Math.cos(a);
+            var ly = cy + (maxR + 28) * Math.sin(a);
+            var label = data.criteria[i].name || ('C' + (i + 1));
+            if (weighted) label += ' (' + ew[i] + '%)';
+            if (label.length > 20) label = label.substring(0, 19) + '\u2026';
+            ctx.fillText(label, lx, ly);
+        }
+
+        for (var i = 0; i < n; i++) {
+            var a = startAngle + i * angleStep;
+            ctx.beginPath();
+            ctx.moveTo(cx, cy);
+            ctx.lineTo(cx + maxR * Math.cos(a), cy + maxR * Math.sin(a));
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+        }
+
+        data.alternatives.forEach(function(alt, ai) {
+            var color = RADAR_COLORS[ai % RADAR_COLORS.length];
+            ctx.beginPath();
+            for (var i = 0; i <= n; i++) {
+                var idx = i % n;
+                var raw = data.scores[alt][idx] || 0;
+                var val = weighted ? raw * ew[idx] / 100 : raw;
+                var r = (val / maxVal) * maxR;
+                var a = startAngle + idx * angleStep;
+                var px = cx + r * Math.cos(a);
+                var py = cy + r * Math.sin(a);
+                if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.fillStyle = color + '33';
+            ctx.fill();
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            for (var i = 0; i < n; i++) {
+                var raw = data.scores[alt][i] || 0;
+                var val = weighted ? raw * ew[i] / 100 : raw;
+                var r = (val / maxVal) * maxR;
+                var a = startAngle + i * angleStep;
+                ctx.beginPath();
+                ctx.arc(cx + r * Math.cos(a), cy + r * Math.sin(a), 3.5, 0, 2 * Math.PI);
+                ctx.fillStyle = color;
+                ctx.fill();
+            }
+        });
+
+        var lhtml = '';
+        data.alternatives.forEach(function(alt, ai) {
+            var color = RADAR_COLORS[ai % RADAR_COLORS.length];
+            lhtml += '<span class="radar-legend-item">' +
+                '<span class="radar-legend-dot" style="background:' + color + '"></span>' +
+                alt + '</span>';
+        });
+        legend.innerHTML = lhtml;
+    }
+
+    function changeWeight(ci, val) {
+        data.criteria[ci].weight = Number(val);
+        updateLive();
+    }
+
+    function changeScore(alt, ci, val) {
+        data.scores[alt][ci] = Number(val);
+        updateLive();
+    }
+
+    function updateLive() {
+        var ew = getEffectiveWeights();
+        data.criteria.forEach(function(crit, ci) {
+            var valEl = document.querySelector('[data-wlabel="' + ci + '"]');
+            if (valEl) {
+                valEl.textContent = settings.relativeWeights ? crit.weight : crit.weight + '%';
+            }
+            var ewEl = document.querySelector('[data-ewcell="' + ci + '"]');
+            if (ewEl) ewEl.textContent = ew[ci] + '%';
+
+            data.alternatives.forEach(function(alt, ai) {
+                var score = data.scores[alt][ci] || 0;
+                var nw = (score * ew[ci] / 100).toFixed(2);
+                var slbl = document.querySelector('[data-slabel="' + ci + '-' + ai + '"]');
+                if (slbl) slbl.textContent = score;
+                var nwEl = document.querySelector('[data-nw="' + ci + '-' + ai + '"]');
+                if (nwEl) nwEl.textContent = nw;
+                if (settings.heatMap) {
+                    var sCell = document.querySelector('[data-scell="' + ci + '-' + ai + '"]');
+                    if (sCell) sCell.style.background = heatColor(score, 5);
+                    if (nwEl) nwEl.style.background = heatColor(Number(nw), 5);
+                }
+            });
+        });
+
+        var totals = {};
+        data.alternatives.forEach(function(alt) {
+            var total = 0;
+            data.criteria.forEach(function(crit, ci) {
+                total += (data.scores[alt][ci] || 0) * ew[ci] / 100;
+            });
+            totals[alt] = total;
+        });
+        var maxTotal = Math.max.apply(null, data.alternatives.map(function(a) { return totals[a]; }));
+        data.alternatives.forEach(function(alt, ai) {
+            var el = document.querySelector('[data-total="' + ai + '"]');
+            if (el) {
+                el.textContent = totals[alt].toFixed(2);
+                el.className = 'total-score' + (totals[alt] === maxTotal && maxTotal > 0 ? ' best-score' : '');
+            }
+        });
+
+        renderWeightInfo();
+        renderResults();
+        renderRadar();
+    }
+
+    function renameCriterion(ci, name) {
+        data.criteria[ci].name = name;
+    }
+
+    function renameAlternative(index, newName) {
+        const oldName = data.alternatives[index];
+        data.scores[newName] = data.scores[oldName];
+        delete data.scores[oldName];
+        data.alternatives[index] = newName;
+        render();
+    }
+
+    function addCriterion() {
+        const name = prompt('Name of new criterion:', '');
+        if (name === null) return;
+        var weightLabel = settings.relativeWeights ? 'Priority (any number):' : 'Weight in %:';
+        const weight = Number(prompt(weightLabel, '0')) || 0;
+        data.criteria.push({ name: name, weight: weight });
+        const newIndex = data.criteria.length - 1;
+        data.alternatives.forEach(alt => { data.scores[alt][newIndex] = 0; });
+        render();
+    }
+
+    function removeCriterion(ci) {
+        if (data.criteria.length <= 1) { alert('At least one criterion is required.'); return; }
+        if (!confirm('Remove criterion "' + data.criteria[ci].name + '"?')) return;
+        data.criteria.splice(ci, 1);
+        data.alternatives.forEach(alt => {
+            const newScores = {};
+            data.criteria.forEach((_, i) => {
+                const oldIndex = i >= ci ? i + 1 : i;
+                newScores[i] = data.scores[alt][oldIndex] !== undefined ? data.scores[alt][oldIndex] : 0;
+            });
+            data.scores[alt] = newScores;
+        });
+        render();
+    }
+
+    function addAlternative() {
+        const name = prompt('Name of new alternative:', '');
+        if (!name) return;
+        if (data.alternatives.includes(name)) { alert('Alternative already exists.'); return; }
+        data.alternatives.push(name);
+        data.scores[name] = {};
+        data.criteria.forEach((_, i) => { data.scores[name][i] = 0; });
+        render();
+    }
+
+    function removeAlternative(index) {
+        if (data.alternatives.length <= 1) { alert('At least one alternative is required.'); return; }
+        const name = data.alternatives[index];
+        if (!confirm('Remove "' + name + '"?')) return;
+        data.alternatives.splice(index, 1);
+        delete data.scores[name];
+        render();
+    }
+
+    function resetAll() {
+        if (!confirm('Reset all scores to 0?')) return;
+        data.alternatives.forEach(alt => {
+            data.criteria.forEach((_, i) => { data.scores[alt][i] = 0; });
+        });
+        render();
+    }
+
+    function exportCSV() {
+        const ew = getEffectiveWeights();
+        let csv = 'Criterion;Weight (%)';
+        data.alternatives.forEach(alt => { csv += ';' + alt + ' Score;' + alt + ' UV'; });
+        csv += '\n';
+
+        data.criteria.forEach((crit, ci) => {
+            csv += '"' + crit.name + '";' + ew[ci];
+            data.alternatives.forEach(alt => {
+                const score = data.scores[alt][ci] || 0;
+                const nw = (score * ew[ci] / 100).toFixed(2);
+                csv += ';' + score + ';' + nw;
+            });
+            csv += '\n';
+        });
+
+        csv += 'Total Utility Value;';
+        const weightSum = Math.round(ew.reduce((s, w) => s + w, 0) * 10) / 10;
+        csv += weightSum;
+        data.alternatives.forEach(alt => {
+            let total = 0;
+            data.criteria.forEach((crit, ci) => {
+                total += (data.scores[alt][ci] || 0) * ew[ci] / 100;
+            });
+            csv += ';\u2014;' + total.toFixed(2);
+        });
+
+        const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'Utility_Value_Analysis.csv';
+        link.click();
+    }
+
+    function toggleSettings() {
+        document.getElementById('settingsPanel').classList.toggle('open');
+    }
+
+    function toggleDarkMode(on) {
+        document.documentElement.setAttribute('data-theme', on ? 'dark' : 'light');
+        try { localStorage.setItem('nwa-theme', on ? 'dark' : 'light'); } catch(e) {}
+    }
+
+    function toggleRelativeWeights(on) {
+        settings.relativeWeights = on;
+        try { localStorage.setItem('nwa-relative-weights', on ? '1' : '0'); } catch(e) {}
+        render();
+    }
+
+    function toggleWeightSlider(on) {
+        settings.weightSlider = on;
+        try { localStorage.setItem('nwa-weight-slider', on ? '1' : '0'); } catch(e) {}
+        render();
+    }
+
+    function toggleScoreSlider(on) {
+        settings.scoreSlider = on;
+        try { localStorage.setItem('nwa-score-slider', on ? '1' : '0'); } catch(e) {}
+        render();
+    }
+
+    function toggleShowHowto(on) {
+        settings.showHowto = on;
+        document.getElementById('howtoSection').classList.toggle('section-hidden', !on);
+        try { localStorage.setItem('nwa-show-howto', on ? '1' : '0'); } catch(e) {}
+    }
+
+    function toggleShowEditing(on) {
+        settings.showEditing = on;
+        try { localStorage.setItem('nwa-show-editing', on ? '1' : '0'); } catch(e) {}
+        render();
+    }
+
+    function toggleShowResults(on) {
+        settings.showResults = on;
+        try { localStorage.setItem('nwa-show-results', on ? '1' : '0'); } catch(e) {}
+        render();
+    }
+
+    function toggleShowRadar(on) {
+        settings.showRadar = on;
+        try { localStorage.setItem('nwa-show-radar', on ? '1' : '0'); } catch(e) {}
+        render();
+    }
+
+    function toggleHeatMap(on) {
+        settings.heatMap = on;
+        try { localStorage.setItem('nwa-heat-map', on ? '1' : '0'); } catch(e) {}
+        render();
+    }
+
+    function toggleShowExport(on) {
+        settings.showExport = on;
+        document.getElementById('exportControls').classList.toggle('section-hidden', !on);
+        try { localStorage.setItem('nwa-show-export', on ? '1' : '0'); } catch(e) {}
+    }
+
+    (function initSettings() {
+        try {
+            var saved = localStorage.getItem('nwa-theme');
+            if (saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                var toggle = document.getElementById('darkToggle');
+                if (toggle) toggle.checked = true;
+            }
+            if (localStorage.getItem('nwa-relative-weights') === '1') {
+                settings.relativeWeights = true;
+                var rw = document.getElementById('relativeWeightsToggle');
+                if (rw) rw.checked = true;
+            }
+            if (localStorage.getItem('nwa-weight-slider') === '1') {
+                settings.weightSlider = true;
+                var wt = document.getElementById('weightSliderToggle');
+                if (wt) wt.checked = true;
+            }
+            if (localStorage.getItem('nwa-score-slider') === '1') {
+                settings.scoreSlider = true;
+                var st = document.getElementById('scoreSliderToggle');
+                if (st) st.checked = true;
+            }
+            if (localStorage.getItem('nwa-show-howto') === '0') {
+                settings.showHowto = false;
+                var sh = document.getElementById('showHowtoToggle');
+                if (sh) sh.checked = false;
+                document.getElementById('howtoSection').classList.add('section-hidden');
+            }
+            if (localStorage.getItem('nwa-show-editing') === '1') {
+                settings.showEditing = true;
+                var se = document.getElementById('showEditingToggle');
+                if (se) se.checked = true;
+            }
+            if (localStorage.getItem('nwa-show-results') === '1') {
+                settings.showResults = true;
+                var sr = document.getElementById('showResultsToggle');
+                if (sr) sr.checked = true;
+            }
+            if (localStorage.getItem('nwa-show-radar') === '1') {
+                settings.showRadar = true;
+                var sra = document.getElementById('showRadarToggle');
+                if (sra) sra.checked = true;
+            }
+            if (localStorage.getItem('nwa-heat-map') === '1') {
+                settings.heatMap = true;
+                var hm = document.getElementById('heatMapToggle');
+                if (hm) hm.checked = true;
+            }
+            if (localStorage.getItem('nwa-show-export') === '1') {
+                settings.showExport = true;
+                var sx = document.getElementById('showExportToggle');
+                if (sx) sx.checked = true;
+                document.getElementById('exportControls').classList.remove('section-hidden');
+            }
+        } catch(e) {}
+    })();
+
+    document.addEventListener('click', function(e) {
+        var anchor = document.querySelector('.settings-anchor');
+        if (anchor && !anchor.contains(e.target)) {
+            document.getElementById('settingsPanel').classList.remove('open');
+        }
+    });
+
+    render();
+</script>
+
+</body>
+</html>
