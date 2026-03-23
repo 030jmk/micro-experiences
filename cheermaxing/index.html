@@ -1,0 +1,1201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#e8ff47">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Jan's Cheer Planner">
+<meta name="description" content="Upload GPX routes to plan when and where to cheer for your favorite runner.">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>CheerMaxing for (half)marathons</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+  :root {
+    --bg:#0e0e0e; --surface:#161616; --surface2:#1e1e1e; --border:#272727;
+    --text:#f0ede8; --muted:#888; --muted2:#666;
+    --route:#e8ff47; --cheer:#ff6b35;
+    --walk:#60a5fa; --bike:#a78bfa;
+    --green:#4ade80; --red:#f87171; --amber:#fbbf24;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
+
+  /* ── HEADER ── */
+  header{
+    min-height:50px;padding:0 1rem;border-bottom:1px solid var(--border);
+    display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;
+    flex-shrink:0;background:var(--bg);z-index:1000;position:relative;
+  }
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:1.7rem;color:var(--route);letter-spacing:.06em;line-height:1;flex-shrink:0;}
+  .sub{font-family:'DM Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;flex-shrink:0;}
+  .header-actions{margin-left:auto;display:flex;gap:6px;align-items:center;flex-shrink:0;min-width:0;}
+
+  /* Map style picker */
+  .map-picker{display:flex;gap:3px;align-items:center;}
+  .mp-lbl{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-right:3px;}
+  .mp-btn{font-family:'DM Mono',monospace;font-size:9px;padding:3px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
+  .mp-btn:hover{color:var(--text);border-color:#444;}
+  .mp-btn.active{background:var(--surface2);color:var(--text);border-color:#444;}
+
+  /* Action buttons */
+  .hbtn{
+    font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;
+    border-radius:5px;border:1px solid var(--border);background:transparent;
+    color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;display:flex;align-items:center;gap:5px;
+  }
+  .hbtn:hover{color:var(--text);border-color:#555;}
+  .hbtn.save-btn:hover{color:var(--green);border-color:var(--green);}
+  .hbtn.export-btn{color:var(--route);border-color:rgba(232,255,71,.3);background:rgba(232,255,71,.06);}
+  .hbtn.export-btn:hover{background:rgba(232,255,71,.12);}
+  .save-indicator{font-family:'DM Mono',monospace;font-size:9px;color:var(--green);opacity:0;transition:opacity .3s;}
+
+  /* ── LAYOUT ── */
+  .app{display:flex;height:calc(100vh - 50px);}
+  .map-wrap{position:relative;flex:1;display:flex;min-height:0;}
+  #map{flex:1;min-height:0;background:#0a0a0a;cursor:crosshair;position:relative;}
+
+  /* Tile filters */
+  .tiles-dark       .leaflet-tile-pane{filter:none;}
+  .tiles-osm        .leaflet-tile-pane{filter:saturate(.12) brightness(.38) contrast(1.15);}
+  .tiles-voyager    .leaflet-tile-pane{filter:saturate(.15) brightness(.4) contrast(1.15);}
+  .tiles-topo       .leaflet-tile-pane{filter:saturate(.18) brightness(.42) contrast(1.15);}
+
+  .leaflet-control-zoom a{background:var(--surface)!important;color:var(--text)!important;border-color:var(--border)!important;font-family:'DM Mono',monospace!important;}
+  .leaflet-control-attribution{background:rgba(10,10,10,.85)!important;color:#3a3a3a!important;font-size:9px!important;}
+  .leaflet-control-attribution a{color:#555!important;}
+  .leaflet-popup-content-wrapper{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:8px!important;color:var(--text)!important;font-family:'DM Sans',sans-serif!important;box-shadow:0 8px 32px rgba(0,0,0,.7)!important;padding:10px 14px!important;}
+  .leaflet-popup-tip{background:var(--surface)!important;}
+  .leaflet-popup-close-button{color:var(--muted)!important;}
+  .lp-name{font-weight:500;font-size:13px;margin-bottom:2px;}
+  .lp-km{font-family:'DM Mono',monospace;font-size:10px;color:var(--route);}
+  .lp-del{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;margin-top:6px;transition:all .15s;}
+  .lp-del:hover{border-color:var(--red);color:var(--red);}
+
+  #mapHint{
+    position:absolute;bottom:12px;left:12px;right:12px;
+    background:rgba(14,14,14,.9);border:1px solid var(--border);border-radius:6px;
+    padding:6px 14px;font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);
+    z-index:500;pointer-events:none;text-align:center;transition:opacity .4s;
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar{width:370px;flex-shrink:0;display:flex;flex-direction:column;border-left:1px solid var(--border);background:var(--bg);overflow:hidden;}
+
+  /* Controls */
+  .controls{padding:.8rem 1rem;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:.65rem;flex-shrink:0;}
+  .stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:.4rem .65rem;}
+  .stat-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:1px;}
+  .stat-val{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;color:var(--text);line-height:1;}
+  .ctrl-row{display:flex;flex-direction:column;gap:4px;}
+  .ctrl-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;display:flex;justify-content:space-between;align-items:center;}
+  .ctrl-val{color:var(--route);font-size:11px;}
+  input[type=range]{width:100%;height:3px;-webkit-appearance:none;background:var(--border);border-radius:2px;outline:none;cursor:pointer;touch-action:manipulation;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:var(--route);cursor:pointer;transition:box-shadow .15s,transform .15s;}
+  input[type=range]:focus::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(232,255,71,.25);}
+  input[type=range]:active::-webkit-slider-thumb{transform:scale(1.25);}
+  input[type=range].walk-r::-webkit-slider-thumb{background:var(--walk);}
+  input[type=range].walk-r:focus::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(0,255,136,.2);}
+  input[type=range].bike-r::-webkit-slider-thumb{background:var(--bike);}
+  input[type=range].bike-r:focus::-webkit-slider-thumb{box-shadow:0 0 0 4px rgba(0,191,255,.2);}
+  input[type=range]::-moz-range-thumb{width:13px;height:13px;border-radius:50%;background:var(--route);cursor:pointer;border:none;}
+  input[type=range].walk-r::-moz-range-thumb{background:var(--walk);}
+  input[type=range].bike-r::-moz-range-thumb{background:var(--bike);}
+  input[type=range]::-moz-range-track{height:3px;background:var(--border);border-radius:2px;border:none;}
+
+  /* Mode + speed */
+  .mode-row{display:flex;gap:6px;align-items:center;}
+  .mode-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;flex-shrink:0;}
+  .mode-btn{font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;}
+  .mode-btn.aw{background:rgba(96,165,250,.12);color:var(--walk);border-color:var(--walk);}
+  .mode-btn.ab{background:rgba(167,139,250,.12);color:var(--bike);border-color:var(--bike);}
+  .speed-panel{display:flex;gap:10px;}
+  .speed-block{flex:1;}
+
+  /* Legend */
+  .legend-strip{padding:.4rem 1rem;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;flex-shrink:0;}
+  .leg{display:flex;align-items:center;gap:4px;font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);}
+  .leg-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+  .leg-line{width:16px;height:3px;border-radius:2px;flex-shrink:0;}
+
+  /* Timeline */
+  .timeline-wrap{flex:1;overflow-y:auto;padding:.85rem 1rem;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+  .tl-hrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .tl-title{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
+  .clear-btn{font-family:'DM Mono',monospace;font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;}
+  .clear-btn:hover{border-color:var(--red);color:var(--red);}
+  .empty-state{text-align:center;padding:2.5rem 1rem;font-family:'DM Mono',monospace;font-size:11px;color:var(--muted2);line-height:2;}
+
+  .tl-stop{display:flex;}
+  .tl-left{display:flex;flex-direction:column;align-items:center;width:28px;flex-shrink:0;}
+  .tl-dot{
+    width:14px;height:14px;border-radius:50%;flex-shrink:0;z-index:1;
+    border:2px solid var(--cheer);background:var(--cheer);
+    cursor:pointer;transition:transform .15s;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Bebas Neue',sans-serif;font-size:9px;color:#0e0e0e;
+    box-shadow:0 0 8px rgba(255,107,53,.35);
+  }
+  .tl-dot:hover{transform:scale(1.2);}
+  .tl-dot.fin{border-color:var(--route);background:var(--route);box-shadow:0 0 8px rgba(232,255,71,.3);}
+  .tl-seg{width:2px;flex:1;min-height:10px;border-radius:1px;}
+  .tl-seg.walk{background:var(--walk);opacity:.5;}
+  .tl-seg.bike{background:var(--bike);opacity:.5;}
+  .tl-seg.none{background:var(--border);}
+
+  .tl-right{flex:1;padding:0 0 14px 8px;}
+  .tl-name-row{display:flex;align-items:baseline;gap:5px;margin-bottom:2px;flex-wrap:wrap;}
+  .tl-name-input{font-size:12px;font-weight:500;color:var(--text);background:transparent;border:none;border-bottom:1px dashed var(--border);outline:none;width:130px;max-width:100%;font-family:'DM Sans',sans-serif;cursor:text;text-overflow:ellipsis;overflow:hidden;}
+  .tl-name-input:focus{border-bottom-color:var(--cheer);}
+  .tl-time{font-family:'DM Mono',monospace;font-size:11px;color:var(--muted);}
+  .tl-km-b{font-family:'DM Mono',monospace;font-size:9px;padding:1px 5px;border-radius:99px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+  .buf{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:4px;display:inline-block;margin-top:3px;}
+  .buf.ok{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.18);}
+  .buf.warn{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.18);}
+  .buf.bad{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.18);}
+  .seg-info{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);margin-top:2px;display:flex;align-items:center;gap:5px;}
+  .seg-pip{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+  .del-btn{font-family:'DM Mono',monospace;font-size:9px;padding:1px 6px;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;margin-top:3px;transition:all .15s;}
+  .del-btn:hover{border-color:var(--red);color:var(--red);}
+
+  /* ── EXPORT MODAL ── */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9000;
+    display:none;align-items:center;justify-content:center;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:var(--surface);border:1px solid var(--border);border-radius:12px;
+    padding:1.5rem;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;
+    font-family:'DM Sans',sans-serif;
+  }
+  .modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:var(--route);letter-spacing:.06em;margin-bottom:1rem;}
+  .modal-section{margin-bottom:1.25rem;}
+  .modal-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+  .export-opts{display:flex;gap:8px;flex-wrap:wrap;}
+  .export-opt{
+    flex:1;min-width:140px;padding:.75rem;border-radius:8px;
+    border:1px solid var(--border);background:var(--surface2);
+    cursor:pointer;transition:all .15s;text-align:center;
+  }
+  .export-opt:hover{border-color:#555;}
+  .export-opt.sel{border-color:var(--route);background:rgba(232,255,71,.06);}
+  .export-opt-icon{font-size:1.4rem;margin-bottom:4px;}
+  .export-opt-name{font-weight:500;font-size:13px;color:var(--text);}
+  .export-opt-desc{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);margin-top:2px;}
+  .modal-actions{display:flex;gap:8px;margin-top:1rem;}
+  .mbtn{font-family:'DM Mono',monospace;font-size:11px;padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;}
+  .mbtn.primary{background:var(--route);color:#0e0e0e;border-color:var(--route);font-weight:500;}
+  .mbtn.primary:hover{background:#d4eb3f;}
+  .mbtn.cancel:hover{color:var(--red);border-color:var(--red);}
+
+  /* Print sheet (hidden on screen) */
+  #printSheet{display:none;}
+
+  /* Print styles */
+  @media print {
+    header,.sidebar,#mapHint,.leaflet-control,.modal-overlay,#installBanner,.app{display:none!important;}
+    body{background:#fff!important;color:#111!important;overflow:visible!important;}
+    html,body{height:auto!important;overflow:visible!important;}
+    #printSheet{display:block!important;padding:0.5rem;page-break-inside:avoid;}
+    .ps-map-img{width:100%;border:1px solid #ccc;border-radius:6px;margin-bottom:12px;}
+    .ps-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:.04em;margin-bottom:2px;}
+    .ps-sub{font-family:'DM Mono',monospace;font-size:10px;color:#666;margin-bottom:12px;}
+    .ps-stats{display:flex;gap:16px;margin-bottom:12px;font-family:'DM Mono',monospace;font-size:11px;}
+    .ps-stats span{padding:3px 10px;border:1px solid #ccc;border-radius:4px;}
+    .ps-table{width:100%;border-collapse:collapse;font-size:11px;font-family:'DM Sans',sans-serif;}
+    .ps-table th{text-align:left;font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#666;padding:4px 8px;border-bottom:2px solid #222;}
+    .ps-table td{padding:5px 8px;border-bottom:1px solid #ddd;vertical-align:top;}
+    .ps-table tr:last-child td{border-bottom:2px solid #222;}
+    .ps-buf{font-family:'DM Mono',monospace;font-size:10px;padding:1px 5px;border-radius:3px;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .ps-buf.ok{background:#e6f9ed!important;color:#16753a;}
+    .ps-buf.warn{background:#fef6e0!important;color:#92640a;}
+    .ps-buf.bad{background:#fde8e8!important;color:#b91c1c;}
+  }
+
+  @media (max-width:1024px) and (min-width:801px){
+    .sidebar{width:300px;}
+  }
+  @media (max-width:800px){
+    .app{flex-direction:column;overflow:hidden;}
+    .map-wrap{flex:none;height:40vh;min-height:180px;display:block;}
+    #map{height:100%;min-height:0;}
+    .sidebar{width:100%;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+    .controls{flex-shrink:1;overflow-y:auto;max-height:none;}
+    .map-picker,.sub{display:none;}
+    input[type=range]{height:6px;}
+    input[type=range]::-webkit-slider-thumb{width:22px;height:22px;}
+    input[type=range]::-moz-range-thumb{width:22px;height:22px;}
+    input[type=range]::-moz-range-track{height:6px;}
+    .mode-btn{padding:8px 14px;font-size:12px;}
+    .mode-row{flex-wrap:wrap;}
+    .speed-panel{flex-direction:column;}
+    .tl-name-input{font-size:14px;width:100%;}
+    .del-btn{padding:4px 10px;font-size:11px;}
+    .route-select{max-width:120px;font-size:9px;}
+  }
+
+  /* PWA install toast */
+  #installBanner{
+    position:fixed;bottom:0;left:0;right:0;
+    background:var(--surface);border-top:1px solid var(--border);
+    padding:.75rem 1rem;display:none;align-items:center;gap:12px;
+    z-index:8000;font-family:'DM Mono',monospace;font-size:11px;
+  }
+  #installBanner.show{display:flex;}
+  .install-text{flex:1;color:var(--muted);}
+  .install-btn{font-family:'DM Mono',monospace;font-size:10px;padding:4px 12px;border-radius:4px;border:1px solid var(--route);background:rgba(232,255,71,.08);color:var(--route);cursor:pointer;}
+  .install-dismiss{font-family:'DM Mono',monospace;font-size:10px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;}
+
+  /* Route picker */
+  .route-picker{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .route-select{font-family:'DM Mono',monospace;font-size:10px;padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;outline:none;max-width:180px;}
+  .route-select:focus{border-color:var(--route);}
+  .gpx-import-btn{font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border-radius:5px;border:1px dashed var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
+  .gpx-import-btn:hover{color:var(--route);border-color:var(--route);}
+  #gpxFileInput{display:none;}
+  .route-remove-btn{font-family:'DM Mono',monospace;font-size:10px;padding:4px 6px;border-radius:5px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;line-height:1;}
+  .route-remove-btn:hover{color:var(--red);border-color:var(--red);}
+</style>
+</head>
+<body>
+
+<header>
+  <div style="display:flex;align-items:baseline;gap:8px;flex-shrink:0;">
+    <div class="logo">Cheer Planner</div>
+    <div class="sub">Berlin HM · 30.03.2026</div>
+  </div>
+
+  <div class="map-picker">
+    <span class="mp-lbl">Map</span>
+    <button class="mp-btn active" id="mp-dark" onclick="setMapStyle('dark')">Dark</button>
+    <button class="mp-btn" id="mp-osm"        onclick="setMapStyle('osm')">OSM</button>
+    <button class="mp-btn" id="mp-voyager"    onclick="setMapStyle('voyager')">Voyager</button>
+    <button class="mp-btn" id="mp-topo"       onclick="setMapStyle('topo')">Topo</button>
+  </div>
+
+  <div class="route-picker">
+    <select class="route-select" id="routeSelect" onchange="switchRoute(this.value)"></select>
+    <label class="gpx-import-btn" for="gpxFileInput">+ GPX</label>
+    <input type="file" id="gpxFileInput" accept=".gpx" onchange="handleGPXImport(this)">
+    <button class="route-remove-btn" id="routeRenameBtn" onclick="renameRoute()" title="Rename this route" style="display:none">✎</button>
+    <button class="route-remove-btn" id="routeRemoveBtn" onclick="removeCustomRoute()" title="Remove this route" style="display:none">✕</button>
+  </div>
+
+  <div class="header-actions">
+    <span class="save-indicator" id="saveIndicator">✓ saved</span>
+    <button class="hbtn save-btn" onclick="saveToStorage()">💾 Save</button>
+    <button class="hbtn export-btn" onclick="openExport()">↗ Export</button>
+  </div>
+</header>
+
+<div class="app">
+  <div class="map-wrap">
+    <div id="map" class="tiles-toner"></div>
+    <div id="mapHint">Click the map to drop a cheer spot · Drag to reposition</div>
+  </div>
+
+  <div class="sidebar">
+    <div class="controls">
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Finish</div><div class="stat-val" id="mFinish">—</div></div>
+        <div class="stat-card"><div class="stat-label">Pace/km</div><div class="stat-val" id="mPace">—</div></div>
+        <div class="stat-card"><div class="stat-label">Sightings</div><div class="stat-val" id="mSight">0</div></div>
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-label"><span>Finish time</span><span class="ctrl-val" id="finishVal">2:00 h</span></div>
+        <input type="range" id="finishSlider" min="30" max="360" value="120" step="1">
+      </div>
+      <div class="ctrl-row">
+        <div class="ctrl-label"><span>Wave start</span><span class="ctrl-val" id="startVal">9:00</span></div>
+        <input type="range" id="startSlider" min="0" max="1435" value="540" step="5">
+      </div>
+      <div class="mode-row">
+        <span class="mode-lbl">Travel</span>
+        <button class="mode-btn aw" id="btnWalk" onclick="setMode('walk')">🚶 Walk</button>
+        <button class="mode-btn" id="btnBike"   onclick="setMode('bike')">🚲 Cycle</button>
+      </div>
+      <div class="speed-panel">
+        <div class="speed-block ctrl-row" id="walkSpeedBlock">
+          <div class="ctrl-label"><span>Walk speed</span><span class="ctrl-val" id="walkSpeedVal">5 km/h</span></div>
+          <input type="range" class="walk-r" id="walkSpeed" min="2" max="10" value="5" step="0.5">
+        </div>
+        <div class="speed-block ctrl-row" id="bikeSpeedBlock" style="display:none">
+          <div class="ctrl-label"><span>Bike speed</span><span class="ctrl-val" id="bikeSpeedVal">15 km/h</span></div>
+          <input type="range" class="bike-r" id="bikeSpeed" min="8" max="35" value="15" step="1">
+        </div>
+      </div>
+    </div>
+
+    <div class="legend-strip">
+      <div class="leg"><div class="leg-line" style="background:var(--route)"></div> Race route</div>
+      <div class="leg"><div class="leg-dot"  style="background:var(--cheer)"></div> Cheer spot</div>
+      <div class="leg"><div class="leg-line" style="background:var(--walk)"></div> Walking</div>
+      <div class="leg"><div class="leg-line" style="background:var(--bike)"></div> Cycling</div>
+    </div>
+
+    <div class="timeline-wrap">
+      <div class="tl-hrow">
+        <div class="tl-title">Your schedule</div>
+        <button class="clear-btn" onclick="clearAll()">Clear all</button>
+      </div>
+      <div id="timeline">
+        <div class="empty-state">📍 Click the map to drop a cheer spot.<br>Drag markers to reposition.<br>Your plan saves automatically.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Export modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-title">Export your plan</div>
+
+    <div class="modal-section">
+      <div class="modal-label">Format</div>
+      <div class="export-opts">
+        <div class="export-opt sel" id="opt-json" onclick="selectExport('json')">
+          <div class="export-opt-icon">📦</div>
+          <div class="export-opt-name">JSON</div>
+          <div class="export-opt-desc">Full data · re-importable</div>
+        </div>
+        <div class="export-opt" id="opt-ics" onclick="selectExport('ics')">
+          <div class="export-opt-icon">📅</div>
+          <div class="export-opt-name">Calendar</div>
+          <div class="export-opt-desc">.ics · add to Google/Apple</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-section">
+      <div class="modal-label">Preview</div>
+      <pre id="exportPreview" style="font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.75rem;max-height:200px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;"></pre>
+    </div>
+
+    <div class="modal-section" id="importSection">
+      <div class="modal-label">Import JSON</div>
+      <div style="display:flex;gap:8px;">
+        <textarea id="importInput" placeholder="Paste exported JSON here…" style="flex:1;font-family:'DM Mono',monospace;font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:.5rem;color:var(--text);resize:vertical;height:60px;outline:none;"></textarea>
+        <button class="mbtn" onclick="importJSON()" style="align-self:flex-end;">Import</button>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="mbtn primary" onclick="doExport()">Download</button>
+      <button class="mbtn cancel"  onclick="closeExport()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Print sheet (hidden on screen, shown in print) -->
+<div id="printSheet"></div>
+
+<!-- PWA install banner -->
+<div id="installBanner">
+  <span class="install-text">Add Cheer Planner to your home screen for offline use</span>
+  <button class="install-btn"     onclick="installPWA()">Install</button>
+  <button class="install-dismiss" onclick="dismissInstall()">✕</button>
+</div>
+
+<script>
+// ── PWA ────────────────────────────────────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./sw.js').catch(() => {});
+}
+
+// ── STATE (hoisted — referenced by many functions) ───────────────────────
+let cheerSpots=[], travelLines=[], travelMode='walk', nextId=1;
+
+// ── HAVERSINE (hoisted — needed by route system) ─────────────────────────
+const hvs=(lat1,lon1,lat2,lon2)=>{
+  const R=6371,r=Math.PI/180,dLat=(lat2-lat1)*r,dLon=(lon2-lon1)*r;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*r)*Math.cos(lat2*r)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+};
+
+// ── HELPERS ───────────────────────────────────────────────────────────────
+const nearKm=(lat,lon)=>{
+  const km = activeRoute ? activeRoute.kmMarkers : [];
+  if(!km.length) return 0;
+  const d=km.map(k=>({k,d:hvs(lat,lon,k.lat,k.lon)})).sort((a,b)=>a.d-b.d);
+  if(d.length<2) return d[0].k.n;
+  const {k:k1,d:d1}=d[0],{k:k2,d:d2}=d[1];
+  return Math.round((k1.n+(d1/(d1+d2))*(k2.n-k1.n))*10)/10;
+};
+const m2t=m=>{const h=Math.floor(m/60),mn=m%60;return h+':'+(mn<10?'0':'')+mn;};
+const fmtPace=p=>{const m=Math.floor(p),s=Math.round((p-m)*60);return m+':'+(s<10?'0':'')+s;};
+const getSpd=()=>parseFloat(document.getElementById(travelMode==='walk'?'walkSpeed':'bikeSpeed').value);
+const travelT=(a,b)=>Math.round((hvs(a.lat,a.lon,b.lat,b.lon)/getSpd())*60);
+
+
+
+// ── PERSISTENCE (hoisted — needed by setMapStyle on init) ────────────────
+function getStorageKey() { return 'cheer_' + (activeRoute ? activeRoute.id : 'berlin-hm-2026'); }
+let saveTimer=null;
+function autoSave() {
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>window.saveToStorage&&window.saveToStorage(),800);
+}
+
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (!localStorage.getItem('installDismissed')) {
+    document.getElementById('installBanner').classList.add('show');
+  }
+});
+window.installPWA = function() {
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  deferredPrompt.userChoice.then(() => {
+    deferredPrompt = null;
+    document.getElementById('installBanner').classList.remove('show');
+  });
+};
+window.dismissInstall = function() {
+  localStorage.setItem('installDismissed','1');
+  document.getElementById('installBanner').classList.remove('show');
+};
+
+// ── MAP TILES ─────────────────────────────────────────────────────────────
+const OA = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors';
+const CA = OA + ' &copy; <a href="https://carto.com/" target="_blank">CARTO</a>';
+const TA = OA + ' &copy; <a href="https://opentopomap.org" target="_blank">OpenTopoMap</a>';
+const TILES = {
+  dark:    {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',    attr:CA, cls:'tiles-dark'},
+  osm:     {url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',               attr:OA, cls:'tiles-osm'},
+  voyager: {url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', attr:CA, cls:'tiles-voyager'},
+  topo:    {url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',                 attr:TA, cls:'tiles-topo'},
+};
+
+const map = L.map('map',{center:[52.507,13.362],zoom:13});
+new ResizeObserver(()=>map.invalidateSize()).observe(document.getElementById('map'));
+let curTile = null, curStyleKey = 'dark';
+
+function setMapStyle(k) {
+  const t=TILES[k]; if(!t) return;
+  if(curTile) map.removeLayer(curTile);
+  curTile = L.tileLayer(t.url,{attribution:t.attr,maxZoom:19}).addTo(map);
+  const el=document.getElementById('map');
+  Object.values(TILES).forEach(d=>el.classList.remove(d.cls));
+  el.classList.add(t.cls);
+  document.querySelectorAll('.mp-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('mp-'+k).classList.add('active');
+  curStyleKey=k;
+  autoSave();
+}
+window.setMapStyle=setMapStyle;
+setMapStyle('dark');
+
+// ── ROUTE SYSTEM ─────────────────────────────────────────────────────────
+const BERLIN_HM = {
+  id: 'berlin-hm-2026',
+  name: 'Berlin Half Marathon 2026',
+  date: '2026-03-30',
+  startHour: 9, startMin: 0,
+  distance: 21.1,
+  finishLabel: 'Brandenburger Tor — Finish',
+  polyline: [
+    [52.5170,13.3707],[52.5166,13.3660],[52.5161,13.3570],[52.5148,13.3518],
+    [52.5144,13.3508],[52.5138,13.3390],[52.5138,13.3339],[52.5133,13.3230],
+    [52.5149,13.3180],[52.5199,13.3015],[52.5193,13.2969],[52.5193,13.2959],
+    [52.5173,13.2962],[52.5150,13.2965],[52.5134,13.2967],[52.5117,13.2972],
+    [52.5107,13.2974],[52.5095,13.2979],[52.5059,13.2994],[52.5029,13.2993],
+    [52.5010,13.3004],[52.4989,13.3003],[52.4979,13.3006],
+    [52.4999,13.3062],[52.5007,13.3133],[52.5017,13.3195],[52.5025,13.3248],
+    [52.5038,13.3311],[52.5044,13.3341],[52.5044,13.3361],[52.5019,13.3421],
+    [52.5011,13.3462],[52.5002,13.3515],[52.5001,13.3524],[52.4994,13.3555],
+    [52.4984,13.3573],[52.4981,13.3618],[52.4981,13.3620],[52.4991,13.3626],
+    [52.5003,13.3636],[52.5033,13.3663],[52.5050,13.3669],[52.5065,13.3678],
+    [52.5083,13.3690],[52.5087,13.3703],[52.5086,13.3710],[52.5095,13.3714],
+    [52.5095,13.3770],[52.5095,13.3813],[52.5102,13.3869],[52.5109,13.3936],
+    [52.5149,13.3959],[52.5153,13.3971],[52.5159,13.4002],
+    [52.5160,13.4011],[52.5164,13.4023],[52.5174,13.4048],[52.5182,13.4070],
+    [52.5175,13.4083],[52.5181,13.4099],[52.5192,13.4124],
+    [52.5195,13.4134],[52.5201,13.4148],[52.5218,13.4165],[52.5218,13.4166],
+    [52.5202,13.4222],[52.5192,13.4254],[52.5189,13.4263],[52.5188,13.4266],
+    [52.5190,13.4269],[52.5202,13.4225],[52.5216,13.4182],[52.5220,13.4168],
+    [52.5219,13.4162],[52.5210,13.4151],[52.5207,13.4147],[52.5205,13.4145],
+    [52.5204,13.4143],[52.5200,13.4136],[52.5197,13.4130],[52.5185,13.4105],
+    [52.5176,13.4085],[52.5176,13.4084],[52.5183,13.4074],[52.5185,13.4071],
+    [52.5198,13.4050],[52.5200,13.4046],[52.5191,13.4030],[52.5187,13.4020],
+    [52.5179,13.3999],[52.5177,13.3993],[52.5175,13.3963],[52.5172,13.3930],
+    [52.5163,13.3799],[52.5163,13.3794],[52.5163,13.3778],[52.5163,13.3775],
+    [52.5158,13.3752],[52.5157,13.3738],[52.5154,13.3714],[52.5170,13.3707]
+  ],
+  kmMarkers: [
+    {n:1,lat:52.514015,lon:13.342433},{n:2,lat:52.513067,lon:13.327741},
+    {n:3,lat:52.515199,lon:13.313789},{n:4,lat:52.519364,lon:13.300691},
+    {n:5,lat:52.513387,lon:13.296818},{n:6,lat:52.504702,lon:13.300056},
+    {n:7,lat:52.499723,lon:13.305247},{n:8,lat:52.501721,lon:13.319639},
+    {n:9,lat:52.504213,lon:13.333831},{n:10,lat:52.501066,lon:13.347131},
+    {n:11,lat:52.498156,lon:13.361061},{n:12,lat:52.505557,lon:13.368149},
+    {n:13,lat:52.509691,lon:13.379291},{n:14,lat:52.511095,lon:13.393610},
+    {n:15,lat:52.515979,lon:13.401153},{n:16,lat:52.519488,lon:13.413154},
+    {n:17,lat:52.519285,lon:13.425246},{n:18,lat:52.521369,lon:13.415552},
+    {n:19,lat:52.519926,lon:13.404707},{n:20,lat:52.517070,lon:13.391181},
+    {n:21,lat:52.516245,lon:13.376474}
+  ],
+  start: {lat:52.5144,lon:13.3507},
+  finish: {lat:52.5163,lon:13.3775}
+};
+
+let activeRoute = null;
+let routeLayers = [];
+let customRoutes = [];
+const CUSTOM_ROUTES_KEY = 'cheer_custom_routes';
+
+function loadCustomRoutes() {
+  try { customRoutes = JSON.parse(localStorage.getItem(CUSTOM_ROUTES_KEY)) || []; } catch(e) { customRoutes = []; }
+}
+function saveCustomRoutes() {
+  try { localStorage.setItem(CUSTOM_ROUTES_KEY, JSON.stringify(customRoutes)); } catch(e) {}
+}
+
+function deriveKmMarkers(polyline) {
+  const markers = [];
+  let cumDist = 0, nextKm = 1;
+  for (let i = 1; i < polyline.length; i++) {
+    const seg = hvs(polyline[i-1][0], polyline[i-1][1], polyline[i][0], polyline[i][1]);
+    cumDist += seg;
+    while (cumDist >= nextKm) {
+      const overshoot = cumDist - nextKm;
+      const ratio = seg > 0 ? 1 - (overshoot / seg) : 1;
+      const lat = polyline[i-1][0] + ratio * (polyline[i][0] - polyline[i-1][0]);
+      const lon = polyline[i-1][1] + ratio * (polyline[i][1] - polyline[i-1][1]);
+      markers.push({n: nextKm, lat, lon});
+      nextKm++;
+    }
+  }
+  return {markers, totalDistance: Math.round(cumDist * 10) / 10};
+}
+
+function simplifyPolyline(pts, tolerance) {
+  if (pts.length <= 2) return pts;
+  let maxDist = 0, idx = 0;
+  const first = pts[0], last = pts[pts.length - 1];
+  for (let i = 1; i < pts.length - 1; i++) {
+    const d = perpDist(pts[i], first, last);
+    if (d > maxDist) { maxDist = d; idx = i; }
+  }
+  if (maxDist > tolerance) {
+    const left = simplifyPolyline(pts.slice(0, idx + 1), tolerance);
+    const right = simplifyPolyline(pts.slice(idx), tolerance);
+    return left.slice(0, -1).concat(right);
+  }
+  return [first, last];
+}
+function perpDist(p, a, b) {
+  const dx = b[0] - a[0], dy = b[1] - a[1];
+  if (dx === 0 && dy === 0) return Math.sqrt((p[0]-a[0])**2 + (p[1]-a[1])**2);
+  const t = Math.max(0, Math.min(1, ((p[0]-a[0])*dx + (p[1]-a[1])*dy) / (dx*dx + dy*dy)));
+  return Math.sqrt((p[0] - (a[0]+t*dx))**2 + (p[1] - (a[1]+t*dy))**2);
+}
+
+function parseGPX(xmlString) {
+  const doc = new DOMParser().parseFromString(xmlString, 'text/xml');
+  const parseErr = doc.querySelector('parsererror');
+  if (parseErr) throw new Error('Invalid GPX file');
+  const trkpts = doc.querySelectorAll('trkpt');
+  const rtepts = doc.querySelectorAll('rtept');
+  const pts = trkpts.length ? trkpts : rtepts;
+  if (!pts.length) throw new Error('No track or route points found in GPX');
+  const polyline = [];
+  for (const pt of pts) {
+    polyline.push([parseFloat(pt.getAttribute('lat')), parseFloat(pt.getAttribute('lon'))]);
+  }
+  const nameEl = doc.querySelector('trk > name') || doc.querySelector('rte > name') || doc.querySelector('metadata > name');
+  const descEl = doc.querySelector('trk > desc') || doc.querySelector('rte > desc') || doc.querySelector('metadata > desc');
+  const typeEl = doc.querySelector('trk > type') || doc.querySelector('rte > type');
+  const name = nameEl ? nameEl.textContent.trim() : null;
+  const desc = descEl ? descEl.textContent.trim() : null;
+  const type = typeEl ? typeEl.textContent.trim() : null;
+  return {polyline, name, desc, type};
+}
+
+const mkLbl = (t,c) => L.divIcon({html:`<div style="background:${c};color:#0e0e0e;font-family:'Bebas Neue',sans-serif;font-size:11px;padding:3px 8px;border-radius:4px;letter-spacing:.05em;box-shadow:0 2px 10px rgba(0,0,0,.6);white-space:nowrap;">${t}</div>`,className:'',iconSize:null,iconAnchor:[20,10]});
+
+function drawRoute(cfg) {
+  routeLayers.forEach(l => map.removeLayer(l));
+  routeLayers = [];
+  activeRoute = cfg;
+
+  const line = L.polyline(cfg.polyline, {color:'#e8ff47',weight:4,opacity:.88,lineJoin:'round',lineCap:'round'}).addTo(map);
+  routeLayers.push(line);
+
+  cfg.kmMarkers.forEach(({n,lat,lon}) => {
+    const icon = L.divIcon({
+      html:`<div style="width:15px;height:15px;border-radius:50%;background:#111;border:1px solid #2a2a2a;display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:7px;color:#444;">${n}</div>`,
+      className:'',iconSize:[15,15],iconAnchor:[7,7]
+    });
+    routeLayers.push(L.marker([lat,lon],{icon,zIndexOffset:10,interactive:false}).addTo(map));
+  });
+
+  const startPt = cfg.start || {lat:cfg.polyline[0][0], lon:cfg.polyline[0][1]};
+  const finishPt = cfg.finish || {lat:cfg.polyline[cfg.polyline.length-1][0], lon:cfg.polyline[cfg.polyline.length-1][1]};
+  routeLayers.push(L.marker([startPt.lat, startPt.lon],{icon:mkLbl('START','#e8ff47'),zIndexOffset:999,interactive:false}).addTo(map));
+  routeLayers.push(L.marker([finishPt.lat, finishPt.lon],{icon:mkLbl('FINISH','#ff6b35'),zIndexOffset:999,interactive:false}).addTo(map));
+
+  map.fitBounds(line.getBounds(),{padding:[28,28]});
+
+  const defaultStart = (cfg.startHour||9)*60 + (cfg.startMin||0);
+  document.getElementById('startSlider').value = defaultStart;
+  document.getElementById('startVal').textContent = m2t(defaultStart);
+
+  document.querySelector('.sub').textContent = cfg.name;
+  document.title = cfg.name + ' — Cheer Planner';
+  updateRouteRemoveBtn();
+}
+
+function getRouteFinish() {
+  if (!activeRoute) return {lat:52.5163,lon:13.3775};
+  return activeRoute.finish || {lat:activeRoute.polyline[activeRoute.polyline.length-1][0], lon:activeRoute.polyline[activeRoute.polyline.length-1][1]};
+}
+
+function populateRouteSelect() {
+  const sel = document.getElementById('routeSelect');
+  sel.innerHTML = '';
+  const opt0 = document.createElement('option');
+  opt0.value = BERLIN_HM.id; opt0.textContent = BERLIN_HM.name;
+  sel.appendChild(opt0);
+  customRoutes.forEach(r => {
+    const o = document.createElement('option');
+    o.value = r.id; o.textContent = r.name;
+    sel.appendChild(o);
+  });
+  if (activeRoute) sel.value = activeRoute.id;
+  updateRouteRemoveBtn();
+}
+
+function updateRouteRemoveBtn() {
+  const isCustom = activeRoute && activeRoute.id !== BERLIN_HM.id;
+  document.getElementById('routeRemoveBtn').style.display = isCustom ? '' : 'none';
+  document.getElementById('routeRenameBtn').style.display = isCustom ? '' : 'none';
+}
+
+window.renameRoute = function() {
+  if (!activeRoute || activeRoute.id === BERLIN_HM.id) return;
+  const newName = prompt('Rename route:', activeRoute.name);
+  if (!newName || newName === activeRoute.name) return;
+  activeRoute.name = newName;
+  const cr = customRoutes.find(r => r.id === activeRoute.id);
+  if (cr) cr.name = newName;
+  saveCustomRoutes();
+  populateRouteSelect();
+  document.getElementById('routeSelect').value = activeRoute.id;
+  document.querySelector('.sub').textContent = newName;
+  document.title = newName + ' — Cheer Planner';
+  autoSave();
+};
+
+window.switchRoute = function(id) {
+  clearAll();
+  if (id === BERLIN_HM.id) {
+    drawRoute(BERLIN_HM);
+  } else {
+    const r = customRoutes.find(r => r.id === id);
+    if (r) drawRoute(r);
+  }
+  try {
+    const saved = localStorage.getItem(getStorageKey());
+    if (saved) restoreState(JSON.parse(saved));
+  } catch(e) {}
+  renderTimeline();
+  autoSave();
+};
+
+window.handleGPXImport = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const {polyline: rawPoly, name: gpxName, desc, type} = parseGPX(e.target.result);
+      const simplified = simplifyPolyline(rawPoly, 0.0001);
+      const {markers, totalDistance} = deriveKmMarkers(simplified);
+      const autoName = gpxName || file.name.replace(/\.gpx$/i, '');
+      const userMsg = `Route: ${autoName}` + (desc ? `\nDescription: ${desc}` : '') + (type ? `\nType: ${type}` : '') + `\nDistance: ${totalDistance} km\n\nEnter a name for this route:`;
+      const routeName = prompt(userMsg, autoName);
+      if (routeName === null) return;
+      const routeId = 'custom-' + Date.now();
+      const cfg = {
+        id: routeId,
+        name: routeName || autoName,
+        desc: desc || '',
+        date: null,
+        startHour: 9, startMin: 0,
+        distance: totalDistance,
+        finishLabel: 'Finish',
+        polyline: simplified,
+        kmMarkers: markers,
+        start: {lat:simplified[0][0], lon:simplified[0][1]},
+        finish: {lat:simplified[simplified.length-1][0], lon:simplified[simplified.length-1][1]}
+      };
+      customRoutes.push(cfg);
+      saveCustomRoutes();
+      clearAll();
+      populateRouteSelect();
+      document.getElementById('routeSelect').value = routeId;
+      drawRoute(cfg);
+      renderTimeline();
+      autoSave();
+    } catch(err) {
+      alert('Could not parse GPX: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+};
+
+window.removeCustomRoute = function() {
+  if (!activeRoute || activeRoute.id === BERLIN_HM.id) return;
+  customRoutes = customRoutes.filter(r => r.id !== activeRoute.id);
+  try { localStorage.removeItem('cheer_' + activeRoute.id); } catch(e) {}
+  saveCustomRoutes();
+  clearAll();
+  populateRouteSelect();
+  drawRoute(BERLIN_HM);
+  renderTimeline();
+  autoSave();
+};
+
+loadCustomRoutes();
+populateRouteSelect();
+drawRoute(BERLIN_HM);
+
+// ── TRAVEL MODE ───────────────────────────────────────────────────────────
+function setMode(m) {
+  travelMode=m;
+  document.getElementById('btnWalk').className='mode-btn'+(m==='walk'?' aw':'');
+  document.getElementById('btnBike').className='mode-btn'+(m==='bike'?' ab':'');
+  document.getElementById('walkSpeedBlock').style.display=m==='walk'?'':'none';
+  document.getElementById('bikeSpeedBlock').style.display=m==='bike'?'':'none';
+  renderTravelLines(); renderTimeline(); autoSave();
+}
+window.setMode=setMode;
+
+document.getElementById('walkSpeed').addEventListener('input',function(){
+  document.getElementById('walkSpeedVal').textContent=this.value+' km/h';
+  renderTravelLines(); renderTimeline(); autoSave();
+});
+document.getElementById('bikeSpeed').addEventListener('input',function(){
+  document.getElementById('bikeSpeedVal').textContent=this.value+' km/h';
+  renderTravelLines(); renderTimeline(); autoSave();
+});
+
+// ── CHEER ICON ────────────────────────────────────────────────────────────
+const mkCheerIcon=num=>L.divIcon({
+  html:`<div style="width:28px;height:28px;border-radius:50%;background:#ff6b35;border:2px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:13px;color:#0e0e0e;box-shadow:0 0 16px rgba(255,107,53,.55);cursor:grab;">${num}</div>`,
+  className:'',iconSize:[28,28],iconAnchor:[14,14]
+});
+
+// ── ADD SPOT ──────────────────────────────────────────────────────────────
+map.on('click',e=>addSpot(e.latlng.lat,e.latlng.lng));
+
+function addSpot(lat,lon,name,id) {
+  const sid = id || nextId++;
+  if(id && id>=nextId) nextId=id+1;
+  const num  = cheerSpots.length+1;
+  const km   = nearKm(lat,lon);
+  const spotName = name||`Spot ${num}`;
+
+  const marker=L.marker([lat,lon],{icon:mkCheerIcon(num),draggable:true,zIndexOffset:500}).addTo(map);
+  const spot={id:sid,lat,lon,name:spotName,marker,km,num};
+  cheerSpots.push(spot);
+
+  const mkPopup=()=>`
+    <div class="lp-name">${spot.name}</div>
+    <div class="lp-km">≈ km ${spot.km}</div>
+    <button class="lp-del" onclick="deleteSpot(${sid});this.closest('.leaflet-popup').remove()">✕ Remove</button>`;
+  marker.bindPopup(mkPopup());
+  marker.on('click',()=>marker.openPopup());
+
+  marker.on('dragend',e=>{
+    const ll=e.target.getLatLng();
+    spot.lat=ll.lat; spot.lon=ll.lng; spot.km=nearKm(ll.lat,ll.lng);
+    marker.setPopupContent(mkPopup());
+    renderTravelLines(); renderTimeline(); autoSave();
+  });
+
+  document.getElementById('mapHint').style.opacity='0';
+  renderTravelLines(); renderTimeline(); autoSave();
+  return spot;
+}
+
+// ── TRAVEL LINES ──────────────────────────────────────────────────────────
+function renderTravelLines() {
+  travelLines.forEach(l=>map.removeLayer(l));
+  travelLines=[];
+  const col=travelMode==='walk'?'#60a5fa':'#a78bfa';
+  const sorted=[...cheerSpots].sort((a,b)=>a.km-b.km);
+  for(let i=0;i<sorted.length-1;i++){
+    const l=L.polyline([[sorted[i].lat,sorted[i].lon],[sorted[i+1].lat,sorted[i+1].lon]],
+      {color:col,weight:2.5,opacity:.65,dashArray:'5 7'}).addTo(map);
+    travelLines.push(l);
+  }
+}
+
+// ── DELETE / CLEAR ────────────────────────────────────────────────────────
+function deleteSpot(id) {
+  const idx=cheerSpots.findIndex(s=>s.id===id); if(idx===-1)return;
+  map.removeLayer(cheerSpots[idx].marker);
+  cheerSpots.splice(idx,1);
+  cheerSpots.forEach((s,i)=>{s.num=i+1;s.marker.setIcon(mkCheerIcon(i+1));});
+  renderTravelLines(); renderTimeline(); autoSave();
+  if(!cheerSpots.length) document.getElementById('mapHint').style.opacity='1';
+}
+function clearAll() {
+  cheerSpots.forEach(s=>map.removeLayer(s.marker));
+  cheerSpots=[];
+  travelLines.forEach(l=>map.removeLayer(l));
+  travelLines=[]; nextId=1;
+  document.getElementById('mapHint').style.opacity='1';
+  renderTimeline(); autoSave();
+}
+window.deleteSpot=deleteSpot;
+window.clearAll=clearAll;
+
+// ── RENDER TIMELINE ───────────────────────────────────────────────────────
+function renderTimeline() {
+  const total=parseInt(document.getElementById('finishSlider').value);
+  const rs   =parseInt(document.getElementById('startSlider').value);
+  const dist =activeRoute?activeRoute.distance:21.1;
+  const pace=total/dist;
+  const fh=Math.floor(total/60),fm=total%60;
+  document.getElementById('finishVal').textContent=fh+':'+(fm<10?'0':'')+fm+' h';
+  document.getElementById('startVal').textContent=m2t(rs);
+  document.getElementById('mPace').textContent=cheerSpots.length?fmtPace(pace):'—';
+  document.getElementById('mSight').textContent=cheerSpots.length;
+  document.getElementById('mFinish').textContent=cheerSpots.length?m2t(rs+total):'—';
+
+  const tl=document.getElementById('timeline');
+  if(!cheerSpots.length){
+    tl.innerHTML='<div class="empty-state">📍 Click the map to drop a cheer spot.<br>Drag to reposition. Your plan saves automatically.</div>';
+    return;
+  }
+  tl.innerHTML='';
+  const sorted=[...cheerSpots].sort((a,b)=>a.km-b.km);
+  const mc=travelMode==='walk'?'#60a5fa':'#a78bfa';
+  const mi=travelMode==='walk'?'🚶':'🚲';
+  const cls=travelMode==='walk'?'walk':'bike';
+
+  sorted.forEach((spot,i)=>{
+    const at=rs+Math.round(spot.km*pace), isLast=i===sorted.length-1;
+    let bufH='', segH='';
+    if(i>0){
+      const prev=sorted[i-1], prevAt=rs+Math.round(prev.km*pace);
+      const tt=travelT(prev,spot), dist=hvs(prev.lat,prev.lon,spot.lat,spot.lon);
+      const buf=at-(prevAt+2+tt);
+      bufH=buf>=8?`<span class="buf ok">~${buf} min spare ✓</span>`
+          :buf>=0?`<span class="buf warn">Tight! ${buf} min</span>`
+          :`<span class="buf bad">Miss by ${Math.abs(buf)} min</span>`;
+      segH=`<div class="seg-info"><div class="seg-pip" style="background:${mc}"></div>${mi} ~${tt} min · ${dist.toFixed(1)} km</div>`;
+    }
+    const row=document.createElement('div');
+    row.className='tl-stop';
+    row.innerHTML=`
+      <div class="tl-left">
+        <div class="tl-dot" onclick="flyTo(${spot.id})">${spot.num}</div>
+        ${!isLast?`<div class="tl-seg ${cls}"></div>`:''}
+      </div>
+      <div class="tl-right">
+        <div class="tl-name-row">
+          <input class="tl-name-input" value="${spot.name}" placeholder="Name…"
+            oninput="updateName(${spot.id},this.value)" onfocus="this.select()">
+          <span class="tl-km-b">km ${spot.km}</span>
+          <span class="tl-time">${m2t(at)}</span>
+        </div>
+        ${segH}${bufH}
+        <button class="del-btn" onclick="deleteSpot(${spot.id})">✕ remove</button>
+      </div>`;
+    tl.appendChild(row);
+  });
+
+  const last=sorted[sorted.length-1], lastAt=rs+Math.round(last.km*pace);
+  const fin=getRouteFinish();
+  const tt2f=travelT(last,fin);
+  const finLabel=activeRoute?activeRoute.finishLabel:'Finish';
+  const fr=document.createElement('div'); fr.className='tl-stop';
+  fr.innerHTML=`
+    <div class="tl-left"><div class="tl-dot fin" onclick="map.flyTo([${fin.lat},${fin.lon}],16)" title="Fly to finish">F</div></div>
+    <div class="tl-right">
+      <div class="tl-name-row">
+        <span style="font-size:12px;font-weight:500;color:var(--text)">${finLabel}</span>
+        <span class="tl-time">${m2t(rs+total)}</span>
+      </div>
+      <div class="seg-info"><div class="seg-pip" style="background:${mc}"></div>${mi} ~${tt2f} min from last spot</div>
+    </div>`;
+  tl.appendChild(fr);
+}
+
+function flyTo(id){const s=cheerSpots.find(s=>s.id===id);if(s)map.flyTo([s.lat,s.lon],Math.max(map.getZoom(),15),{duration:.8});}
+function updateName(id,val){
+  const s=cheerSpots.find(s=>s.id===id); if(!s)return;
+  s.name=val;
+  s.marker.setPopupContent(`<div class="lp-name">${val||'Spot '+s.num}</div><div class="lp-km">≈ km ${s.km}</div><button class="lp-del" onclick="deleteSpot(${id});this.closest('.leaflet-popup').remove()">✕ Remove</button>`);
+  autoSave();
+}
+window.flyTo=flyTo; window.updateName=updateName;
+
+document.getElementById('finishSlider').addEventListener('input',()=>{renderTimeline();autoSave();});
+document.getElementById('startSlider').addEventListener('input',()=>{renderTimeline();autoSave();});
+
+// ── PERSISTENCE (cont.) ───────────────────────────────────────────────────
+function getState() {
+  return {
+    routeId: activeRoute ? activeRoute.id : BERLIN_HM.id,
+    spots: cheerSpots.map(s=>({id:s.id,lat:s.lat,lon:s.lon,name:s.name,km:s.km,num:s.num})),
+    travelMode,
+    walkSpeed: parseFloat(document.getElementById('walkSpeed').value),
+    bikeSpeed: parseFloat(document.getElementById('bikeSpeed').value),
+    finishMins: parseInt(document.getElementById('finishSlider').value),
+    waveStart:  parseInt(document.getElementById('startSlider').value),
+    mapStyle: curStyleKey,
+    nextId,
+    savedAt: new Date().toISOString()
+  };
+}
+
+function restoreState(state) {
+  if(!state) return;
+  // Sliders
+  if(state.finishMins){document.getElementById('finishSlider').value=state.finishMins;}
+  if(state.waveStart!=null){document.getElementById('startSlider').value=state.waveStart;}
+  if(state.walkSpeed){document.getElementById('walkSpeed').value=state.walkSpeed;document.getElementById('walkSpeedVal').textContent=state.walkSpeed+' km/h';}
+  if(state.bikeSpeed){document.getElementById('bikeSpeed').value=state.bikeSpeed;document.getElementById('bikeSpeedVal').textContent=state.bikeSpeed+' km/h';}
+  // Map style
+  if(state.mapStyle) setMapStyle(state.mapStyle);
+  // Travel mode
+  if(state.travelMode) setMode(state.travelMode);
+  // nextId
+  if(state.nextId) nextId=state.nextId;
+  // Spots — re-add markers
+  if(state.spots && state.spots.length) {
+    state.spots.forEach(s=>{
+      addSpot(s.lat,s.lon,s.name,s.id);
+    });
+  }
+}
+
+window.saveToStorage=function() {
+  try {
+    localStorage.setItem(getStorageKey(), JSON.stringify(getState()));
+    localStorage.setItem('cheer_last_route', activeRoute ? activeRoute.id : BERLIN_HM.id);
+    const ind=document.getElementById('saveIndicator');
+    ind.style.opacity='1';
+    setTimeout(()=>ind.style.opacity='0',1500);
+  } catch(e){}
+};
+
+// Load on startup — restore last route + its cheer spots
+try {
+  // Migrate legacy storage key
+  const legacy = localStorage.getItem('berlin_hm_cheer_v1');
+  if (legacy && !localStorage.getItem('cheer_berlin-hm-2026')) {
+    localStorage.setItem('cheer_berlin-hm-2026', legacy);
+    localStorage.removeItem('berlin_hm_cheer_v1');
+  }
+  const lastRouteId = localStorage.getItem('cheer_last_route') || BERLIN_HM.id;
+  if (lastRouteId !== BERLIN_HM.id) {
+    const cr = customRoutes.find(r => r.id === lastRouteId);
+    if (cr) {
+      drawRoute(cr);
+      document.getElementById('routeSelect').value = lastRouteId;
+    }
+  }
+  const raw = localStorage.getItem(getStorageKey());
+  if (raw) restoreState(JSON.parse(raw));
+} catch(e){}
+
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────────
+let exportFmt='json';
+
+window.openExport=function(){
+  updatePreview();
+  document.getElementById('exportModal').classList.add('open');
+};
+window.closeExport=function(){
+  document.getElementById('exportModal').classList.remove('open');
+};
+
+window.selectExport=function(fmt){
+  exportFmt=fmt;
+  document.querySelectorAll('.export-opt').forEach(el=>el.classList.remove('sel'));
+  document.getElementById('opt-'+fmt).classList.add('sel');
+  document.getElementById('importSection').style.display=fmt==='json'?'':'none';
+  updatePreview();
+};
+
+function buildScheduleText() {
+  const total=parseInt(document.getElementById('finishSlider').value);
+  const rs=parseInt(document.getElementById('startSlider').value);
+  const dist=activeRoute?activeRoute.distance:21.1;
+  const pace=total/dist;
+  const sorted=[...cheerSpots].sort((a,b)=>a.km-b.km);
+  const rName=activeRoute?activeRoute.name:'Race';
+  const rDate=activeRoute&&activeRoute.date?activeRoute.date:'';
+  let txt=`${rName.toUpperCase()} — Cheer Schedule\n`;
+  if(rDate) txt+=`Race day: ${rDate}\n`;
+  txt+='='.repeat(52)+'\n\n';
+  txt+=`Runner finish time: ~${m2t(rs+total)}  |  Pace: ${fmtPace(pace)} /km\n`;
+  txt+=`Travel mode: ${travelMode} @ ${getSpd()} km/h\n\n`;
+  sorted.forEach((s,i)=>{
+    const at=rs+Math.round(s.km*pace);
+    txt+=`${i+1}. ${s.name}  (km ${s.km})\n`;
+    txt+=`   Runner arrives: ~${m2t(at)}\n`;
+    if(i<sorted.length-1){
+      const next=sorted[i+1],tt=travelT(s,next),d=hvs(s.lat,s.lon,next.lat,next.lon);
+      txt+=`   Travel to next: ~${tt} min (${d.toFixed(1)} km)\n`;
+    }
+    txt+='\n';
+  });
+  const finLabel=activeRoute?activeRoute.finishLabel:'Finish';
+  txt+=`FINISH — ${finLabel}: ${m2t(rs+total)}\n`;
+  return txt;
+}
+
+function buildICS() {
+  const total=parseInt(document.getElementById('finishSlider').value);
+  const rs=parseInt(document.getElementById('startSlider').value);
+  const dist=activeRoute?activeRoute.distance:21.1;
+  const pace=total/dist;
+  const rDate=activeRoute&&activeRoute.date?activeRoute.date.replace(/-/g,''):'20260330';
+  const rId=activeRoute?activeRoute.id:'race';
+  const sorted=[...cheerSpots].sort((a,b)=>a.km-b.km);
+  let ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Cheer Planner//EN\r\nCALSCALE:GREGORIAN\r\n`;
+  sorted.forEach((s,i)=>{
+    const at=rs+Math.round(s.km*pace);
+    const h=String(Math.floor(at/60)).padStart(2,'0'), m=String(at%60).padStart(2,'0');
+    const uid=`cheerspot-${i+1}-@${rId}`;
+    ics+=`BEGIN:VEVENT\r\nUID:${uid}\r\nSUMMARY:Cheer: ${s.name} (km ${s.km})\r\n`;
+    ics+=`DTSTART:${rDate}T${h}${m}00\r\nDTEND:${rDate}T${h}${String(Math.min(parseInt(m)+5,59)).padStart(2,'0')}00\r\n`;
+    ics+=`LOCATION:${s.lat},${s.lon}\r\nDESCRIPTION:Runner arrives ~${h}:${m}. Travel ${travelMode} @ ${getSpd()} km/h.\r\nEND:VEVENT\r\n`;
+  });
+  ics+='END:VCALENDAR';
+  return ics;
+}
+
+async function buildPrintSheet() {
+  // Hide UI controls, capture the map as an image, then restore
+  const mapEl=document.getElementById('map');
+  const ctrls=mapEl.querySelectorAll('.leaflet-control-zoom,.leaflet-control-attribution');
+  ctrls.forEach(c=>c.style.display='none');
+  let mapDataUrl='';
+  try {
+    const canvas=await html2canvas(mapEl,{useCORS:true,allowTaint:true,scale:2,logging:false});
+    mapDataUrl=canvas.toDataURL('image/png');
+  } catch(e){
+    console.warn('Map capture failed — tile CORS restrictions likely apply.',e);
+  }
+  ctrls.forEach(c=>c.style.display='');
+
+  const total=parseInt(document.getElementById('finishSlider').value);
+  const rs=parseInt(document.getElementById('startSlider').value);
+  const dist=activeRoute?activeRoute.distance:21.1;
+  const pace=total/dist;
+  const sorted=[...cheerSpots].sort((a,b)=>a.km-b.km);
+  const mc=travelMode==='walk'?'Walking':'Cycling';
+  const rName=activeRoute?activeRoute.name:'Race';
+  const rDate=activeRoute&&activeRoute.date?activeRoute.date:'';
+  let html=`
+    <div class="ps-title">${rName} — Cheer Plan</div>
+    <div class="ps-sub">${rDate?rDate+' · ':''}Generated ${new Date().toLocaleDateString()}</div>`;
+  if(mapDataUrl){
+    html+=`<img class="ps-map-img" src="${mapDataUrl}" alt="Route map">`;
+  } else {
+    html+=`<div style="padding:16px 0;font-style:italic;color:var(--muted);font-size:12px;">Map snapshot unavailable — open the app to view the interactive map.</div>`;
+  }
+  html+=`<div class="ps-stats">
+      <span>Finish: ~${m2t(rs+total)}</span>
+      <span>Pace: ${fmtPace(pace)} /km</span>
+      <span>Spots: ${sorted.length}</span>
+      <span>${mc} @ ${getSpd()} km/h</span>
+    </div>`;
+  if(sorted.length){
+    html+=`<table class="ps-table"><thead><tr><th>#</th><th>Spot</th><th>Km</th><th>Runner ETA</th><th>Travel to next</th><th>Buffer</th></tr></thead><tbody>`;
+    sorted.forEach((s,i)=>{
+      const at=rs+Math.round(s.km*pace);
+      let travel='—', bufCell='—';
+      if(i>0){
+        const prev=sorted[i-1], prevAt=rs+Math.round(prev.km*pace);
+        const tt=travelT(prev,s), dist=hvs(prev.lat,prev.lon,s.lat,s.lon);
+        const buf=at-(prevAt+2+tt);
+        bufCell=buf>=8?`<span class="ps-buf ok">${buf} min ✓</span>`
+               :buf>=0?`<span class="ps-buf warn">${buf} min</span>`
+               :`<span class="ps-buf bad">−${Math.abs(buf)} min</span>`;
+      }
+      if(i<sorted.length-1){
+        const next=sorted[i+1], tt=travelT(s,next), dist=hvs(s.lat,s.lon,next.lat,next.lon);
+        travel=`${mc} ~${tt} min (${dist.toFixed(1)} km)`;
+      }
+      html+=`<tr><td>${i+1}</td><td>${s.name}</td><td>${s.km}</td><td>${m2t(at)}</td><td>${travel}</td><td>${bufCell}</td></tr>`;
+    });
+    const finLabel=activeRoute?activeRoute.finishLabel:'Finish';
+    html+=`<tr><td>F</td><td>${finLabel}</td><td>${dist}</td><td>${m2t(rs+total)}</td><td>—</td><td>—</td></tr>`;
+    html+=`</tbody></table>`;
+  } else {
+    html+=`<p style="color:#999;font-style:italic;margin-top:1rem;">No cheer spots set.</p>`;
+  }
+  document.getElementById('printSheet').innerHTML=html;
+}
+
+function updatePreview() {
+  const pre=document.getElementById('exportPreview');
+  if(exportFmt==='json')   pre.textContent=JSON.stringify(getState(),null,2);
+  else if(exportFmt==='txt') pre.textContent=buildScheduleText();
+  else if(exportFmt==='ics') pre.textContent=buildICS();
+  else if(exportFmt==='print') pre.textContent='Opens browser print dialog.\nRoute map + schedule will print.';
+}
+
+window.doExport=function(){
+  const slug=activeRoute?activeRoute.id:'cheer-plan';
+  if(exportFmt==='json'){
+    dl(JSON.stringify(getState(),null,2),slug+'.json','application/json');
+  } else if(exportFmt==='txt'){
+    dl(buildScheduleText(),slug+'-schedule.txt','text/plain');
+  } else if(exportFmt==='ics'){
+    dl(buildICS(),slug+'.ics','text/calendar');
+  } else if(exportFmt==='print'){
+    closeExport(); buildPrintSheet().then(()=>setTimeout(()=>window.print(),200));
+  }
+};
+
+function dl(content,filename,type){
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([content],{type}));
+  a.download=filename; a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+window.importJSON=function(){
+  try {
+    const raw=document.getElementById('importInput').value.trim();
+    const state=JSON.parse(raw);
+    // Clear current
+    cheerSpots.forEach(s=>map.removeLayer(s.marker));
+    cheerSpots=[];
+    travelLines.forEach(l=>map.removeLayer(l));
+    travelLines=[]; nextId=1;
+    restoreState(state);
+    closeExport();
+  } catch(e) {
+    alert('Invalid JSON — make sure you paste a complete exported plan.');
+  }
+};
+
+// Close modal on overlay click
+document.getElementById('exportModal').addEventListener('click',function(e){
+  if(e.target===this) closeExport();
+});
+
+renderTimeline();
+</script>
+</body>
+</html>
