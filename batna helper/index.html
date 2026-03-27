@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BATNA Pricing Analyzer</title>
+  <meta name="description" content="Model your BATNA, find the ZOPA, and pinpoint the optimal deal price.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── PwC Design Tokens ── */
+    :root {
+      --pwc-orange: #D04A02;
+      --pwc-orange-light: #E8692A;
+      --pwc-orange-dark: #A83B02;
+      --pwc-gold: #FFB800;
+      --pwc-charcoal: #2D2D2D;
+
+      --spacing-1: 4px;
+      --spacing-2: 8px;
+      --spacing-3: 12px;
+      --spacing-4: 16px;
+      --spacing-5: 20px;
+      --spacing-6: 24px;
+      --spacing-7: 32px;
+      --spacing-8: 40px;
+
+      --radius-1: 4px;
+      --radius-2: 8px;
+      --radius-3: 12px;
+
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-size-xs: 11px;
+      --font-size-sm: 13px;
+      --font-size-base: 14px;
+      --font-size-md: 15px;
+      --font-size-lg: 18px;
+      --font-size-xl: 22px;
+
+      --transition-fast: 150ms ease;
+      --transition-base: 250ms ease;
+      --transition-slow: 400ms ease;
+    }
+
+    /* ── Light theme (default) ── */
+    :root, [data-theme="light"] {
+      --bg-primary: #F5F5F5;
+      --bg-surface: #FFFFFF;
+      --bg-input: #F0F0F0;
+      --bg-hover: #E8E8E8;
+      --text-primary: #2D2D2D;
+      --text-secondary: #6B6B6B;
+      --text-heading: #1A1A1A;
+      --text-muted: #999999;
+      --accent-a: var(--pwc-orange);
+      --accent-a-bg: rgba(208, 74, 2, 0.08);
+      --accent-a-border: rgba(208, 74, 2, 0.25);
+      --accent-b: #295EFF;
+      --accent-b-bg: rgba(41, 94, 255, 0.08);
+      --accent-danger: #D32F2F;
+      --accent-success: #2E7D32;
+      --border: #E0E0E0;
+      --border-strong: #CCCCCC;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.12);
+      --overlay: rgba(0,0,0,0.4);
+      --zone-zopa-bg: rgba(46, 125, 50, 0.1);
+      --zone-zopa-border: var(--accent-success);
+      --zone-impasse-bg: rgba(211, 47, 47, 0.08);
+      --optimal-color: var(--pwc-orange);
+    }
+
+    /* ── Dark theme ── */
+    [data-theme="dark"] {
+      --bg-primary: #1A1A1A;
+      --bg-surface: #2D2D2D;
+      --bg-input: #3A3A3A;
+      --bg-hover: #404040;
+      --text-primary: #E0E0E0;
+      --text-secondary: #AAAAAA;
+      --text-heading: #FFFFFF;
+      --text-muted: #777777;
+      --accent-a: var(--pwc-orange-light);
+      --accent-a-bg: rgba(232, 105, 42, 0.12);
+      --accent-a-border: rgba(232, 105, 42, 0.35);
+      --accent-b: #6B8EFF;
+      --accent-b-bg: rgba(107, 142, 255, 0.12);
+      --accent-danger: #EF5350;
+      --accent-success: #66BB6A;
+      --border: #404040;
+      --border-strong: #555555;
+      --shadow-sm: 0 1px 3px rgba(0,0,0,0.2);
+      --shadow-md: 0 4px 12px rgba(0,0,0,0.3);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.4);
+      --overlay: rgba(0,0,0,0.6);
+      --zone-zopa-bg: rgba(102, 187, 106, 0.12);
+      --zone-zopa-border: var(--accent-success);
+      --zone-impasse-bg: rgba(239, 83, 80, 0.12);
+      --optimal-color: var(--pwc-gold);
+    }
+
+    /* ── Reset & Base ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+      font-size: var(--font-size-base);
+      line-height: 1.5;
+      min-height: 100vh;
+      transition: background var(--transition-base), color var(--transition-base);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    h1, h2, h3, h4 { color: var(--text-heading); transition: color var(--transition-base); }
+
+    /* ── Header ── */
+    .header {
+      background: var(--bg-surface);
+      padding: var(--spacing-4) var(--spacing-6);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+      transition: background var(--transition-base), border-color var(--transition-base);
+    }
+
+    .header-left { display: flex; align-items: center; gap: var(--spacing-3); }
+
+    .header-title {
+      font-size: var(--font-size-lg);
+      font-weight: 700;
+      color: var(--text-heading);
+    }
+
+    .header-badge {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--accent-a);
+      background: var(--accent-a-bg);
+      padding: 2px 8px;
+      border-radius: 100px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .settings-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-2);
+      background: var(--bg-surface);
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      font-size: 18px;
+    }
+
+    .settings-btn:hover { background: var(--bg-hover); color: var(--text-heading); border-color: var(--border-strong); }
+
+    /* ── Settings Panel (Overlay) ── */
+    .settings-overlay {
+      position: fixed;
+      inset: 0;
+      background: var(--overlay);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-base);
+    }
+
+    .settings-overlay.open { opacity: 1; pointer-events: auto; }
+
+    .settings-drawer {
+      position: fixed;
+      top: 0;
+      right: -360px;
+      width: 340px;
+      max-width: 90vw;
+      height: 100vh;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border);
+      box-shadow: var(--shadow-lg);
+      z-index: 201;
+      transition: right var(--transition-base);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    .settings-overlay.open .settings-drawer { right: 0; }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-5) var(--spacing-6);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .settings-header h2 { font-size: var(--font-size-lg); font-weight: 700; }
+
+    .settings-close {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background: var(--bg-hover);
+      color: var(--text-secondary);
+      border-radius: var(--radius-2);
+      cursor: pointer;
+      font-size: 18px;
+      transition: all var(--transition-fast);
+    }
+
+    .settings-close:hover { background: var(--border); color: var(--text-heading); }
+
+    .settings-body { padding: var(--spacing-6); flex: 1; }
+
+    .settings-section { margin-bottom: var(--spacing-7); }
+    .settings-section:last-child { margin-bottom: 0; }
+
+    .settings-label {
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: var(--text-muted);
+      margin-bottom: var(--spacing-3);
+    }
+
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-3) 0;
+    }
+
+    .settings-row-label { font-size: var(--font-size-base); color: var(--text-primary); }
+    .settings-row-desc { font-size: var(--font-size-xs); color: var(--text-muted); margin-top: 2px; }
+
+    /* ── Toggle Switch ── */
+    .toggle-switch {
+      position: relative;
+      width: 44px;
+      height: 24px;
+      background: var(--bg-input);
+      border-radius: 12px;
+      cursor: pointer;
+      border: 1px solid var(--border);
+      transition: background var(--transition-fast), border-color var(--transition-fast);
+      flex-shrink: 0;
+    }
+
+    .toggle-switch.on { background: var(--accent-a); border-color: var(--accent-a); }
+
+    .toggle-knob {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      transition: left var(--transition-fast);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+    }
+
+    .toggle-switch.on .toggle-knob { left: 22px; }
+
+    /* ── Mode selector pills (in settings) ── */
+    .mode-pills { display: flex; flex-direction: column; gap: var(--spacing-2); }
+
+    .mode-pill {
+      display: block;
+      width: 100%;
+      text-align: left;
+      padding: var(--spacing-3) var(--spacing-4);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-2);
+      cursor: pointer;
+      font-family: inherit;
+      color: var(--text-primary);
+      transition: all var(--transition-fast);
+    }
+
+    .mode-pill:hover { background: var(--bg-hover); border-color: var(--border-strong); }
+
+    .mode-pill.active {
+      background: var(--accent-a-bg);
+      border-color: var(--accent-a);
+      color: var(--accent-a);
+    }
+
+    .mode-pill strong { display: block; font-size: var(--font-size-sm); margin-bottom: 2px; }
+    .mode-pill span { font-size: var(--font-size-xs); color: var(--text-muted); line-height: 1.3; }
+    .mode-pill.active span { color: var(--accent-a); opacity: 0.7; }
+
+    /* ── Intro panel ── */
+    .intro-panel {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-3);
+      margin-bottom: var(--spacing-5);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+    }
+
+    .intro-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--spacing-4) var(--spacing-5);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .intro-header:hover { background: var(--bg-hover); }
+    .intro-header h2 { font-size: var(--font-size-md); font-weight: 600; }
+
+    .intro-chevron {
+      transition: transform var(--transition-base);
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .intro-chevron.collapsed { transform: rotate(-180deg); }
+
+    .intro-body {
+      padding: 0 var(--spacing-5) var(--spacing-4);
+      max-height: 1200px;
+      overflow: hidden;
+      transition: max-height 0.5s ease, padding var(--transition-base), opacity var(--transition-base);
+      opacity: 1;
+    }
+
+    .intro-body.collapsed { max-height: 0; padding-top: 0; padding-bottom: 0; opacity: 0; }
+    .intro-body p { margin-bottom: var(--spacing-3); font-size: var(--font-size-base); line-height: 1.6; color: var(--text-secondary); }
+    .intro-body strong { color: var(--text-heading); }
+    .intro-body h3 { font-size: var(--font-size-base); font-weight: 600; margin: var(--spacing-5) 0 var(--spacing-3); color: var(--text-heading); }
+    .intro-body h3:first-child { margin-top: 0; }
+    .intro-body ul { margin: 0 0 var(--spacing-3) var(--spacing-5); color: var(--text-secondary); font-size: var(--font-size-base); line-height: 1.6; }
+    .intro-body li { margin-bottom: var(--spacing-2); }
+    .intro-divider { border: none; border-top: 1px solid var(--border); margin: var(--spacing-4) 0; }
+    .intro-closing { font-style: italic; opacity: 0.8; }
+
+    /* ── References panel (reuses intro-panel pattern) ── */
+    .ref-list { list-style: none; margin: 0; padding: 0; }
+    .ref-list li {
+      font-size: var(--font-size-sm);
+      line-height: 1.6;
+      color: var(--text-secondary);
+      padding: var(--spacing-3) 0;
+      border-bottom: 1px solid var(--border);
+      text-indent: -1.5em;
+      padding-left: 1.5em;
+    }
+    .ref-list li:last-child { border-bottom: none; }
+    .ref-list a { color: var(--accent-a); text-decoration: none; word-break: break-all; }
+    .ref-list a:hover { text-decoration: underline; }
+
+    /* ── Main content ── */
+    .main-content { padding: var(--spacing-6); max-width: 960px; margin: 0 auto; }
+
+    .section-title {
+      font-size: var(--font-size-md);
+      font-weight: 600;
+      margin-bottom: var(--spacing-4);
+    }
+
+    /* ── Active mode badge in main view ── */
+    .active-mode-banner {
+      display: flex;
+      align-items: center;
+      gap: var(--spacing-3);
+      padding: var(--spacing-3) var(--spacing-4);
+      background: var(--accent-a-bg);
+      border: 1px solid var(--accent-a-border);
+      border-radius: var(--radius-2);
+      margin-bottom: var(--spacing-5);
+      font-size: var(--font-size-sm);
+      color: var(--accent-a);
+      font-weight: 500;
+    }
+
+    .active-mode-banner .mode-icon { font-size: 16px; }
+
+    /* ── Inputs ── */
+    .input-field {
+      background: var(--bg-input);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      padding: var(--spacing-3);
+      border-radius: var(--radius-2);
+      width: 100%;
+      font-size: var(--font-size-base);
+      font-family: inherit;
+      transition: all var(--transition-fast);
+    }
+
+    .input-field:focus { outline: none; border-color: var(--accent-a); box-shadow: 0 0 0 3px var(--accent-a-bg); }
+    .input-field.error { border-color: var(--accent-danger); }
+
+    .btn {
+      padding: var(--spacing-3) var(--spacing-5);
+      border-radius: var(--radius-2);
+      cursor: pointer;
+      background: var(--accent-a);
+      color: white;
+      border: none;
+      font-size: var(--font-size-base);
+      font-weight: 600;
+      font-family: inherit;
+      transition: all var(--transition-fast);
+    }
+
+    .btn:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+    .btn:active { transform: translateY(0); }
+    .btn-danger { background: var(--accent-danger); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-secondary);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--bg-hover); color: var(--text-primary); filter: none; }
+
+    /* ── Range controls ── */
+    .range-controls {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-3);
+      padding: var(--spacing-5);
+      margin-bottom: var(--spacing-5);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+    }
+
+    .range-row { display: flex; gap: var(--spacing-4); }
+    .range-row label { flex: 1; font-size: var(--font-size-sm); font-weight: 500; color: var(--text-secondary); }
+    .range-row label .input-field { margin-top: var(--spacing-1); }
+
+    /* ── Party columns ── */
+    .party-columns { display: flex; gap: var(--spacing-6); }
+
+    .party-col {
+      flex: 1;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-3);
+      padding: var(--spacing-5);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+    }
+
+    .party-col-a { border-top: 3px solid var(--accent-a); }
+    .party-col-b { border-top: 3px solid var(--accent-b); }
+
+    .party-role-label {
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+      margin-bottom: var(--spacing-4);
+      color: var(--text-muted);
+    }
+
+    .field-group { margin-bottom: var(--spacing-4); }
+    .field-group:last-of-type { margin-bottom: var(--spacing-2); }
+
+    .field-group label {
+      font-size: var(--font-size-sm);
+      font-weight: 500;
+      margin-bottom: var(--spacing-1);
+      display: block;
+      color: var(--text-secondary);
+    }
+
+    .slider-row { display: flex; align-items: center; gap: var(--spacing-3); margin-top: var(--spacing-1); }
+    .slider { flex: 1; }
+    .num-input { width: 90px; flex-shrink: 0; text-align: right; }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 6px;
+      background: var(--bg-input);
+      border-radius: 3px;
+      outline: none;
+      transition: background var(--transition-fast);
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-a);
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+      transition: transform var(--transition-fast);
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.15); }
+
+    input[type="range"]::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--accent-a);
+      cursor: pointer;
+      border: none;
+    }
+
+    input[type="range"]::-moz-range-track { height: 6px; background: var(--bg-input); border-radius: 3px; }
+    input[type="range"]:focus-visible { outline: 2px solid var(--accent-a); outline-offset: 4px; border-radius: 3px; }
+
+    .slider-b::-webkit-slider-thumb { background: var(--accent-b) !important; }
+    .slider-b::-moz-range-thumb { background: var(--accent-b) !important; }
+
+    .tooltip-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--bg-hover);
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 700;
+      cursor: help;
+      margin-left: var(--spacing-1);
+      vertical-align: middle;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+
+    .tooltip-icon:hover { background: var(--accent-a-bg); color: var(--accent-a); }
+
+    .tooltip-icon::before,
+    .tooltip-icon::after {
+      position: absolute;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      z-index: 50;
+    }
+
+    .tooltip-icon::after {
+      content: attr(data-tip);
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--pwc-charcoal);
+      color: #FFFFFF;
+      font-size: 12px;
+      font-weight: 500;
+      font-style: normal;
+      line-height: 1.5;
+      letter-spacing: 0;
+      text-transform: none;
+      text-align: left;
+      padding: 8px 12px;
+      border-radius: var(--radius-2);
+      white-space: normal;
+      width: max-content;
+      max-width: 260px;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+
+    .tooltip-icon::before {
+      content: '';
+      bottom: calc(100% + 4px);
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: var(--pwc-charcoal);
+    }
+
+    .tooltip-icon:hover::before,
+    .tooltip-icon:hover::after { opacity: 1; }
+
+    .warning-text { color: var(--pwc-orange); font-size: var(--font-size-xs); min-height: 16px; margin-top: var(--spacing-2); }
+
+    /* ── Viz ── */
+    .viz-section { margin: var(--spacing-6) 0; }
+
+    .viz-container {
+      background: var(--bg-surface);
+      border-radius: var(--radius-3);
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-sm);
+      padding: var(--spacing-4) 0;
+      transition: all var(--transition-base);
+    }
+
+    .viz-plot { position: relative; height: 180px; margin: 0 40px; }
+    .viz-axis { position: absolute; left: 0; right: 0; top: 100px; height: 2px; background: var(--border); }
+
+    .viz-tick { position: absolute; top: 94px; transform: translateX(-50%); }
+    .viz-tick::before { content: ''; display: block; width: 1px; height: 12px; background: var(--text-muted); margin: 0 auto; opacity: 0.5; }
+    .viz-tick span { display: block; font-size: var(--font-size-xs); color: var(--text-muted); text-align: center; margin-top: 2px; white-space: nowrap; }
+
+    .viz-zone {
+      position: absolute;
+      top: 70px;
+      height: 30px;
+      border-radius: var(--radius-1);
+      transition: left var(--transition-base), width var(--transition-base);
+    }
+
+    .viz-zone-zopa { background: var(--zone-zopa-bg); border: 1px solid var(--zone-zopa-border); }
+    .viz-zone-impasse { background: var(--zone-impasse-bg); border: 1px dashed var(--accent-danger); }
+
+    .viz-gap-label {
+      position: absolute;
+      top: 55px;
+      transform: translateX(-50%);
+      font-size: var(--font-size-xs);
+      font-weight: 600;
+      color: var(--accent-danger);
+      transition: left var(--transition-base);
+      white-space: nowrap;
+    }
+
+    .viz-el { position: absolute; transform: translateX(-50%); transition: left var(--transition-base); white-space: nowrap; pointer-events: none; }
+    .viz-diamond { width: 10px; height: 10px; background: var(--accent-a); transform: rotate(45deg); margin: 0 auto; }
+    .viz-circle { width: 12px; height: 12px; background: var(--accent-b); border-radius: 50%; margin: 0 auto; }
+    .viz-label-a { font-size: var(--font-size-xs); color: var(--accent-a); text-align: center; font-weight: 500; }
+    .viz-label-b { font-size: var(--font-size-xs); color: var(--accent-b); text-align: center; font-weight: 500; }
+    .viz-opt-label { font-size: var(--font-size-xs); font-weight: 700; color: var(--optimal-color); text-align: center; }
+    .viz-opt-pin { width: 0; height: 0; border-left: 7px solid transparent; border-right: 7px solid transparent; border-top: 10px solid var(--optimal-color); margin: 0 auto; }
+    .viz-opt-line { width: 2px; background: var(--optimal-color); margin: 0 auto; }
+
+    /* ── Percentage bar ── */
+    .percentage-bar { margin-top: var(--spacing-4); }
+    .pct-label { font-size: var(--font-size-sm); margin-bottom: var(--spacing-2); color: var(--text-secondary); font-weight: 500; }
+
+    .pct-track {
+      height: 8px;
+      background: var(--bg-input);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .pct-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-b), var(--accent-a));
+      border-radius: 4px;
+      transition: width var(--transition-base);
+    }
+
+    /* ── Analysis panel ── */
+    .analysis-panel { margin-top: var(--spacing-2); }
+
+    .summary-cards { display: flex; gap: var(--spacing-4); margin-bottom: var(--spacing-5); }
+
+    .summary-card {
+      flex: 1;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-3);
+      padding: var(--spacing-5);
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+    }
+
+    .summary-card .card-label {
+      font-size: var(--font-size-xs);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: var(--spacing-2);
+    }
+
+    .summary-card .card-value { font-size: var(--font-size-xl); font-weight: 700; color: var(--text-heading); }
+
+    /* ── Leverage ── */
+    .leverage-section {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-3);
+      padding: var(--spacing-5);
+      margin-bottom: var(--spacing-5);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+    }
+
+    .leverage-toggle { display: flex; align-items: center; gap: var(--spacing-3); }
+    .leverage-slider-row { display: flex; align-items: center; gap: var(--spacing-3); font-size: var(--font-size-sm); margin-top: var(--spacing-4); }
+    .leverage-slider-row input[type="range"] { flex: 1; }
+    .leverage-hint { font-size: var(--font-size-xs); color: var(--text-muted); margin-top: var(--spacing-2); }
+
+    /* ── Insight box ── */
+    .insight-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent-a);
+      border-radius: var(--radius-2);
+      padding: var(--spacing-5);
+      font-size: var(--font-size-base);
+      line-height: 1.7;
+      color: var(--text-secondary);
+      box-shadow: var(--shadow-sm);
+      transition: all var(--transition-base);
+    }
+
+    /* ── Footer ── */
+    .app-footer {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border);
+      padding: var(--spacing-5);
+      text-align: center;
+      transition: all var(--transition-base);
+    }
+
+    /* ── Responsive ── */
+    @media (max-width: 768px) {
+      .party-columns { flex-direction: column; }
+      .summary-cards { flex-direction: column; }
+      .main-content { padding: var(--spacing-4); }
+      .range-row { flex-direction: column; gap: var(--spacing-2); }
+    }
+
+    /* ── Print-friendly ── */
+    @media print {
+      .header, .app-footer, .settings-overlay, .settings-btn { display: none !important; }
+      body { background: white; color: black; }
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <div class="header-left">
+      <h1 class="header-title">BATNA Pricing Analyzer</h1>
+    </div>
+    <button class="settings-btn" onclick="openSettings()" title="Settings" aria-label="Open settings">&#9881;</button>
+  </header>
+
+  <!-- Settings Drawer -->
+  <div class="settings-overlay" id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
+    <div class="settings-drawer">
+      <div class="settings-header">
+        <h2>Settings</h2>
+        <button class="settings-close" onclick="closeSettings()" aria-label="Close settings">&times;</button>
+      </div>
+      <div class="settings-body">
+        <div class="settings-section">
+          <div class="settings-label">Appearance</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Dark Mode</div>
+              <div class="settings-row-desc">Switch between light and dark theme</div>
+            </div>
+            <div class="toggle-switch" id="darkModeToggle" role="switch" tabindex="0"
+              onclick="toggleDarkMode()"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDarkMode()}">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-label">Content</div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Show Explanations</div>
+              <div class="settings-row-desc">Display the BATNA concepts panel</div>
+            </div>
+            <div class="toggle-switch" id="explanationsToggle" role="switch" tabindex="0"
+              onclick="toggleExplanations()"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleExplanations()}">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Show Key Concepts</div>
+              <div class="settings-row-desc">Display the key concepts panel</div>
+            </div>
+            <div class="toggle-switch" id="conceptsToggle" role="switch" tabindex="0"
+              onclick="toggleShowConcepts()"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleShowConcepts()}">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Show Negotiation Theory</div>
+              <div class="settings-row-desc">Display the theory and concepts panel</div>
+            </div>
+            <div class="toggle-switch" id="theoryToggle" role="switch" tabindex="0"
+              onclick="toggleShowTheory()"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleShowTheory()}">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+          <div class="settings-row">
+            <div>
+              <div class="settings-row-label">Show References</div>
+              <div class="settings-row-desc">Display the academic references panel</div>
+            </div>
+            <div class="toggle-switch" id="referencesToggle" role="switch" tabindex="0"
+              onclick="toggleShowRefs()"
+              onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleShowRefs()}">
+              <div class="toggle-knob"></div>
+            </div>
+          </div>
+        </div>
+        <div class="settings-section">
+          <div class="settings-label">Pricing Model</div>
+          <div class="mode-pills" id="modePills">
+            <button class="mode-pill active" data-mode="tw" onclick="setMode('tw');renderModePills()">
+              <strong>Target + Walk-away</strong>
+              <span>Ideal price and worst acceptable price per party</span>
+            </button>
+            <button class="mode-pill" data-mode="twa" onclick="setMode('twa');renderModePills()">
+              <strong>Target + Walk-away + Best Alt</strong>
+              <span>Adds the price from each party's next-best option</span>
+            </button>
+            <button class="mode-pill" data-mode="mtm" onclick="setMode('mtm');renderModePills()">
+              <strong>Min / Target / Max Range</strong>
+              <span>Three-point range per party: minimum, target, maximum</span>
+            </button>
+          </div>
+        </div>
+        <div class="settings-section" style="padding-top:var(--spacing-4);border-top:1px solid var(--border)">
+          <button class="btn btn-danger" style="width:100%" onclick="clearAllData()">Clear All Data</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main class="main-content">
+    <section class="intro-panel" id="introPanel">
+      <div class="intro-header" role="button" tabindex="0" aria-expanded="true" aria-controls="introBody" onclick="toggleIntro()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleIntro()}">
+        <h2>Using the Tool</h2>
+        <span class="intro-chevron" id="introChevron">&#9660;</span>
+      </div>
+      <div class="intro-body" id="introBody">
+        <ul>
+          <li><strong>Choose a pricing model</strong> in Settings (gear icon). <em>Target + Walk-away</em> is the standard two-point model. <em>+ Best Alternative</em> adds the explicit BATNA price. <em>Min / Target / Max</em> uses a three-point range for broader analysis.</li>
+          <li><strong>Set the slider range</strong> to match your negotiation's price domain (e.g. €0–€1,000 for a small deal, or €0–€10M for a large one).</li>
+          <li><strong>Enter each party's values</strong> using the sliders or number fields. The visualization and analysis update in real time.</li>
+          <li><strong>Enable leverage weighting</strong> to model unequal negotiating power. Drag the slider toward the party with more leverage — the optimal price shifts in their favor.</li>
+        </ul>
+
+        <p class="intro-closing">Experiment with different inputs to build intuition about your negotiating position before entering the room.</p>
+      </div>
+    </section>
+
+    <section class="intro-panel" id="conceptsPanel">
+      <div class="intro-header" role="button" tabindex="0" aria-expanded="false" aria-controls="conceptsBody" onclick="toggleConcepts()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleConcepts()}">
+        <h2>Key Concepts</h2>
+        <span class="intro-chevron collapsed" id="conceptsChevron">&#9660;</span>
+      </div>
+      <div class="intro-body collapsed" id="conceptsBody">
+        <p><strong>BATNA</strong> — Your backup plan. What you will actually do if this deal falls through. It is a scenario, not a number.</p>
+        <p><strong>Walkaway Price</strong> — The number you get from your backup plan. The point where the deal on the table is worse than your alternative. Below this, walk away.</p>
+        <p><strong>ZOPA</strong> — The sweet spot where both sides can agree. It exists when the buyer is willing to pay more than the lowest price the seller will accept.</p>
+        <p><strong>Optimal Price</strong> — The fairest landing point within the sweet spot. By default it splits the difference evenly. Leverage shifts it in favour of the stronger side.</p>
+      </div>
+    </section>
+
+    <section class="intro-panel" id="theoryPanel">
+      <div class="intro-header" role="button" tabindex="0" aria-expanded="false" aria-controls="theoryBody" onclick="toggleTheory()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleTheory()}">
+        <h2>Negotiation Theory</h2>
+        <span class="intro-chevron collapsed" id="theoryChevron">&#9660;</span>
+      </div>
+      <div class="intro-body collapsed" id="theoryBody">
+        <p><strong>BATNA, ZOPA &amp; the Walkaway Price</strong> — Every negotiation is shaped by three interconnected concepts. Your BATNA (Best Alternative to a Negotiated Agreement) is the course of action you will pursue if no deal is reached. It is not a number. It is the alternative scenario against which any proposed agreement should be measured. Your walkaway price (or reservation price) is derived from your BATNA. It represents the least favourable terms you would still accept rather than resorting to that alternative. The ZOPA (Zone of Possible Agreement) is the overlap between both parties' walkaway prices. When this overlap exists, a deal is possible. When it does not, there is no basis for agreement without changing the underlying conditions.</p>
+        <p><strong>Surplus &amp; Value Creation</strong> — When a ZOPA exists, the total surplus is the distance between the two walkaway prices. This surplus represents the value created by reaching an agreement over each party's next best option. The negotiation determines how that surplus is divided. The ZOPA is not static. It shifts as BATNAs change throughout the process due to new information, third party actions, or evolving market conditions.</p>
+        <p><strong>Anchoring</strong> — The first offer in a negotiation often sets a psychological anchor. A well prepared opening, close to your target but still within the ZOPA, can pull the final agreement in your direction. This tool helps you identify where that anchor should sit.</p>
+        <p><strong>Information Asymmetry</strong> — In practice, parties rarely know each other's walkaway price. The more accurately you estimate the other side's BATNA, the better positioned you are. However, a BATNA is not always an outside option independent of you. In interdependent relationships, such as long term partnerships or sole supplier arrangements, the other party's alternative may involve continued negotiation with you under different terms. Use this tool to model different scenarios by adjusting the opposing party's values.</p>
+        <p><strong>Leverage</strong> — Leverage is not just about alternatives. Time pressure, switching costs, relationship dependency, information advantage, and market conditions all contribute. A party under deadline pressure has less leverage even if their BATNA is strong. Beware of over relying on your BATNA as a threat. In ongoing relationships, keeping alternatives quietly in the background while focusing on creative value creation is often more effective.</p>
+        <p><strong>Common Pitfalls</strong> — Every party always has a BATNA, even if it is an unattractive one. The notion of having "no BATNA" is a misconception. Your BATNA may itself be another negotiated agreement with a different party. It should be actively evaluated and improved as a first step in preparation. Do not treat it as a last resort only relevant at impasse.</p>
+        <hr class="intro-divider">
+        <h3>About BATNA</h3>
+        <p>In negotiation theory, the best alternative to a negotiated agreement (BATNA) is the most favorable and independent course of action a party can take if negotiations fail, aligning with their interests in the absence of a deal or an agreement. BATNA serves as an evaluative standard and a driving force behind effective negotiation strategy. A party should also consider the impact of the worst alternative to a negotiated agreement (WATNA), and care must be taken to ensure that deals are accurately valued. This includes consideration of factors such as the value of ongoing relationships, the time value of money, and the likelihood that the other party will fulfill their commitments.</p>
+        <p>A BATNA can take many forms, such as seeking mediation, transitioning to a different negotiating partner, initiating a strike, or forming strategic alliances. These alternatives are often challenging to evaluate without strong relational insight, as they are frequently based on personal or group interests, stability concerns, or other qualitative factors rather than easily measurable or quantifiable criteria. In many cases, understanding the other party's BATNA is essential to assessing their negotiation power.</p>
+        <p>However, parties may act in bad faith to test or distort assumptions and manipulate perceptions of the other party's true interests. For example, if it is believed that an early delivery date is highly important to the negotiating partner, one might deliberately propose a later delivery date. If the late date is firmly rejected, it would suggest that the desired delivery date is likely to be of significant importance.</p>
+      </div>
+    </section>
+
+    <div class="active-mode-banner" id="modeBanner">
+      <span class="mode-icon">&#9881;</span>
+      <span id="modeBannerText">Target + Walk-away</span>
+    </div>
+    <section class="input-panel" id="inputPanel"></section>
+    <section class="viz-section" id="vizSection">
+      <div class="viz-container"><div class="viz-plot" id="vizPlot"></div></div>
+      <div id="percentageBar" class="percentage-bar"></div>
+    </section>
+    <section class="analysis-panel" id="analysisPanel"></section>
+
+    <section class="intro-panel" id="refsPanel" style="margin-top:var(--spacing-6)">
+      <div class="intro-header" role="button" tabindex="0" aria-expanded="false" aria-controls="refsBody" onclick="toggleRefs()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleRefs()}">
+        <h2>References</h2>
+        <span class="intro-chevron collapsed" id="refsChevron">&#9660;</span>
+      </div>
+      <div class="intro-body collapsed" id="refsBody">
+        <ol class="ref-list">
+          <li>Conlon, D., Pinkley, R.L. and Sawyer, J.E. (2014) 'Getting something out of nothing: reaping or resisting the power of a phantom BATNA', in Ayoko, O.B., Ashkanasy, N.M. and Jehn, K.A. (eds.) <em>Handbook of conflict management research</em>. Cheltenham: Edward Elgar, pp. 328–342.</li>
+          <li>Dias, M. (2020) 'The four-type negotiation matrix: a model for assessing negotiation processes', <em>British Journal of Education</em>, 8(5), pp. 40–57.</li>
+          <li>Eisen, S. (2023) <em>Practical guide to negotiating in the military</em>. 3rd edn. Maxwell AFB, AL: Air University Press.</li>
+          <li>Fisher, R., Ury, W. and Patton, B. (1991) <em>Getting to yes: negotiating agreement without giving in</em>. 2nd edn. New York: Penguin Books.</li>
+          <li>Lax, D.A. (1985) 'Optimal search in negotiation analysis', <em>Journal of Conflict Resolution</em>, 29(3), pp. 456–472.</li>
+          <li>Lax, D.A. and Sebenius, J.K. (1985) 'The power of alternatives or the limits to negotiation', <em>Negotiation Journal</em>, 1(2), pp. 163–179.</li>
+          <li>Lax, D.A. and Sebenius, J.K. (1986) <em>The manager as negotiator: bargaining for cooperation and competitive gain</em>. New York: Free Press.</li>
+          <li>Lax, D.A. and Sebenius, J.K. (2006) <em>3-D negotiation: powerful tools to change the game in your most important deals</em>. Boston: Harvard Business Press.</li>
+          <li>Lewicki, R.J., Barry, B. and Saunders, D.M. (2016) <em>Essentials of negotiation</em>. 6th edn. New York: McGraw-Hill Education.</li>
+          <li>Raiffa, H. (1982) <em>The art and science of negotiation</em>. Cambridge, MA: Belknap Press of Harvard University Press.</li>
+          <li>Raiffa, H., Richardson, J. and Metcalfe, D. (2002) <em>Negotiation analysis: the science and art of collaborative decision making</em>. Cambridge, MA: Belknap Press of Harvard University Press.</li>
+          <li>Sebenius, J.K. (2017) 'BATNAs in negotiation: common errors and three kinds of "no"', <em>Negotiation Journal</em>, 33(2), pp. 89–99. Available at: <a href="https://ssrn.com/abstract=2884857" target="_blank" rel="noopener">https://ssrn.com/abstract=2884857</a> (Accessed: 27 March 2026).</li>
+          <li>United States Air Force Negotiation Center (2023) <em>Negotiation concepts manual</em>. Maxwell AFB, AL: Air University. Available at: <a href="https://www.adr.af.mil/Portals/82/Negotiation%20Concepts%20Manual.pdf" target="_blank" rel="noopener">https://www.adr.af.mil/Portals/82/Negotiation%20Concepts%20Manual.pdf</a> (Accessed: 27 March 2026).</li>
+          <li>Ury, W. (1991) <em>Getting past no: negotiating in difficult situations</em>. New York: Bantam Books.</li>
+          <li>Versiani, H. and Dias, M. (2025) 'Beyond price: understanding emotional and rational factors in real estate negotiation', <em>GPH-International Journal of Social Science and Humanities Research</em>, 8(7), pp. 75–86. doi:10.5281/zenodo.16965179.</li>
+          <li>Walton, R.E., Cutcher-Gershenfeld, J. and McKersie, R.B. (1994) <em>Strategic negotiations: a theory of change in labor-management relations</em>. Boston: Harvard Business School Press.</li>
+        </ol>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    <button class="btn btn-ghost" onclick="clearAllData()">Clear All Data</button>
+  </footer>
+
+  <script>
+    const MODES = {
+      tw:  { label: 'Target + Walk-away', fields: ['target', 'walkaway'] },
+      twa: { label: 'Target + Walk-away + Best Alt', fields: ['target', 'walkaway', 'bestAlt'] },
+      mtm: { label: 'Min / Target / Max', fields: ['min', 'target', 'max'] }
+    };
+
+    const FIELD_LABELS = {
+      target:   'Target Price',
+      walkaway: 'Walk-away Price',
+      bestAlt:  'Best Alternative',
+      min:      'Minimum Price',
+      max:      'Maximum Price'
+    };
+
+    const FIELD_TOOLTIPS = {
+      target:   'The price this party ideally wants to achieve',
+      walkaway: 'The worst price this party would accept before walking away',
+      bestAlt:  'The price available from this party\'s next-best option',
+      min:      'The lowest price this party would accept',
+      max:      'The highest price this party would pay or accept'
+    };
+
+    function getDefaultState() {
+      return {
+        mode: 'twb',
+        rangeMin: 0,
+        rangeMax: 1000,
+        partyA: { name: 'Buyer', values: {} },
+        partyB: { name: 'Seller', values: {} },
+        leverage: { enabled: false, weight: 0.5 },
+        introExpanded: true,
+        refsExpanded: false,
+        theoryExpanded: false,
+        conceptsExpanded: false,
+        darkMode: false,
+        showExplanations: true,
+        showConcepts: false,
+        showTheory: false,
+        showReferences: false
+      };
+    }
+
+    let state = getDefaultState();
+
+    /* ── Settings ── */
+    function openSettings() {
+      document.getElementById('settingsOverlay').classList.add('open');
+    }
+
+    function closeSettings() {
+      document.getElementById('settingsOverlay').classList.remove('open');
+    }
+
+    function toggleDarkMode() {
+      state.darkMode = !state.darkMode;
+      applyTheme();
+      saveState();
+    }
+
+    function toggleExplanations() {
+      state.showExplanations = !state.showExplanations;
+      applyExplanations();
+      saveState();
+    }
+
+    function applyTheme() {
+      document.documentElement.setAttribute('data-theme', state.darkMode ? 'dark' : 'light');
+      const toggle = document.getElementById('darkModeToggle');
+      toggle.classList.toggle('on', state.darkMode);
+      toggle.setAttribute('aria-checked', state.darkMode);
+    }
+
+    function applyExplanations() {
+      const panel = document.getElementById('introPanel');
+      panel.style.display = state.showExplanations ? '' : 'none';
+      const toggle = document.getElementById('explanationsToggle');
+      toggle.classList.toggle('on', state.showExplanations);
+      toggle.setAttribute('aria-checked', state.showExplanations);
+    }
+
+    function toggleShowConcepts() {
+      state.showConcepts = !state.showConcepts;
+      applyShowConcepts();
+      saveState();
+    }
+
+    function applyShowConcepts() {
+      const panel = document.getElementById('conceptsPanel');
+      panel.style.display = state.showConcepts ? '' : 'none';
+      const toggle = document.getElementById('conceptsToggle');
+      toggle.classList.toggle('on', state.showConcepts);
+      toggle.setAttribute('aria-checked', state.showConcepts);
+    }
+
+    function toggleShowTheory() {
+      state.showTheory = !state.showTheory;
+      applyShowTheory();
+      saveState();
+    }
+
+    function applyShowTheory() {
+      const panel = document.getElementById('theoryPanel');
+      panel.style.display = state.showTheory ? '' : 'none';
+      const toggle = document.getElementById('theoryToggle');
+      toggle.classList.toggle('on', state.showTheory);
+      toggle.setAttribute('aria-checked', state.showTheory);
+    }
+
+    function toggleShowRefs() {
+      state.showReferences = !state.showReferences;
+      applyShowRefs();
+      saveState();
+    }
+
+    function applyShowRefs() {
+      const panel = document.getElementById('refsPanel');
+      panel.style.display = state.showReferences ? '' : 'none';
+      const toggle = document.getElementById('referencesToggle');
+      toggle.classList.toggle('on', state.showReferences);
+      toggle.setAttribute('aria-checked', state.showReferences);
+    }
+
+    function renderModePills() {
+      document.querySelectorAll('.mode-pill').forEach(p => {
+        p.classList.toggle('active', p.dataset.mode === state.mode);
+      });
+      document.getElementById('modeBannerText').textContent = MODES[state.mode].label;
+    }
+
+    /* ── Mode ── */
+    function setMode(mode) {
+      state.mode = mode;
+      state.partyA.values = {};
+      state.partyB.values = {};
+      MODES[mode].fields.forEach(f => {
+        state.partyA.values[f] = 0;
+        state.partyB.values[f] = 0;
+      });
+      renderModePills();
+      renderInputPanel();
+      rebuildAnalysis();
+      updateViz();
+      saveState();
+    }
+
+    /* ── Input rendering ── */
+    function renderInputPanel() {
+      const panel = document.getElementById('inputPanel');
+      const fields = MODES[state.mode].fields;
+      panel.innerHTML = `
+        <div class="range-controls">
+          <h3 class="section-title">Slider Range</h3>
+          <div class="range-row">
+            <label>Min <input type="number" class="input-field" id="rangeMin"
+              value="${state.rangeMin}" onchange="updateRange()"></label>
+            <label>Max <input type="number" class="input-field" id="rangeMax"
+              value="${state.rangeMax}" onchange="updateRange()"></label>
+          </div>
+        </div>
+        <div class="party-columns">
+          ${renderPartyColumn('partyA', 'Buyer (wants lower)', 'a')}
+          ${renderPartyColumn('partyB', 'Seller (wants higher)', 'b')}
+        </div>
+      `;
+    }
+
+    function renderPartyColumn(partyKey, roleLabel, accent) {
+      const party = state[partyKey];
+      const fields = MODES[state.mode].fields;
+      return `
+        <div class="party-col party-col-${accent}">
+          <div class="party-role-label">${roleLabel}</div>
+          <div class="field-group">
+            <label>Name</label>
+            <input type="text" class="input-field" value="${escapeHtml(party.name)}"
+              oninput="state.${partyKey}.name=this.value;updateViz();saveState()">
+          </div>
+          ${fields.map(f => `
+            <div class="field-group">
+              <label>${FIELD_LABELS[f]}
+                <span class="tooltip-icon" data-tip="${FIELD_TOOLTIPS[f]}">?</span>
+              </label>
+              <div class="slider-row">
+                <input type="range" min="${state.rangeMin}" max="${state.rangeMax}"
+                  value="${party.values[f] || 0}" class="slider slider-${accent}"
+                  data-party="${partyKey}" data-field="${f}"
+                  oninput="updateField('${partyKey}','${f}',+this.value)">
+                <input type="number" class="input-field num-input"
+                  min="${state.rangeMin}" max="${state.rangeMax}"
+                  value="${party.values[f] || 0}"
+                  data-party="${partyKey}" data-field="${f}"
+                  oninput="updateField('${partyKey}','${f}',+this.value)">
+              </div>
+            </div>
+          `).join('')}
+          <div class="warning-text" data-warning="${partyKey}">${getWalkawayWarning(partyKey)}</div>
+        </div>
+      `;
+    }
+
+    function syncInputValues() {
+      ['partyA', 'partyB'].forEach(pk => {
+        MODES[state.mode].fields.forEach(f => {
+          const val = state[pk].values[f];
+          const slider = document.querySelector(`[data-party="${pk}"][data-field="${f}"][type="range"]`);
+          const num = document.querySelector(`[data-party="${pk}"][data-field="${f}"][type="number"]`);
+          if (slider) slider.value = val;
+          if (num) num.value = val;
+        });
+        const warning = document.querySelector(`[data-warning="${pk}"]`);
+        if (warning) warning.textContent = getWalkawayWarning(pk);
+      });
+    }
+
+    function updateField(partyKey, field, value) {
+      if (isNaN(value)) return;
+      value = Math.max(state.rangeMin, Math.min(state.rangeMax, value));
+      state[partyKey].values[field] = value;
+
+      if (state.mode === 'mtm') {
+        const v = state[partyKey].values;
+        if (field === 'min' && v.min > v.target) v.target = v.min;
+        if (field === 'min' && v.min > v.max) v.max = v.min;
+        if (field === 'target' && v.target < v.min) v.min = v.target;
+        if (field === 'target' && v.target > v.max) v.max = v.target;
+        if (field === 'max' && v.max < v.target) v.target = v.max;
+        if (field === 'max' && v.max < v.min) v.min = v.max;
+      }
+
+      syncInputValues();
+      updateViz();
+      saveState();
+    }
+
+    function updateRange() {
+      const newMin = +document.getElementById('rangeMin').value;
+      const newMax = +document.getElementById('rangeMax').value;
+      if (newMin >= newMax) {
+        document.getElementById('rangeMin').classList.add('error');
+        document.getElementById('rangeMax').classList.add('error');
+        return;
+      }
+      state.rangeMin = newMin;
+      state.rangeMax = newMax;
+      ['partyA', 'partyB'].forEach(pk => {
+        Object.keys(state[pk].values).forEach(f => {
+          state[pk].values[f] = Math.max(newMin, Math.min(newMax, state[pk].values[f]));
+        });
+      });
+      renderInputPanel();
+      updateViz();
+      saveState();
+    }
+
+    function getWalkawayWarning(partyKey) {
+      if (state.mode === 'mtm') return '';
+      const v = state[partyKey].values;
+      if (v.walkaway === undefined || v.target === undefined) return '';
+      const isBuyer = partyKey === 'partyA';
+      const suspicious = isBuyer ? v.walkaway < v.target : v.walkaway > v.target;
+      return suspicious ? 'Walk-away is more favorable than target — is this intentional?' : '';
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    function toggleIntro() {
+      state.introExpanded = !state.introExpanded;
+      document.getElementById('introBody').classList.toggle('collapsed', !state.introExpanded);
+      document.getElementById('introChevron').classList.toggle('collapsed', !state.introExpanded);
+      document.querySelector('#introPanel .intro-header').setAttribute('aria-expanded', state.introExpanded);
+      saveState();
+    }
+
+    function toggleConcepts() {
+      state.conceptsExpanded = !state.conceptsExpanded;
+      document.getElementById('conceptsBody').classList.toggle('collapsed', !state.conceptsExpanded);
+      document.getElementById('conceptsChevron').classList.toggle('collapsed', !state.conceptsExpanded);
+      document.querySelector('#conceptsPanel .intro-header').setAttribute('aria-expanded', state.conceptsExpanded);
+      saveState();
+    }
+
+    function toggleTheory() {
+      state.theoryExpanded = !state.theoryExpanded;
+      document.getElementById('theoryBody').classList.toggle('collapsed', !state.theoryExpanded);
+      document.getElementById('theoryChevron').classList.toggle('collapsed', !state.theoryExpanded);
+      document.querySelector('#theoryPanel .intro-header').setAttribute('aria-expanded', state.theoryExpanded);
+      saveState();
+    }
+
+    function toggleRefs() {
+      state.refsExpanded = !state.refsExpanded;
+      document.getElementById('refsBody').classList.toggle('collapsed', !state.refsExpanded);
+      document.getElementById('refsChevron').classList.toggle('collapsed', !state.refsExpanded);
+      document.querySelector('#refsPanel .intro-header').setAttribute('aria-expanded', state.refsExpanded);
+      saveState();
+    }
+
+    function formatPrice(n) {
+      if (n === undefined || isNaN(n)) return '€0';
+      const hasDecimals = n % 1 !== 0;
+      return '€' + n.toLocaleString('en-US', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: hasDecimals ? 2 : 0
+      });
+    }
+
+    /* ── Calculations ── */
+    function calcZOPA() {
+      const a = state.partyA.values;
+      const b = state.partyB.values;
+      if (state.mode === 'mtm') {
+        const overlapMin = Math.max(a.min, b.min);
+        const overlapMax = Math.min(a.max, b.max);
+        if (overlapMin <= overlapMax) {
+          return { exists: true, min: overlapMin, max: overlapMax };
+        }
+        return { exists: false, gap: overlapMin - overlapMax,
+                 closestA: a.max < b.min ? a.max : a.min,
+                 closestB: a.max < b.min ? b.min : b.max };
+      }
+      const buyerCeiling = a.walkaway;
+      const sellerFloor = b.walkaway;
+      if (buyerCeiling >= sellerFloor) {
+        return { exists: true, min: sellerFloor, max: buyerCeiling };
+      }
+      return { exists: false, gap: sellerFloor - buyerCeiling,
+               closestA: buyerCeiling, closestB: sellerFloor };
+    }
+
+    function calcOptimalPrice(zopa) {
+      if (!zopa.exists) return null;
+      if (state.leverage.enabled) {
+        return zopa.min + (zopa.max - zopa.min) * state.leverage.weight;
+      }
+      if (state.mode === 'mtm') {
+        const avgTarget = (state.partyA.values.target + state.partyB.values.target) / 2;
+        return Math.max(zopa.min, Math.min(zopa.max, avgTarget));
+      }
+      return (zopa.min + zopa.max) / 2;
+    }
+
+    function calcTicks(rangeMin, rangeMax) {
+      const range = rangeMax - rangeMin;
+      const rough = range / 6;
+      const mag = Math.pow(10, Math.floor(Math.log10(rough)));
+      const options = [1, 2, 5, 10].map(m => m * mag);
+      const step = options.find(s => range / s <= 8) || options[options.length - 1];
+      const ticks = [];
+      let t = Math.ceil(rangeMin / step) * step;
+      while (t <= rangeMax) { ticks.push(t); t += step; }
+      return ticks;
+    }
+
+    /* ── Visualization ── */
+    function updateViz() {
+      const plot = document.getElementById('vizPlot');
+      const pctBar = document.getElementById('percentageBar');
+      const rMin = state.rangeMin;
+      const rMax = state.rangeMax;
+      const toPct = v => ((v - rMin) / (rMax - rMin) * 100);
+      const fields = MODES[state.mode].fields;
+
+      const needsRebuild = plot._mode !== state.mode || plot._rMin !== rMin || plot._rMax !== rMax;
+
+      if (needsRebuild) {
+        plot.innerHTML = '';
+        plot._mode = state.mode;
+        plot._rMin = rMin;
+        plot._rMax = rMax;
+        plot._els = {};
+
+        const axis = document.createElement('div');
+        axis.className = 'viz-axis';
+        plot.appendChild(axis);
+
+        calcTicks(rMin, rMax).forEach(t => {
+          const tick = document.createElement('div');
+          tick.className = 'viz-tick';
+          tick.style.left = toPct(t) + '%';
+          tick.innerHTML = `<span>${formatPrice(t)}</span>`;
+          plot.appendChild(tick);
+        });
+
+        const zone = document.createElement('div');
+        zone.className = 'viz-zone';
+        plot.appendChild(zone);
+        plot._els.zone = zone;
+
+        const gapLabel = document.createElement('div');
+        gapLabel.className = 'viz-gap-label';
+        plot.appendChild(gapLabel);
+        plot._els.gapLabel = gapLabel;
+
+        fields.forEach((f, i) => {
+          const aLabel = document.createElement('div');
+          aLabel.className = 'viz-el viz-label-a';
+          aLabel.style.top = (50 - i * 16) + 'px';
+          plot.appendChild(aLabel);
+          plot._els['aL_' + f] = aLabel;
+
+          const aMark = document.createElement('div');
+          aMark.className = 'viz-el';
+          aMark.style.top = '87px';
+          aMark.innerHTML = '<div class="viz-diamond"></div>';
+          plot.appendChild(aMark);
+          plot._els['aM_' + f] = aMark;
+
+          const bMark = document.createElement('div');
+          bMark.className = 'viz-el';
+          bMark.style.top = '95px';
+          bMark.innerHTML = '<div class="viz-circle"></div>';
+          plot.appendChild(bMark);
+          plot._els['bM_' + f] = bMark;
+
+          const bLabel = document.createElement('div');
+          bLabel.className = 'viz-el viz-label-b';
+          bLabel.style.top = (115 + i * 16) + 'px';
+          plot.appendChild(bLabel);
+          plot._els['bL_' + f] = bLabel;
+        });
+
+        const optLabel = document.createElement('div');
+        optLabel.className = 'viz-el viz-opt-label';
+        optLabel.style.top = '15px';
+        plot.appendChild(optLabel);
+        plot._els.optLabel = optLabel;
+
+        const optPin = document.createElement('div');
+        optPin.className = 'viz-el';
+        optPin.style.top = '30px';
+        optPin.innerHTML = '<div class="viz-opt-pin"></div>';
+        plot.appendChild(optPin);
+        plot._els.optPin = optPin;
+
+        const optLine = document.createElement('div');
+        optLine.className = 'viz-el';
+        optLine.style.top = '40px';
+        optLine.innerHTML = '<div class="viz-opt-line" style="height:60px"></div>';
+        plot.appendChild(optLine);
+        plot._els.optLine = optLine;
+      }
+
+      const els = plot._els;
+      const zopa = calcZOPA();
+      const optimal = calcOptimalPrice(zopa);
+
+      if (zopa.exists) {
+        els.zone.className = 'viz-zone viz-zone-zopa';
+        els.zone.style.left = toPct(zopa.min) + '%';
+        els.zone.style.width = (toPct(zopa.max) - toPct(zopa.min)) + '%';
+        els.zone.title = `ZOPA: ${formatPrice(zopa.min)} – ${formatPrice(zopa.max)}`;
+        els.gapLabel.style.display = 'none';
+      } else {
+        els.zone.className = 'viz-zone viz-zone-impasse';
+        const l = Math.min(toPct(zopa.closestA), toPct(zopa.closestB));
+        const r = Math.max(toPct(zopa.closestA), toPct(zopa.closestB));
+        els.zone.style.left = l + '%';
+        els.zone.style.width = (r - l) + '%';
+        els.zone.title = `Gap: ${formatPrice(zopa.gap)}`;
+        els.gapLabel.textContent = `Gap: ${formatPrice(zopa.gap)}`;
+        els.gapLabel.style.left = ((l + r) / 2) + '%';
+        els.gapLabel.style.display = '';
+      }
+
+      fields.forEach(f => {
+        const aVal = state.partyA.values[f];
+        const bVal = state.partyB.values[f];
+        const aPct = toPct(aVal) + '%';
+        const bPct = toPct(bVal) + '%';
+
+        els['aM_' + f].style.left = aPct;
+        els['aM_' + f].title = `${state.partyA.name} ${FIELD_LABELS[f]}: ${formatPrice(aVal)}`;
+        els['aL_' + f].style.left = aPct;
+        els['aL_' + f].textContent = `${FIELD_LABELS[f]}: ${formatPrice(aVal)}`;
+
+        els['bM_' + f].style.left = bPct;
+        els['bM_' + f].title = `${state.partyB.name} ${FIELD_LABELS[f]}: ${formatPrice(bVal)}`;
+        els['bL_' + f].style.left = bPct;
+        els['bL_' + f].textContent = `${FIELD_LABELS[f]}: ${formatPrice(bVal)}`;
+      });
+
+      if (optimal !== null) {
+        const oPct = toPct(optimal) + '%';
+        els.optLabel.style.left = oPct;
+        els.optLabel.textContent = formatPrice(optimal);
+        els.optLabel.style.display = '';
+        els.optPin.style.left = oPct;
+        els.optPin.style.display = '';
+        els.optPin.title = `Optimal Price: ${formatPrice(optimal)}`;
+        els.optLine.style.left = oPct;
+        els.optLine.style.display = '';
+      } else {
+        els.optLabel.style.display = 'none';
+        els.optPin.style.display = 'none';
+        els.optLine.style.display = 'none';
+      }
+
+      if (optimal !== null) {
+        const tA = state.partyA.values.target;
+        const tB = state.partyB.values.target;
+        const denom = tA - tB;
+        if (denom !== 0) {
+          const rawPct = ((optimal - tB) / denom * 100).toFixed(0);
+          const clampedPct = Math.max(0, Math.min(100, rawPct));
+          const label = rawPct > 100 ? `Beyond ${escapeHtml(state.partyA.name)}'s target`
+            : rawPct < 0 ? `Beyond ${escapeHtml(state.partyB.name)}'s target`
+            : `${rawPct}% toward ${escapeHtml(state.partyA.name)}'s target`;
+          pctBar.innerHTML = `<div class="pct-label">${label}</div>
+            <div class="pct-track"><div class="pct-fill" style="width:${clampedPct}%"></div></div>`;
+        } else {
+          pctBar.innerHTML = '<div class="pct-label">Targets are equal</div>';
+        }
+        pctBar.style.display = '';
+      } else {
+        pctBar.style.display = 'none';
+      }
+
+      updateAnalysis(zopa, optimal);
+    }
+
+    function generateInsight(zopa, optimal) {
+      const aName = escapeHtml(state.partyA.name);
+      const bName = escapeHtml(state.partyB.name);
+      if (!zopa.exists) {
+        return `There is no overlap — ${aName}'s worst acceptable price is still ${formatPrice(zopa.gap)} away from ${bName}'s. Consider whether either party can adjust their walk-away.`;
+      }
+      const aWalk = state.partyA.values[state.mode === 'mtm' ? 'max' : 'walkaway'];
+      const bWalk = state.partyB.values[state.mode === 'mtm' ? 'min' : 'walkaway'];
+      const surplusA = aWalk - optimal;
+      const surplusB = optimal - bWalk;
+      let text = `Both parties can improve on their alternatives. The optimal price of ${formatPrice(optimal)} gives ${aName} ${formatPrice(surplusA)} below their walk-away and ${bName} ${formatPrice(surplusB)} above theirs.`;
+      if (state.leverage.enabled) {
+        const pct = (state.leverage.weight * 100).toFixed(0);
+        const diff = optimal - (zopa.min + zopa.max) / 2;
+        const favored = diff < 0 ? aName : bName;
+        text += ` With the current leverage weighting (${pct}/${100 - pct}), the optimal price shifts ${formatPrice(Math.abs(diff))} in ${favored}'s favor.`;
+      }
+      return text;
+    }
+
+    function toggleLeverage() {
+      state.leverage.enabled = !state.leverage.enabled;
+      rebuildAnalysis();
+      updateViz();
+      saveState();
+    }
+
+    function setLeverage(weight) {
+      state.leverage.weight = Math.max(0, Math.min(1, weight));
+      updateViz();
+      saveState();
+    }
+
+    function rebuildAnalysis() {
+      const panel = document.getElementById('analysisPanel');
+      const leverageOn = state.leverage.enabled;
+
+      panel.innerHTML = `
+        <div class="summary-cards">
+          <div class="summary-card">
+            <div class="card-label">ZOPA <span class="tooltip-icon" data-tip="Zone of Possible Agreement — the price range where both parties can reach a deal.">?</span></div>
+            <div class="card-value" id="val-zopa"></div>
+          </div>
+          <div class="summary-card">
+            <div class="card-label">Optimal Price <span class="tooltip-icon" data-tip="The recommended deal price, calculated as the midpoint of the ZOPA (or adjusted by leverage weighting).">?</span></div>
+            <div class="card-value" id="val-optimal"></div>
+          </div>
+          <div class="summary-card">
+            <div class="card-label">Split Ratio <span class="tooltip-icon" data-tip="How the negotiation surplus is distributed between the two parties relative to their walk-away positions.">?</span></div>
+            <div class="card-value" id="val-split"></div>
+          </div>
+        </div>
+        <div class="leverage-section">
+          <div class="leverage-toggle">
+            <div class="toggle-switch ${leverageOn ? 'on' : ''}" role="switch" tabindex="0" aria-checked="${leverageOn}" onclick="toggleLeverage()" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleLeverage()}">
+              <div class="toggle-knob"></div>
+            </div>
+            <span>Apply Leverage Weighting</span>
+            <span class="tooltip-icon" data-tip="Leverage reflects negotiating power — information advantage, alternatives strength, time pressure, or urgency. Drag the slider to shift the optimal price toward the party with more leverage.">?</span>
+          </div>
+          <div id="leverageControls" style="display:${leverageOn ? 'block' : 'none'}">
+            <div class="leverage-slider-row">
+              <span id="lev-name-a"></span>
+              <input type="range" min="0" max="100" id="leverageSlider"
+                aria-label="Leverage weighting"
+                oninput="setLeverage(+this.value/100)">
+              <span id="lev-name-b"></span>
+              <span id="lev-pct-label" style="min-width:120px;text-align:center;font-size:var(--font-size-xs)"></span>
+            </div>
+            <div class="leverage-hint">
+              Drag toward a party to give them more leverage (price moves in their favor)
+            </div>
+          </div>
+        </div>
+        <div class="insight-box" id="insightBox"></div>
+      `;
+
+      updateAnalysisValues();
+    }
+
+    function updateAnalysisValues() {
+      const zopa = calcZOPA();
+      const optimal = calcOptimalPrice(zopa);
+
+      const elZopa = document.getElementById('val-zopa');
+      const elOptimal = document.getElementById('val-optimal');
+      const elSplit = document.getElementById('val-split');
+      const elInsight = document.getElementById('insightBox');
+
+      if (!elZopa) return;
+
+      if (zopa.exists) {
+        elZopa.textContent = `${formatPrice(zopa.min)} – ${formatPrice(zopa.max)}`;
+        elOptimal.textContent = formatPrice(optimal);
+        const surplusA = state.partyA.values[state.mode === 'mtm' ? 'max' : 'walkaway'] - optimal;
+        const surplusB = optimal - state.partyB.values[state.mode === 'mtm' ? 'min' : 'walkaway'];
+        const totalSurplus = surplusA + surplusB;
+        elSplit.textContent = totalSurplus > 0
+          ? `${escapeHtml(state.partyA.name)}: ${(surplusA / totalSurplus * 100).toFixed(0)}%`
+          : 'Even split';
+      } else {
+        elZopa.textContent = `No overlap (gap: ${formatPrice(zopa.gap)})`;
+        elOptimal.textContent = '—';
+        elSplit.textContent = '—';
+      }
+
+      const leveragePct = (state.leverage.weight * 100).toFixed(0);
+      const slider = document.getElementById('leverageSlider');
+      if (slider) slider.value = leveragePct;
+      const levNameA = document.getElementById('lev-name-a');
+      const levNameB = document.getElementById('lev-name-b');
+      const levPct = document.getElementById('lev-pct-label');
+      if (levNameA) levNameA.textContent = state.partyA.name;
+      if (levNameB) levNameB.textContent = state.partyB.name;
+      if (levPct) levPct.textContent = `${state.partyA.name}: ${100 - leveragePct}% / ${state.partyB.name}: ${leveragePct}%`;
+
+      if (elInsight) elInsight.innerHTML = generateInsight(zopa, optimal);
+    }
+
+    function updateAnalysis(zopa, optimal) {
+      const panel = document.getElementById('analysisPanel');
+      if (!panel.querySelector('#val-zopa')) {
+        rebuildAnalysis();
+      } else {
+        updateAnalysisValues();
+      }
+    }
+
+    /* ── Persistence ── */
+    function saveState() {
+      localStorage.setItem('batna-pricing-state', JSON.stringify(state));
+    }
+
+    function loadState() {
+      const saved = localStorage.getItem('batna-pricing-state');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (typeof parsed !== 'object' || parsed === null) return;
+          if (parsed.mode && MODES[parsed.mode]) state.mode = parsed.mode;
+          if (typeof parsed.rangeMin === 'number' && isFinite(parsed.rangeMin)) state.rangeMin = parsed.rangeMin;
+          if (typeof parsed.rangeMax === 'number' && isFinite(parsed.rangeMax)) state.rangeMax = parsed.rangeMax;
+          if (state.rangeMin >= state.rangeMax) { state.rangeMin = 0; state.rangeMax = 1000; }
+          if (typeof parsed.introExpanded === 'boolean') state.introExpanded = parsed.introExpanded;
+          if (typeof parsed.refsExpanded === 'boolean') state.refsExpanded = parsed.refsExpanded;
+          if (typeof parsed.darkMode === 'boolean') state.darkMode = parsed.darkMode;
+          if (typeof parsed.showExplanations === 'boolean') state.showExplanations = parsed.showExplanations;
+          if (typeof parsed.showConcepts === 'boolean') state.showConcepts = parsed.showConcepts;
+          if (typeof parsed.showTheory === 'boolean') state.showTheory = parsed.showTheory;
+          if (typeof parsed.showReferences === 'boolean') state.showReferences = parsed.showReferences;
+          if (typeof parsed.conceptsExpanded === 'boolean') state.conceptsExpanded = parsed.conceptsExpanded;
+          if (typeof parsed.theoryExpanded === 'boolean') state.theoryExpanded = parsed.theoryExpanded;
+          if (parsed.partyA && typeof parsed.partyA === 'object') {
+            if (typeof parsed.partyA.name === 'string') state.partyA.name = parsed.partyA.name;
+            if (parsed.partyA.values && typeof parsed.partyA.values === 'object') state.partyA.values = parsed.partyA.values;
+          }
+          if (parsed.partyB && typeof parsed.partyB === 'object') {
+            if (typeof parsed.partyB.name === 'string') state.partyB.name = parsed.partyB.name;
+            if (parsed.partyB.values && typeof parsed.partyB.values === 'object') state.partyB.values = parsed.partyB.values;
+          }
+          if (parsed.leverage && typeof parsed.leverage === 'object') {
+            if (typeof parsed.leverage.enabled === 'boolean') state.leverage.enabled = parsed.leverage.enabled;
+            if (typeof parsed.leverage.weight === 'number' && isFinite(parsed.leverage.weight)) state.leverage.weight = Math.max(0, Math.min(1, parsed.leverage.weight));
+          }
+        } catch (e) { /* corrupted — use defaults */ }
+      }
+    }
+
+    function clearAllData() {
+      if (!confirm('Clear all data and reset to defaults?')) return;
+      localStorage.removeItem('batna-pricing-state');
+      const defaults = getDefaultState();
+      Object.keys(state).forEach(k => delete state[k]);
+      Object.assign(state, defaults);
+      closeSettings();
+      init();
+    }
+
+    /* ── Init ── */
+    function init() {
+      loadState();
+
+      applyTheme();
+      applyExplanations();
+      applyShowConcepts();
+      applyShowTheory();
+      applyShowRefs();
+      renderModePills();
+
+      document.getElementById('introBody').classList.toggle('collapsed', !state.introExpanded);
+      document.getElementById('introChevron').classList.toggle('collapsed', !state.introExpanded);
+      document.querySelector('#introPanel .intro-header').setAttribute('aria-expanded', state.introExpanded);
+
+      document.getElementById('conceptsBody').classList.toggle('collapsed', !state.conceptsExpanded);
+      document.getElementById('conceptsChevron').classList.toggle('collapsed', !state.conceptsExpanded);
+      document.querySelector('#conceptsPanel .intro-header').setAttribute('aria-expanded', state.conceptsExpanded);
+
+      document.getElementById('theoryBody').classList.toggle('collapsed', !state.theoryExpanded);
+      document.getElementById('theoryChevron').classList.toggle('collapsed', !state.theoryExpanded);
+      document.querySelector('#theoryPanel .intro-header').setAttribute('aria-expanded', state.theoryExpanded);
+
+      document.getElementById('refsBody').classList.toggle('collapsed', !state.refsExpanded);
+      document.getElementById('refsChevron').classList.toggle('collapsed', !state.refsExpanded);
+      document.querySelector('#refsPanel .intro-header').setAttribute('aria-expanded', state.refsExpanded);
+
+      MODES[state.mode].fields.forEach(f => {
+        if (state.partyA.values[f] === undefined || !isFinite(state.partyA.values[f])) state.partyA.values[f] = 0;
+        if (state.partyB.values[f] === undefined || !isFinite(state.partyB.values[f])) state.partyB.values[f] = 0;
+        state.partyA.values[f] = Math.max(state.rangeMin, Math.min(state.rangeMax, state.partyA.values[f]));
+        state.partyB.values[f] = Math.max(state.rangeMin, Math.min(state.rangeMax, state.partyB.values[f]));
+      });
+
+      renderInputPanel();
+      updateViz();
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeSettings();
+    });
+  </script>
+</body>
+</html>
