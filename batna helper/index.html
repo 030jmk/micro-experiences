@@ -103,6 +103,8 @@
     /* ── Reset & Base ── */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    html { overflow-x: hidden; }
+
     body {
       background: var(--bg-primary);
       color: var(--text-primary);
@@ -110,6 +112,7 @@
       font-size: var(--font-size-base);
       line-height: 1.5;
       min-height: 100vh;
+      overflow-x: hidden;
       transition: background var(--transition-base), color var(--transition-base);
       -webkit-font-smoothing: antialiased;
     }
@@ -374,7 +377,7 @@
     .ref-list a:hover { text-decoration: underline; }
 
     /* ── Main content ── */
-    .main-content { padding: var(--spacing-6); max-width: 960px; margin: 0 auto; }
+    .main-content { padding: var(--spacing-6); max-width: 960px; margin: 0 auto; overflow-x: hidden; }
 
     .section-title {
       font-size: var(--font-size-md);
@@ -556,7 +559,8 @@
       position: absolute;
       pointer-events: none;
       opacity: 0;
-      transition: opacity var(--transition-fast);
+      visibility: hidden;
+      transition: opacity var(--transition-fast), visibility var(--transition-fast);
       z-index: 50;
     }
 
@@ -578,7 +582,7 @@
       border-radius: var(--radius-2);
       white-space: normal;
       width: max-content;
-      max-width: 260px;
+      max-width: min(260px, 80vw);
       box-shadow: 0 4px 16px rgba(0,0,0,0.2);
     }
 
@@ -592,7 +596,7 @@
     }
 
     .tooltip-icon:hover::before,
-    .tooltip-icon:hover::after { opacity: 1; }
+    .tooltip-icon:hover::after { opacity: 1; visibility: visible; }
 
     .warning-text { color: var(--pwc-orange); font-size: var(--font-size-xs); min-height: 16px; margin-top: var(--spacing-2); }
 
@@ -605,10 +609,11 @@
       border: 1px solid var(--border);
       box-shadow: var(--shadow-sm);
       padding: var(--spacing-4) 0;
+      overflow: hidden;
       transition: all var(--transition-base);
     }
 
-    .viz-plot { position: relative; height: 180px; margin: 0 40px; }
+    .viz-plot { position: relative; height: 180px; margin: 0 clamp(16px, 5vw, 40px); }
     .viz-axis { position: absolute; left: 0; right: 0; top: 100px; height: 2px; background: var(--border); }
 
     .viz-tick { position: absolute; top: 94px; transform: translateX(-50%); }
