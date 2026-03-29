@@ -72,6 +72,10 @@
   .leaflet-popup-close-button{color:var(--muted)!important;}
   .lp-name{font-weight:500;font-size:13px;margin-bottom:2px;}
   .lp-km{font-family:'DM Mono',monospace;font-size:10px;color:var(--route);}
+  .lp-coords{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);margin-top:2px;}
+  .lp-coords a{color:var(--walk);text-decoration:none;transition:color .15s;}
+  .lp-coords a:hover{color:var(--text);text-decoration:underline;}
+  .lp-addr{font-size:10px;color:var(--muted);margin-top:1px;line-height:1.4;max-width:220px;}
   .lp-del{font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;margin-top:6px;transition:all .15s;}
   .lp-del:hover{border-color:var(--red);color:var(--red);}
 
@@ -352,6 +356,17 @@
           </div>
         </div>
         <div id="osrmStatus" class="settings-status" style="display:none"></div>
+        <div class="settings-row" style="margin-top:6px;">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Address lookup</div>
+            <div class="settings-row-desc">Use Nominatim (OpenStreetMap) to resolve spot coordinates to street addresses. Requires internet.</div>
+          </div>
+          <div class="toggle-track" id="nominatimToggle" role="switch" tabindex="0"
+            onclick="toggleNominatim()"
+            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNominatim()}">
+            <div class="toggle-knob"></div>
+          </div>
+        </div>
       </div>
       <div>
         <div class="settings-section-title">Display</div>
@@ -381,6 +396,21 @@
         </div>
       </div>
       <div>
+        <div class="settings-section-title">Map Links in Popups</div>
+        <div class="settings-row">
+          <div class="settings-row-info">
+            <div class="settings-row-label">Navigation service</div>
+            <div class="settings-row-desc">Show a link in each cheer spot popup to open the location in an external map.</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">
+          <button class="mp-btn active" id="maplink-google" onclick="setMapLinkService('google')">Google</button>
+          <button class="mp-btn" id="maplink-apple" onclick="setMapLinkService('apple')">Apple</button>
+          <button class="mp-btn" id="maplink-bing" onclick="setMapLinkService('bing')">Bing</button>
+          <button class="mp-btn" id="maplink-none" onclick="setMapLinkService('none')">Off</button>
+        </div>
+      </div>
+      <div>
         <div class="settings-section-title">Colors</div>
         <div class="color-row"><span class="color-row-label">Race track</span><input type="color" class="color-swatch" id="colTrack" value="#e8ff47" onchange="setColor('route',this.value)"></div>
         <div class="color-row"><span class="color-row-label">Cheer spots</span><input type="color" class="color-swatch" id="colCheer" value="#ff6b35" onchange="setColor('cheer',this.value)"></div>
@@ -396,13 +426,13 @@
       <div style="padding-top:16px;border-top:1px solid var(--border);margin-top:8px;">
         <div style="font-size:11px;color:var(--muted);line-height:1.6;">
           <p style="margin-bottom:8px;">This is a small side project, built for family and friends to make race-day cheering a little easier to plan.</p>
-          <p style="margin-bottom:8px;">It comes with a few rough edges: travel times between spots are estimates (straight-line unless you enable OSRM routing), and GPX import works best with simple single-track files. Everything runs in your browser and nothing is sent to a server unless you enable street-level routing, which sends spot coordinates to OSRM for route calculation.</p>
+          <p style="margin-bottom:8px;">It comes with a few rough edges: travel times between spots are estimates (straight-line unless you enable OSRM routing), and GPX import works best with simple single-track files. Everything runs in your browser and nothing is sent to a server unless you enable address lookup (Nominatim) or street-level routing (OSRM), which send spot coordinates to those services.</p>
           <p style="margin-bottom:6px;">If something feels off or you have an idea for what to add, I would love to hear it:</p>
           <p style="margin-bottom:4px;"><a href="https://www.linkedin.com/in/kopankiewicz" target="_blank" style="color:var(--route);text-decoration:none;">LinkedIn</a> · <a href="https://www.instagram.com/jan.kopankiewicz" target="_blank" style="color:var(--route);text-decoration:none;">Instagram</a></p>
         </div>
         <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);">
           <p style="margin-bottom:8px;">Das hier ist ein kleines Nebenprojekt, gebaut für Familie und Freunde, um das Anfeuern am Renntag etwas einfacher zu planen.</p>
-          <p style="margin-bottom:8px;">Es hat ein paar Ecken und Kanten: Reisezeiten zwischen den Spots sind Schätzungen (Luftlinie, außer wenn OSRM-Routing aktiviert ist), und GPX-Import funktioniert am besten mit einfachen Einzeltrack-Dateien. Alles läuft im Browser und es werden keine Daten an einen Server gesendet, außer wenn das straßenbasierte Routing aktiviert ist. Dann werden die Spot-Koordinaten an OSRM zur Routenberechnung gesendet.</p>
+          <p style="margin-bottom:8px;">Es hat ein paar Ecken und Kanten: Reisezeiten zwischen den Spots sind Schätzungen (Luftlinie, außer wenn OSRM-Routing aktiviert ist), und GPX-Import funktioniert am besten mit einfachen Einzeltrack-Dateien. Alles läuft im Browser und es werden keine Daten an einen Server gesendet, außer wenn die Adresssuche (Nominatim) oder das straßenbasierte Routing (OSRM) aktiviert sind. Dann werden Spot-Koordinaten an diese Dienste gesendet.</p>
           <p style="margin-bottom:6px;">Falls etwas nicht passt oder du eine Idee hast, was man verbessern könnte, freue ich mich über eine Nachricht:</p>
           <p style="margin-bottom:4px;"><a href="https://www.linkedin.com/in/kopankiewicz" target="_blank" style="color:var(--route);text-decoration:none;">LinkedIn</a> · <a href="https://www.instagram.com/jan.kopankiewicz" target="_blank" style="color:var(--route);text-decoration:none;">Instagram</a></p>
         </div>
@@ -414,6 +444,7 @@
           <p><a href="https://carto.com/basemaps" target="_blank" style="color:var(--muted);text-decoration:none;">CARTO</a> · Dark and Voyager map tiles</p>
           <p><a href="https://www.openstreetmap.org" target="_blank" style="color:var(--muted);text-decoration:none;">OpenStreetMap</a> · OSM map tiles and data</p>
           <p><a href="https://opentopomap.org" target="_blank" style="color:var(--muted);text-decoration:none;">OpenTopoMap</a> · Topographic map tiles</p>
+          <p><a href="https://nominatim.org" target="_blank" style="color:var(--muted);text-decoration:none;">Nominatim</a> · Reverse geocoding / address lookup (opt-in)</p>
           <p><a href="https://project-osrm.org" target="_blank" style="color:var(--muted);text-decoration:none;">OSRM</a> · Street routing (opt-in)</p>
         </div>
       </div>
@@ -681,6 +712,121 @@ function toggleVisibility(key) {
   }
   if (key === 'connectors') renderSpotConnectors();
 }
+
+// ── MAP LINK SERVICE ─────────────────────────────────────────────────────
+let mapLinkService = 'google';
+
+function loadMapLinkService() {
+  try {
+    const saved = localStorage.getItem('cheer_maplink');
+    if (saved && ['google','apple','bing','none'].includes(saved)) mapLinkService = saved;
+  } catch(e) {}
+}
+
+function applyMapLinkToggle() {
+  ['google','apple','bing','none'].forEach(k => {
+    const btn = document.getElementById('maplink-' + k);
+    if (btn) btn.classList.toggle('active', mapLinkService === k);
+  });
+}
+
+function setMapLinkService(service) {
+  mapLinkService = service;
+  applyMapLinkToggle();
+  try { localStorage.setItem('cheer_maplink', service); } catch(e) {}
+  refreshAllPopups();
+}
+
+function mapLinkUrl(lat, lon) {
+  const la = lat.toFixed(6), lo = lon.toFixed(6);
+  switch (mapLinkService) {
+    case 'google': return `https://www.google.com/maps/search/?api=1&query=${la},${lo}`;
+    case 'apple':  return `https://maps.apple.com/?ll=${la},${lo}&q=${la},${lo}`;
+    case 'bing':   return `https://www.bing.com/maps?cp=${la}~${lo}&lvl=17&sp=point.${la}_${lo}`;
+    default:       return null;
+  }
+}
+
+const SERVICE_LABELS = { google: 'Google Maps', apple: 'Apple Maps', bing: 'Bing Maps' };
+
+// ── NOMINATIM REVERSE GEOCODING ──────────────────────────────────────────
+let nominatimEnabled = false;
+const geocodeCache = new Map();
+let geocodeQueue = Promise.resolve();
+
+function toggleNominatim() {
+  nominatimEnabled = !nominatimEnabled;
+  const toggle = document.getElementById('nominatimToggle');
+  toggle.classList.toggle('on', nominatimEnabled);
+  toggle.setAttribute('aria-checked', nominatimEnabled);
+  try { localStorage.setItem('cheer_nominatim_enabled', nominatimEnabled ? '1' : '0'); } catch(e) {}
+  if (nominatimEnabled) {
+    cheerSpots.forEach(s => { if (!s.address) geocodeSpot(s); });
+  } else {
+    cheerSpots.forEach(s => { s.address = null; s.marker.setPopupContent(buildPopupHtml(s)); });
+  }
+}
+
+function restoreNominatimSetting() {
+  try {
+    const saved = localStorage.getItem('cheer_nominatim_enabled');
+    if (saved !== null) nominatimEnabled = saved === '1';
+    const toggle = document.getElementById('nominatimToggle');
+    toggle.classList.toggle('on', nominatimEnabled);
+    toggle.setAttribute('aria-checked', nominatimEnabled);
+  } catch(e) {}
+}
+
+function geocodeCacheKey(lat, lon) {
+  return `${lat.toFixed(5)},${lon.toFixed(5)}`;
+}
+
+function reverseGeocode(lat, lon) {
+  if (!nominatimEnabled) return Promise.resolve(null);
+  const key = geocodeCacheKey(lat, lon);
+  if (geocodeCache.has(key)) return Promise.resolve(geocodeCache.get(key));
+  geocodeQueue = geocodeQueue.then(() => new Promise(resolve => setTimeout(resolve, 1100)));
+  return geocodeQueue.then(() =>
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=18&addressdetails=1`, {
+      headers: { 'Accept-Language': 'en', 'User-Agent': 'CheerPlanner/1.0' }
+    })
+    .then(r => r.json())
+    .then(data => {
+      const addr = data.display_name || null;
+      geocodeCache.set(key, addr);
+      return addr;
+    })
+    .catch(() => null)
+  );
+}
+
+function geocodeSpot(spot) {
+  if (!nominatimEnabled) return;
+  reverseGeocode(spot.lat, spot.lon).then(addr => {
+    spot.address = addr || null;
+    spot.marker.setPopupContent(buildPopupHtml(spot));
+  });
+}
+
+function mapLinkHtml(lat, lon, address) {
+  const url = mapLinkUrl(lat, lon);
+  const coordStr = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+  let html = `<div class="lp-coords">${coordStr}</div>`;
+  if (address) html += `<div class="lp-addr">${address}</div>`;
+  if (url) html += `<div class="lp-coords"><a href="${url}" target="_blank" rel="noopener">Open in ${SERVICE_LABELS[mapLinkService]}</a></div>`;
+  return html;
+}
+
+function refreshAllPopups() {
+  cheerSpots.forEach(s => {
+    s.marker.setPopupContent(buildPopupHtml(s));
+  });
+}
+
+function buildPopupHtml(s) {
+  return `<div class="lp-name">${s.name}</div><div class="lp-km">≈ km ${s.km}</div>${mapLinkHtml(s.lat, s.lon, s.address)}<button class="lp-del" onclick="deleteSpot(${s.id});this.closest('.leaflet-popup').remove()">✕ Remove</button>`;
+}
+window.setMapLinkService = setMapLinkService;
 
 // ── COLOR CUSTOMIZATION ──────────────────────────────────────────────────
 const DEFAULT_COLORS = { route: '#e8ff47', cheer: '#ff6b35', walk: '#60a5fa', bike: '#a78bfa', km: '#ffffff', cheerOpacity: 100, kmOpacity: 20 };
@@ -1211,10 +1357,13 @@ loadVisibility();
 applyVisibilityToggles();
 loadColors();
 applyColors();
+loadMapLinkService();
+applyMapLinkToggle();
 loadCustomRoutes();
 populateRouteSelect();
 drawRoute(BERLIN_HM);
 restoreOSRMSetting();
+restoreNominatimSetting();
 
 loadBundledRoutes().then(() => {
   populateRouteSelect();
@@ -1277,20 +1426,19 @@ function addSpot(lat,lon,name,id) {
   const spotName = name||`Spot ${num}`;
 
   const marker=L.marker([lat,lon],{icon:mkCheerIcon(num),draggable:true,zIndexOffset:500}).addTo(map);
-  const spot={id:sid,lat,lon,name:spotName,marker,km,num};
+  const spot={id:sid,lat,lon,name:spotName,marker,km,num,address:null};
   cheerSpots.push(spot);
 
-  const mkPopup=()=>`
-    <div class="lp-name">${spot.name}</div>
-    <div class="lp-km">≈ km ${spot.km}</div>
-    <button class="lp-del" onclick="deleteSpot(${sid});this.closest('.leaflet-popup').remove()">✕ Remove</button>`;
-  marker.bindPopup(mkPopup());
+  marker.bindPopup(buildPopupHtml(spot));
   marker.on('click',()=>marker.openPopup());
+  geocodeSpot(spot);
 
   marker.on('dragend',e=>{
     const ll=e.target.getLatLng();
     spot.lat=ll.lat; spot.lon=ll.lng; spot.km=nearKm(ll.lat,ll.lng);
-    marker.setPopupContent(mkPopup());
+    spot.address=null;
+    marker.setPopupContent(buildPopupHtml(spot));
+    geocodeSpot(spot);
     renderTravelLines(); renderSpotConnectors(); renderTimeline(); autoSave();
   });
 
@@ -1341,7 +1489,7 @@ function deleteSpot(id) {
     const oldNum=s.num; s.num=i+1;
     s.marker.setIcon(mkCheerIcon(i+1));
     if(s.name===`Spot ${oldNum}`) s.name=`Spot ${s.num}`;
-    s.marker.setPopupContent(`<div class="lp-name">${s.name}</div><div class="lp-km">≈ km ${s.km}</div><button class="lp-del" onclick="deleteSpot(${s.id});this.closest('.leaflet-popup').remove()">✕ Remove</button>`);
+    s.marker.setPopupContent(buildPopupHtml(s));
   });
   renderTravelLines(); renderSpotConnectors(); renderTimeline(); autoSave();
   if(!cheerSpots.length) document.getElementById('mapHint').style.opacity='1';
@@ -1475,8 +1623,8 @@ async function updateTimelineWithOSRM(sorted, version, rs, pace, mc, mi) {
 function flyTo(id){const s=cheerSpots.find(s=>s.id===id);if(s)map.flyTo([s.lat,s.lon],Math.max(map.getZoom(),15),{duration:.8});}
 function updateName(id,val){
   const s=cheerSpots.find(s=>s.id===id); if(!s)return;
-  s.name=val;
-  s.marker.setPopupContent(`<div class="lp-name">${val||'Spot '+s.num}</div><div class="lp-km">≈ km ${s.km}</div><button class="lp-del" onclick="deleteSpot(${id});this.closest('.leaflet-popup').remove()">✕ Remove</button>`);
+  s.name=val||'Spot '+s.num;
+  s.marker.setPopupContent(buildPopupHtml(s));
   autoSave();
 }
 window.flyTo=flyTo; window.updateName=updateName;
@@ -1598,7 +1746,7 @@ function buildScheduleText() {
   return txt;
 }
 
-function buildICS() {
+async function buildICS() {
   const total=parseInt(document.getElementById('finishSlider').value);
   const rs=parseInt(document.getElementById('startSlider').value);
   const dist=activeRoute?activeRoute.distance:21.1;
@@ -1606,14 +1754,20 @@ function buildICS() {
   const rDate=activeRoute&&activeRoute.date?activeRoute.date.replace(/-/g,''):'20260330';
   const rId=activeRoute?activeRoute.id:'race';
   const sorted=[...cheerSpots].sort((a,b)=>a.km-b.km);
+  for (const s of sorted) {
+    if (!s.address) s.address = await reverseGeocode(s.lat, s.lon);
+  }
   let ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Cheer Planner//EN\r\nCALSCALE:GREGORIAN\r\n`;
   sorted.forEach((s,i)=>{
     const at=rs+Math.round(s.km*pace);
     const h=String(Math.floor(at/60)).padStart(2,'0'), m=String(at%60).padStart(2,'0');
     const uid=`cheerspot-${i+1}-@${rId}`;
+    const loc = s.address || `${s.lat.toFixed(6)}, ${s.lon.toFixed(6)}`;
+    const mapUrl = mapLinkUrl(s.lat, s.lon);
+    const mapLine = mapUrl ? `\\nMap: ${mapUrl}` : '';
     ics+=`BEGIN:VEVENT\r\nUID:${uid}\r\nSUMMARY:Cheer: ${s.name} (km ${s.km})\r\n`;
     ics+=`DTSTART:${rDate}T${h}${m}00\r\nDTEND:${rDate}T${h}${String(Math.min(parseInt(m)+5,59)).padStart(2,'0')}00\r\n`;
-    ics+=`LOCATION:${s.lat},${s.lon}\r\nDESCRIPTION:Runner arrives ~${h}:${m}. Travel ${travelMode} @ ${getSpd()} km/h.\r\nEND:VEVENT\r\n`;
+    ics+=`LOCATION:${loc}\r\nDESCRIPTION:Runner arrives ~${h}:${m}. Travel ${travelMode} @ ${getSpd()} km/h.${mapLine}\r\nEND:VEVENT\r\n`;
   });
   ics+='END:VCALENDAR';
   return ics;
@@ -1687,7 +1841,7 @@ function updatePreview() {
   const pre=document.getElementById('exportPreview');
   if(exportFmt==='json')   pre.textContent=JSON.stringify(getState(),null,2);
   else if(exportFmt==='txt') pre.textContent=buildScheduleText();
-  else if(exportFmt==='ics') pre.textContent=buildICS();
+  else if(exportFmt==='ics') { pre.textContent='Loading addresses...'; buildICS().then(t => pre.textContent = t); }
   else if(exportFmt==='print') pre.textContent='Opens browser print dialog.\nRoute map + schedule will print.';
 }
 
@@ -1698,7 +1852,8 @@ window.doExport=function(){
   } else if(exportFmt==='txt'){
     dl(buildScheduleText(),slug+'-schedule.txt','text/plain');
   } else if(exportFmt==='ics'){
-    dl(buildICS(),slug+'.ics','text/calendar');
+    buildICS().then(ics => dl(ics,slug+'.ics','text/calendar'));
+    return;
   } else if(exportFmt==='print'){
     closeExport(); buildPrintSheet().then(()=>setTimeout(()=>window.print(),200));
   }
