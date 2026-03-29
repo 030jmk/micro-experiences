@@ -604,6 +604,10 @@ function osrmCacheKey(a, b) {
   return `${a.lat.toFixed(5)},${a.lon.toFixed(5)}>${b.lat.toFixed(5)},${b.lon.toFixed(5)}:${travelMode}`;
 }
 
+function osrmDuration(distKm) {
+  return Math.round((distKm / getSpd()) * 60);
+}
+
 async function fetchOSRMRoute(a, b) {
   const key = osrmCacheKey(a, b);
   if (osrmCache.has(key)) return osrmCache.get(key);
@@ -615,7 +619,6 @@ async function fetchOSRMRoute(a, b) {
     if (data.code === 'Ok' && data.routes && data.routes.length) {
       const route = data.routes[0];
       const result = {
-        duration: Math.round(route.duration / 60),
         distance: Math.round(route.distance) / 1000,
         geometry: decodePolyline(route.geometry)
       };
@@ -776,7 +779,7 @@ function getCachedOSRM(a, b) {
 async function getTravelInfo(a, b) {
   if (osrmEnabled) {
     const route = await fetchOSRMRoute(a, b);
-    if (route) return { time: route.duration, dist: route.distance };
+    if (route) return { time: osrmDuration(route.distance), dist: route.distance };
   }
   return { time: travelT(a, b), dist: hvs(a.lat, a.lon, b.lat, b.lon) };
 }
@@ -1390,7 +1393,7 @@ function renderTimeline() {
     if(i>0){
       const prev=sorted[i-1], prevAt=rs+Math.round(prev.km*pace);
       const cached = getCachedOSRM(prev, spot);
-      const tt = cached ? cached.duration : travelT(prev,spot);
+      const tt = cached ? osrmDuration(cached.distance) : travelT(prev,spot);
       const d  = cached ? cached.distance : hvs(prev.lat,prev.lon,spot.lat,spot.lon);
       const buf=at-(prevAt+2+tt);
       bufH=buf>=8?`<span class="buf ok">~${buf} min spare ✓</span>`
@@ -1423,7 +1426,7 @@ function renderTimeline() {
   const last=sorted[sorted.length-1], lastAt=rs+Math.round(last.km*pace);
   const fin=getRouteFinish();
   const cachedFin = getCachedOSRM(last, fin);
-  const tt2f = cachedFin ? cachedFin.duration : travelT(last,fin);
+  const tt2f = cachedFin ? osrmDuration(cachedFin.distance) : travelT(last,fin);
   const finLabel=activeRoute?activeRoute.finishLabel:'Finish';
   const fr=document.createElement('div'); fr.className='tl-stop';
   fr.innerHTML=`
@@ -1449,10 +1452,11 @@ async function updateTimelineWithOSRM(sorted, version, rs, pace, mc, mi) {
     if (!route) continue;
     const prevAt = rs + Math.round(prev.km * pace);
     const at = rs + Math.round(spot.km * pace);
-    const buf = at - (prevAt + 2 + route.duration);
+    const tt = osrmDuration(route.distance);
+    const buf = at - (prevAt + 2 + tt);
     const segEl = document.getElementById(`seg-${i}`);
     const bufEl = document.getElementById(`buf-${i}`);
-    if (segEl) segEl.innerHTML = `<div class="seg-pip" style="background:${mc}"></div>📍 ~${route.duration} min · ${route.distance.toFixed(1)} km`;
+    if (segEl) segEl.innerHTML = `<div class="seg-pip" style="background:${mc}"></div>📍 ~${tt} min · ${route.distance.toFixed(1)} km`;
     if (bufEl) {
       bufEl.innerHTML = buf >= 8 ? `<span class="buf ok">~${buf} min spare ✓</span>`
         : buf >= 0 ? `<span class="buf warn">Tight! ${buf} min</span>`
@@ -1465,7 +1469,7 @@ async function updateTimelineWithOSRM(sorted, version, rs, pace, mc, mi) {
   const route = await fetchOSRMRoute(last, fin);
   if (version !== timelineRenderVersion || !route) return;
   const segFin = document.getElementById('seg-fin');
-  if (segFin) segFin.innerHTML = `<div class="seg-pip" style="background:${mc}"></div>📍 ~${route.duration} min from last spot`;
+  if (segFin) segFin.innerHTML = `<div class="seg-pip" style="background:${mc}"></div>📍 ~${osrmDuration(route.distance)} min from last spot`;
 }
 
 function flyTo(id){const s=cheerSpots.find(s=>s.id===id);if(s)map.flyTo([s.lat,s.lon],Math.max(map.getZoom(),15),{duration:.8});}
