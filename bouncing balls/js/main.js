@@ -14,22 +14,72 @@ let videoEl;
 
 const STORAGE_KEY = 'snb_settings';
 
-// ── Settings persistence ──
+// ── Settings persistence (URL params > localStorage) ──
+
+function gatherSettings() {
+    const s = {};
+    for (const el of document.querySelectorAll('#settings-panel [id^="opt-"]')) {
+        const key = el.id.replace('opt-', '');
+        if (el.type === 'checkbox') s[key] = el.checked ? '1' : '0';
+        else s[key] = el.value;
+    }
+    return s;
+}
 
 function loadSettings() {
+    const url = new URL(location.href);
+    const hasUrlParams = [...url.searchParams.keys()].some(k => k !== '');
+
+    if (hasUrlParams) {
+        const s = {};
+        for (const [key, val] of url.searchParams) {
+            s['opt-' + key] = val;
+        }
+        return s;
+    }
+
     try {
         const raw = localStorage.getItem(STORAGE_KEY);
         return raw ? JSON.parse(raw) : null;
     } catch { return null; }
 }
 
-function saveSettings() {
-    const s = {};
-    for (const el of document.querySelectorAll('#settings-panel [id^="opt-"]')) {
-        if (el.type === 'checkbox') s[el.id] = el.checked;
-        else s[el.id] = el.value;
+function applyLoadedSettings(saved) {
+    if (!saved) return;
+
+    const url = new URL(location.href);
+    const fromUrl = [...url.searchParams.keys()].some(k => k !== '');
+
+    for (const [id, rawVal] of Object.entries(saved)) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+
+        if (fromUrl) {
+            if (el.type === 'checkbox') el.checked = (rawVal === '1' || rawVal === 'true');
+            else el.value = rawVal;
+        } else {
+            if (el.type === 'checkbox') el.checked = rawVal;
+            else el.value = rawVal;
+        }
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(s));
+}
+
+function saveSettings() {
+    const s = gatherSettings();
+
+    const obj = {};
+    for (const el of document.querySelectorAll('#settings-panel [id^="opt-"]')) {
+        if (el.type === 'checkbox') obj[el.id] = el.checked;
+        else obj[el.id] = el.value;
+    }
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(obj));
+
+    const url = new URL(location.href);
+    url.search = '';
+    for (const [key, val] of Object.entries(s)) {
+        url.searchParams.set(key, val);
+    }
+    history.replaceState(null, '', url);
 }
 
 // ── Camera background rendering ──
@@ -183,10 +233,6 @@ function initSettings() {
     });
 
     document.getElementById('btn-close-settings').addEventListener('click', closeSettings);
-    document.getElementById('btn-calibrate').addEventListener('click', () => {
-        closeSettings();
-        calibration.start();
-    });
     document.getElementById('btn-clear-balls').addEventListener('click', () => {
         physics.removeAllBalls();
     });
@@ -255,10 +301,25 @@ function initSettings() {
     optMaxBalls.addEventListener('input', () => { applyMaxBalls(); saveSettings(); });
     optRestitution.addEventListener('input', () => { applyRestitution(); saveSettings(); });
 
+    // ── Ball Colors ──
+    function applyBallColors() {
+        for (let i = 0; i < 5; i++) {
+            const colorEl = document.getElementById(`opt-ball-color-${i}`);
+            const enabledEl = document.getElementById(`opt-ball-color-on-${i}`);
+            if (colorEl) CONFIG.BALL_COLORS[i] = colorEl.value;
+            if (enabledEl) CONFIG.BALL_COLORS_ENABLED[i] = enabledEl.checked;
+        }
+    }
+    for (let i = 0; i < 5; i++) {
+        const colorEl = document.getElementById(`opt-ball-color-${i}`);
+        const enabledEl = document.getElementById(`opt-ball-color-on-${i}`);
+        if (colorEl) colorEl.addEventListener('input', () => { applyBallColors(); saveSettings(); });
+        if (enabledEl) enabledEl.addEventListener('change', () => { applyBallColors(); saveSettings(); });
+    }
+
     // ── Detection Mode ──
     const optDetectMode = document.getElementById('opt-detect-mode');
     const trackingControls = document.getElementById('tracking-controls');
-    const bgSubControls = document.getElementById('bg-sub-controls');
     const optHandPadding = document.getElementById('opt-hand-padding');
     const optTrackingFps = document.getElementById('opt-tracking-fps');
 
@@ -268,9 +329,7 @@ function initSettings() {
 
     function applyDetectMode() {
         const mode = optDetectMode.value;
-        const isTracking = TRACKING_MODES.has(mode);
-        trackingControls.style.display = isTracking ? 'block' : 'none';
-        bgSubControls.style.display = mode === 'bg-sub' ? 'block' : 'none';
+        trackingControls.style.display = 'block';
         handControls.style.display = (mode === 'hands' || mode === 'hands+face') ? 'block' : 'none';
         switchDetectionMode(mode);
     }
@@ -310,99 +369,36 @@ function initSettings() {
     optHandPadding.addEventListener('input', () => { applyHandPadding(); saveSettings(); });
     optTrackingFps.addEventListener('input', () => { applyTrackingFps(); saveSettings(); });
 
-    // ── Bg Sub controls (only used if user switches to CV modes) ──
-    const btnCaptureRef = document.getElementById('btn-capture-ref');
-    const btnClearRef = document.getElementById('btn-clear-ref');
-    const refStatus = document.getElementById('ref-status');
+    // ── Projection Size Override ──
+    const optAutoSize = document.getElementById('opt-auto-size');
+    const manualControls = document.getElementById('manual-size-controls');
+    const optProjW = document.getElementById('opt-proj-width');
+    const optProjH = document.getElementById('opt-proj-height');
 
-    document.getElementById('opt-adaptive')?.addEventListener('change', () => {
-        if (!vision) return;
-        const on = document.getElementById('opt-adaptive').checked;
-        vision.useAdaptive = on;
-        document.getElementById('row-diff-threshold').style.display = on ? 'none' : 'flex';
-        document.getElementById('row-adaptive-block').style.display = on ? 'flex' : 'none';
-        document.getElementById('row-adaptive-c').style.display = on ? 'flex' : 'none';
-        saveSettings();
-    });
-
-    for (const [id, prop] of [
-        ['opt-diff-threshold', 'diffThreshold'],
-        ['opt-adaptive-block', 'adaptiveBlockSize'],
-        ['opt-adaptive-c', 'adaptiveC'],
-        ['opt-diff-blur', 'diffBlur'],
-        ['opt-dilate', 'dilateSize'],
-        ['opt-aspect', 'maxAspectRatio'],
-    ]) {
-        const el = document.getElementById(id);
-        const valEl = document.getElementById(id.replace('opt-', 'val-'));
-        if (el) el.addEventListener('input', () => {
-            if (valEl) valEl.textContent = el.value;
-            if (vision) vision[prop] = +el.value;
-            saveSettings();
-        });
-    }
-
-    const elLearnRate = document.getElementById('opt-learn-rate');
-    if (elLearnRate) elLearnRate.addEventListener('input', () => {
-        document.getElementById('val-learn-rate').textContent = elLearnRate.value + '%';
-        if (vision) vision.refLearnRate = +elLearnRate.value / 1000;
-        saveSettings();
-    });
-
-    btnCaptureRef?.addEventListener('click', () => {
-        if (vision && vision.captureReference()) {
-            refStatus.textContent = 'Reference captured ✓';
-            refStatus.style.color = '#5c5';
-            btnClearRef.disabled = false;
+    function applyAutoSize() {
+        const auto = optAutoSize.checked;
+        manualControls.style.display = auto ? 'none' : 'block';
+        if (auto) {
+            physics.resize(window.innerWidth, window.innerHeight);
+        } else {
+            applyManualSize();
         }
-    });
-
-    btnClearRef?.addEventListener('click', () => {
-        if (vision) vision.clearReference();
-        refStatus.textContent = 'No reference captured';
-        refStatus.style.color = '#666';
-        btnClearRef.disabled = true;
-    });
-
-    // ── Vision (shared) ──
-    for (const [id, key] of [
-        ['opt-smoothing', 'SMOOTHING_ALPHA'],
-        ['opt-min-area', 'MIN_CONTOUR_AREA'],
-        ['opt-hysteresis', 'HYSTERESIS_FRAMES'],
-    ]) {
-        const el = document.getElementById(id);
-        const valEl = document.getElementById(id.replace('opt-', 'val-'));
-        if (el) el.addEventListener('input', () => {
-            const v = id === 'opt-smoothing' ? el.value / 100 : +el.value;
-            if (valEl) valEl.textContent = id === 'opt-smoothing' ? v.toFixed(2) : el.value;
-            CONFIG[key] = v;
-            saveSettings();
-        });
+    }
+    function applyManualSize() {
+        const w = Math.max(320, +optProjW.value || 1920);
+        const h = Math.max(240, +optProjH.value || 1080);
+        physics.resize(w, h);
+        if (bridge) { bridge.tracked = []; }
+        physics.clearStickyBodies();
     }
 
-    // ── Debug ──
-    const optWireframes = document.getElementById('opt-wireframes');
-    const optDebug = document.getElementById('opt-debug');
+    optAutoSize.addEventListener('change', () => { applyAutoSize(); saveSettings(); });
+    optProjW.addEventListener('change', () => { if (!optAutoSize.checked) { applyManualSize(); saveSettings(); } });
+    optProjH.addEventListener('change', () => { if (!optAutoSize.checked) { applyManualSize(); saveSettings(); } });
 
-    optWireframes?.addEventListener('change', () => {
-        physics.setWireframes(optWireframes.checked);
-        saveSettings();
-    });
-    optDebug?.addEventListener('change', () => {
-        if (vision) vision.debugCanvas.style.display = optDebug.checked ? 'block' : 'none';
-        saveSettings();
-    });
-
-    // ── Restore saved settings ──
+    // ── Restore saved settings (URL params take priority over localStorage) ──
     const saved = loadSettings();
-    if (saved) {
-        for (const [id, val] of Object.entries(saved)) {
-            const el = document.getElementById(id);
-            if (!el) continue;
-            if (el.type === 'checkbox') el.checked = val;
-            else el.value = val;
-        }
-    }
+    applyLoadedSettings(saved);
 
     applyCameraBg();
     applyCameraOpacity();
@@ -412,23 +408,16 @@ function initSettings() {
     applySpawnRate();
     applyMaxBalls();
     applyRestitution();
+    applyBallColors();
     applyHandPadding();
     applyFingerThickness();
     applyMaxHands();
     applyShowOverlay();
     applyTrackingFps();
-    if (optWireframes) physics.setWireframes(optWireframes.checked);
-
-    // Update display values for vision sliders
-    for (const id of ['opt-smoothing', 'opt-min-area', 'opt-hysteresis']) {
-        const el = document.getElementById(id);
-        const valEl = document.getElementById(id.replace('opt-', 'val-'));
-        if (el && valEl) {
-            valEl.textContent = id === 'opt-smoothing' ? (el.value / 100).toFixed(2) : el.value;
-        }
-    }
-
+    applyAutoSize();
     applyDetectMode();
+
+    saveSettings();
 }
 
 // ── Bootstrap — starts immediately, no OpenCV dependency ──
@@ -472,6 +461,19 @@ async function boot() {
 
     restartSpawnTimer();
     initSettings();
+
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            const autoEl = document.getElementById('opt-auto-size');
+            if (!autoEl || autoEl.checked) {
+                physics.resize(window.innerWidth, window.innerHeight);
+                if (bridge) { bridge.tracked = []; }
+                physics.clearStickyBodies();
+            }
+        }, 150);
+    });
 
     document.addEventListener('keydown', (e) => {
         if (e.key === 'r' || e.key === 'R') physics.removeAllBalls();

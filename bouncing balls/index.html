@@ -67,18 +67,47 @@
                 <span class="val" id="val-restitution">0.7</span>
             </div>
 
-            <h2>Detection Mode</h2>
+            <div class="setting-row" style="margin-bottom:2px">
+                <label>Ball Colors</label>
+            </div>
+            <div class="ball-colors" id="ball-color-list">
+                <div class="ball-color-row">
+                    <input type="color" id="opt-ball-color-0" value="#4285F4">
+                    <span style="font-size:12px;color:#888;flex:1">Blue</span>
+                    <div class="ball-color-toggle"><input type="checkbox" id="opt-ball-color-on-0" checked><span class="mini-track"></span></div>
+                </div>
+                <div class="ball-color-row">
+                    <input type="color" id="opt-ball-color-1" value="#EA4335">
+                    <span style="font-size:12px;color:#888;flex:1">Red</span>
+                    <div class="ball-color-toggle"><input type="checkbox" id="opt-ball-color-on-1" checked><span class="mini-track"></span></div>
+                </div>
+                <div class="ball-color-row">
+                    <input type="color" id="opt-ball-color-2" value="#FBBC05">
+                    <span style="font-size:12px;color:#888;flex:1">Yellow</span>
+                    <div class="ball-color-toggle"><input type="checkbox" id="opt-ball-color-on-2" checked><span class="mini-track"></span></div>
+                </div>
+                <div class="ball-color-row">
+                    <input type="color" id="opt-ball-color-3" value="#34A853">
+                    <span style="font-size:12px;color:#888;flex:1">Green</span>
+                    <div class="ball-color-toggle"><input type="checkbox" id="opt-ball-color-on-3" checked><span class="mini-track"></span></div>
+                </div>
+                <div class="ball-color-row">
+                    <input type="color" id="opt-ball-color-4" value="#FF6644">
+                    <span style="font-size:12px;color:#888;flex:1">Orange</span>
+                    <div class="ball-color-toggle"><input type="checkbox" id="opt-ball-color-on-4" checked><span class="mini-track"></span></div>
+                </div>
+            </div>
+
+            <h2>Detection</h2>
             <div class="setting-row">
                 <label>Mode</label>
                 <select id="opt-detect-mode">
                     <option value="hands" selected>Hand Tracking</option>
                     <option value="face">Face Tracking</option>
                     <option value="hands+face">Hand + Face</option>
-                    <option value="bg-sub">Background Subtraction</option>
-                    <option value="hsv">HSV Color Detection</option>
                 </select>
             </div>
-            <div id="tracking-status" class="settings-hint" style="margin-top:4px;color:#666">Loading models…</div>
+            <div id="tracking-status" class="settings-hint" style="margin-top:4px;color:#666">Loading models...</div>
 
             <div id="tracking-controls" style="display:block">
                 <div class="setting-row">
@@ -112,91 +141,28 @@
                 </div>
             </div>
 
-            <div id="bg-sub-controls" style="display:none">
-                <div class="setting-row">
-                    <label>Adaptive Threshold</label>
-                    <div class="toggle">
-                        <input type="checkbox" id="opt-adaptive" checked>
-                        <span class="track"></span>
-                    </div>
-                </div>
-                <div class="setting-row" id="row-diff-threshold">
-                    <label>Diff Threshold</label>
-                    <input type="range" id="opt-diff-threshold" min="5" max="120" value="30">
-                    <span class="val" id="val-diff-threshold">30</span>
-                </div>
-                <div class="setting-row" id="row-adaptive-block">
-                    <label>Block Size</label>
-                    <input type="range" id="opt-adaptive-block" min="3" max="99" value="25" step="2">
-                    <span class="val" id="val-adaptive-block">25</span>
-                </div>
-                <div class="setting-row" id="row-adaptive-c">
-                    <label>Sensitivity (C)</label>
-                    <input type="range" id="opt-adaptive-c" min="1" max="30" value="8">
-                    <span class="val" id="val-adaptive-c">8</span>
-                </div>
-                <div class="setting-row">
-                    <label>Diff Blur</label>
-                    <input type="range" id="opt-diff-blur" min="1" max="31" value="11" step="2">
-                    <span class="val" id="val-diff-blur">11</span>
-                </div>
-                <div class="setting-row">
-                    <label>Dilate Size</label>
-                    <input type="range" id="opt-dilate" min="0" max="25" value="9" step="2">
-                    <span class="val" id="val-dilate">9</span>
-                </div>
-                <div class="setting-row">
-                    <label>Max Aspect Ratio</label>
-                    <input type="range" id="opt-aspect" min="1" max="15" value="5">
-                    <span class="val" id="val-aspect">5</span>
-                </div>
-                <div class="setting-row">
-                    <label>Ref. Learn Rate</label>
-                    <input type="range" id="opt-learn-rate" min="0" max="50" value="0">
-                    <span class="val" id="val-learn-rate">0%</span>
-                </div>
-                <div class="setting-actions" style="margin-top:8px;padding-top:8px;border-top:none">
-                    <button id="btn-capture-ref">Capture Reference</button>
-                    <button id="btn-clear-ref" disabled>Clear Reference</button>
-                </div>
-                <div id="ref-status" class="settings-hint" style="margin-top:6px;color:#666">No reference captured</div>
-            </div>
-
-            <h2>Vision</h2>
+            <h2>Projection</h2>
             <div class="setting-row">
-                <label>Smoothing</label>
-                <input type="range" id="opt-smoothing" min="5" max="95" value="30">
-                <span class="val" id="val-smoothing">0.30</span>
-            </div>
-            <div class="setting-row">
-                <label>Min Contour Area</label>
-                <input type="range" id="opt-min-area" min="200" max="10000" value="2000" step="100">
-                <span class="val" id="val-min-area">2000</span>
-            </div>
-            <div class="setting-row">
-                <label>Hysteresis Frames</label>
-                <input type="range" id="opt-hysteresis" min="1" max="15" value="3">
-                <span class="val" id="val-hysteresis">3</span>
-            </div>
-
-            <h2>Debug</h2>
-            <div class="setting-row">
-                <label>Show Wireframes</label>
+                <label>Auto (use window size)</label>
                 <div class="toggle">
-                    <input type="checkbox" id="opt-wireframes">
+                    <input type="checkbox" id="opt-auto-size" checked>
                     <span class="track"></span>
                 </div>
             </div>
-            <div class="setting-row">
-                <label>Debug Mask View</label>
-                <div class="toggle">
-                    <input type="checkbox" id="opt-debug">
-                    <span class="track"></span>
+            <div id="manual-size-controls" style="display:none">
+                <div class="setting-row">
+                    <label>Width</label>
+                    <input type="number" id="opt-proj-width" min="320" max="7680" value="1920" style="width:80px;padding:4px 6px;background:#222;color:#ccc;border:1px solid #444;border-radius:6px;font-size:13px;text-align:right;">
+                    <span class="val">px</span>
+                </div>
+                <div class="setting-row">
+                    <label>Height</label>
+                    <input type="number" id="opt-proj-height" min="240" max="4320" value="1080" style="width:80px;padding:4px 6px;background:#222;color:#ccc;border:1px solid #444;border-radius:6px;font-size:13px;text-align:right;">
+                    <span class="val">px</span>
                 </div>
             </div>
 
             <div class="setting-actions">
-                <button id="btn-calibrate">Calibrate</button>
                 <button id="btn-clear-balls">Clear Balls</button>
                 <button class="primary" id="btn-close-settings">Close</button>
             </div>

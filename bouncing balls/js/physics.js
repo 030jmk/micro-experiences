@@ -8,6 +8,7 @@ export class PhysicsWorld {
         this.balls = [];
         this.stickyBodies = [];
         this.showOverlay = true;
+        this.walls = [];
 
         this.engine = Engine.create({
             gravity: CONFIG.GRAVITY
@@ -21,7 +22,7 @@ export class PhysicsWorld {
                 height: CONFIG.PROJECTION_HEIGHT,
                 wireframes: CONFIG.SHOW_WIREFRAMES,
                 background: CONFIG.BACKGROUND_COLOR,
-                pixelRatio: 'auto'
+                pixelRatio: window.devicePixelRatio || 1
             }
         });
         Render.run(this.render);
@@ -39,13 +40,35 @@ export class PhysicsWorld {
         const H = CONFIG.PROJECTION_HEIGHT;
         const T = 50;
 
-        const walls = [
+        this.walls = [
             Bodies.rectangle(W / 2, H + T + 100, W + 200, T, { isStatic: true, render: { visible: false } }),
             Bodies.rectangle(-T / 2, H / 2, T, H * 2, { isStatic: true, render: { visible: false } }),
             Bodies.rectangle(W + T / 2, H / 2, T, H * 2, { isStatic: true, render: { visible: false } }),
         ];
 
-        Composite.add(this.engine.world, walls);
+        Composite.add(this.engine.world, this.walls);
+    }
+
+    resize(w, h) {
+        CONFIG.PROJECTION_WIDTH = w;
+        CONFIG.PROJECTION_HEIGHT = h;
+
+        const pr = this.render.options.pixelRatio || window.devicePixelRatio || 1;
+        this.render.options.width = w;
+        this.render.options.height = h;
+        this.render.canvas.width = w * pr;
+        this.render.canvas.height = h * pr;
+        this.render.bounds.max.x = w;
+        this.render.bounds.max.y = h;
+
+        this.walls.forEach(wall => Composite.remove(this.engine.world, wall));
+        this._createBoundaries();
+    }
+
+    _pickBallColor() {
+        const active = CONFIG.BALL_COLORS.filter((_, i) => CONFIG.BALL_COLORS_ENABLED[i]);
+        if (active.length === 0) return CONFIG.BALL_FILL_STYLE;
+        return active[Math.floor(Math.random() * active.length)];
     }
 
     spawnBall() {
@@ -62,7 +85,7 @@ export class PhysicsWorld {
             restitution: CONFIG.BALL_RESTITUTION,
             friction: CONFIG.BALL_FRICTION,
             density: CONFIG.BALL_DENSITY,
-            render: { fillStyle: CONFIG.BALL_FILL_STYLE },
+            render: { fillStyle: this._pickBallColor() },
             label: 'ball'
         });
 

@@ -1,7 +1,7 @@
 export const CONFIG = {
-    // --- Display ---
-    PROJECTION_WIDTH: 1920,
-    PROJECTION_HEIGHT: 1080,
+    // --- Display (set dynamically on boot and resize) ---
+    PROJECTION_WIDTH: window.innerWidth,
+    PROJECTION_HEIGHT: window.innerHeight,
     BACKGROUND_COLOR: '#000000',
 
     // --- Camera ---
@@ -16,6 +16,8 @@ export const CONFIG = {
     BALL_FRICTION: 0.05,
     BALL_DENSITY: 0.001,
     BALL_FILL_STYLE: '#ff6644',
+    BALL_COLORS: ['#4285F4', '#EA4335', '#FBBC05', '#34A853', '#FF6644'],
+    BALL_COLORS_ENABLED: [true, true, true, true, true],
     BALL_SPAWN_INTERVAL_MS: 200,
     BALL_SPAWN_SPREAD: 0.8,
     MAX_BALLS: 150,

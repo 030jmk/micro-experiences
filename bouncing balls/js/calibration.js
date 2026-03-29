@@ -5,23 +5,26 @@ export class Calibration {
         this.canvas = document.getElementById(canvasId);
         this.ctx = this.canvas.getContext('2d');
         this.homography = null;
-
-        this.projPoints = [
-            { x: CONFIG.PROJECTION_WIDTH * 0.2, y: CONFIG.PROJECTION_HEIGHT * 0.2 },
-            { x: CONFIG.PROJECTION_WIDTH * 0.8, y: CONFIG.PROJECTION_HEIGHT * 0.2 },
-            { x: CONFIG.PROJECTION_WIDTH * 0.8, y: CONFIG.PROJECTION_HEIGHT * 0.8 },
-            { x: CONFIG.PROJECTION_WIDTH * 0.2, y: CONFIG.PROJECTION_HEIGHT * 0.8 },
-        ];
         this.camPoints = [];
         this.currentPoint = 0;
         this.active = false;
         this._boundOnClick = this._onClick.bind(this);
     }
 
+    _getProjPoints() {
+        return [
+            { x: CONFIG.PROJECTION_WIDTH * 0.2, y: CONFIG.PROJECTION_HEIGHT * 0.2 },
+            { x: CONFIG.PROJECTION_WIDTH * 0.8, y: CONFIG.PROJECTION_HEIGHT * 0.2 },
+            { x: CONFIG.PROJECTION_WIDTH * 0.8, y: CONFIG.PROJECTION_HEIGHT * 0.8 },
+            { x: CONFIG.PROJECTION_WIDTH * 0.2, y: CONFIG.PROJECTION_HEIGHT * 0.8 },
+        ];
+    }
+
     start() {
         this.canvas.style.display = 'block';
         this.canvas.width = CONFIG.PROJECTION_WIDTH;
         this.canvas.height = CONFIG.PROJECTION_HEIGHT;
+        this.projPoints = this._getProjPoints();
         this.camPoints = [];
         this.currentPoint = 0;
         this.active = true;

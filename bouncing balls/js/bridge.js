@@ -16,8 +16,9 @@ export class Bridge {
         const projH = CONFIG.PROJECTION_HEIGHT;
         const camW = this.cameraWidth;
         const camH = this.cameraHeight;
-        const scaleX = projW / camW;
-        const scaleY = projH / camH;
+        const scale = Math.max(projW / camW, projH / camH);
+        const offsetX = (projW - camW * scale) / 2;
+        const offsetY = (projH - camH * scale) / 2;
         const mirror = this.mirrorX;
 
         const projected = detectedBodies.map(d => {
@@ -25,12 +26,12 @@ export class Bridge {
             let cy = d.center.y;
             if (mirror) cx = camW - cx;
 
-            const projCenter = this._cameraToProjection(cx, cy, camW, camH, projW, projH);
+            const projCenter = this._cameraToProjection(cx, cy, camW, camH, projW, projH, scale, offsetX, offsetY);
 
             const projVerts = d.vertices
                 ? d.vertices.map(v => ({
-                    x: v.x * scaleX * (mirror ? -1 : 1),
-                    y: v.y * scaleY
+                    x: v.x * scale * (mirror ? -1 : 1),
+                    y: v.y * scale
                 }))
                 : null;
 
@@ -38,7 +39,7 @@ export class Bridge {
                 kind: d.kind || 'sticky',
                 center: projCenter,
                 vertices: projVerts,
-                size: d.size ? { width: d.size.width * scaleX, height: d.size.height * scaleY } : null,
+                size: d.size ? { width: d.size.width * scale, height: d.size.height * scale } : null,
                 angle: d.angle || 0
             };
         });
@@ -85,13 +86,13 @@ export class Bridge {
         return null;
     }
 
-    _cameraToProjection(cx, cy, camW, camH, projW, projH) {
+    _cameraToProjection(cx, cy, camW, camH, projW, projH, scale, offsetX, offsetY) {
         if (this.calibration && this.calibration.homography) {
             return this.calibration.transformPoint({ x: cx, y: cy });
         }
         return {
-            x: (cx / camW) * projW,
-            y: (cy / camH) * projH
+            x: cx * scale + offsetX,
+            y: cy * scale + offsetY
         };
     }
 }
