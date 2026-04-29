@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pollenradar: Meidezonen-Karte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+<style>
+:root {
+  --ink:#1a1208; --paper:#f5f0e8; --amber:#d4820a;
+  --amber-light:#f0b432; --red:#c0392b;
+  --mist:rgba(245,240,232,0.95); --shadow:0 4px 24px rgba(26,18,8,0.18);
+  --panel-w:262px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Inter',sans-serif;background:var(--ink);color:var(--ink);height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+
+/* HEADER */
+header{background:var(–ink);color:var(–paper);padding:9px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:2px solid var(–amber);z-index:1000;gap:12px;}
+h1{font-family:‘Source Serif 4’,serif;font-size:1.35rem;color:var(–amber-light);font-weight:600;}
+.subtitle{font-size:0.58rem;color:rgba(245,240,232,0.45);letter-spacing:.12em;text-transform:uppercase;}
+.hdr-center{display:flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:0;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#888;flex-shrink:0;transition:background .4s;}
+.status-dot.ok{background:#4ade80;}.status-dot.loading{background:var(–amber-light);animation:pulse 1s infinite;}.status-dot.error{background:var(–red);}
+#status-text{font-size:0.6rem;color:rgba(245,240,232,0.55);letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+#locate-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;border:1.5px solid var(–amber);background:transparent;color:var(–amber-light);font-family:‘Inter’,sans-serif;font-size:0.65rem;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;}
+#locate-btn:hover{background:var(–amber);color:var(–ink);}
+#locate-btn:disabled{opacity:.4;cursor:default;}
+#locate-btn.active{background:var(–amber);color:var(–ink);}
+
+/* LAYOUT */
+#app-body{display:flex;flex:1;overflow:hidden;}
+#map{flex:1;}
+
+/* PANEL */
+#panel{width:var(–panel-w);flex-shrink:0;background:var(–paper);border-left:2px solid rgba(26,18,8,0.1);overflow-y:auto;display:flex;flex-direction:column;z-index:500;}
+#panel::-webkit-scrollbar{width:4px;}
+#panel::-webkit-scrollbar-thumb{background:rgba(26,18,8,0.15);border-radius:2px;}
+.panel-section{padding:11px 13px;border-bottom:1px solid rgba(26,18,8,0.08);}
+.panel-label{font-size:0.57rem;letter-spacing:.14em;text-transform:uppercase;color:var(–amber);margin-bottom:7px;font-weight:500;}
+
+/* POLLEN CHIPS */
+.pollen-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
+.pollen-chip{padding:5px 5px;border-radius:5px;border:1.5px solid rgba(26,18,8,0.18);background:white;font-size:0.63rem;cursor:pointer;transition:all .2s;text-align:center;font-family:‘Inter’,sans-serif;color:var(–ink);}
+.pollen-chip.active{color:#fff;border-color:transparent;}
+.pollen-chip:hover:not(.active){border-color:var(–amber);}
+
+/* LAYER TOGGLES */
+.layer-group-label{font-size:0.55rem;color:rgba(26,18,8,0.38);letter-spacing:.08em;text-transform:uppercase;margin:8px 0 4px;}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
+.toggle-label{font-size:0.66rem;color:var(–ink);display:flex;align-items:center;gap:4px;flex:1;}
+.tbadge{font-size:0.52rem;padding:1px 4px;border-radius:3px;font-weight:500;flex-shrink:0;}
+.b-live{background:#d1fae5;color:#065f46;}.b-est{background:#fef3c7;color:#92400e;}.b-ext{background:#ede9fe;color:#5b21b6;}
+.toggle{position:relative;width:34px;height:17px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:#ccc;border-radius:9px;cursor:pointer;transition:.25s;}
+.toggle-slider:before{content:’’;position:absolute;width:11px;height:11px;left:3px;top:3px;background:white;border-radius:50%;transition:.25s;}
+input:checked+.toggle-slider{background:var(–amber);}
+input:checked+.toggle-slider:before{transform:translateX(17px);}
+
+/* SOURCE TOGGLE */
+.src-row{display:flex;gap:4px;margin-bottom:6px;}
+.src-btn{flex:1;padding:4px 0;border-radius:5px;border:1.5px solid rgba(26,18,8,0.2);background:white;font-family:‘Inter’,sans-serif;font-size:0.62rem;cursor:pointer;color:rgba(26,18,8,0.5);transition:all .2s;}
+.src-btn.active{background:var(–ink);color:var(–amber-light);border-color:var(–ink);}
+.src-btn:hover:not(.active){border-color:var(–amber);color:var(–ink);}
+#source-status{font-size:0.56rem;color:rgba(26,18,8,0.4);margin-bottom:6px;line-height:1.4;}
+
+/* FORECAST BARS */
+.fc-grid{display:flex;flex-direction:column;gap:4px;}
+.fc-row{display:flex;align-items:center;font-size:0.62rem;}
+.fc-name{width:50px;color:rgba(26,18,8,0.6);flex-shrink:0;}
+.fc-bw{flex:1;margin:0 5px;height:4px;background:rgba(26,18,8,0.08);border-radius:2px;overflow:hidden;}
+.fc-b{height:100%;border-radius:2px;transition:width .6s ease;}
+.fc-val{font-weight:500;min-width:18px;text-align:right;}
+
+/* LEGEND */
+.legend-bar{height:7px;border-radius:3px;background:linear-gradient(to right,#4ade80,#facc15,#f97316,#dc2626);margin-bottom:3px;}
+.legend-labels{display:flex;justify-content:space-between;font-size:0.54rem;color:rgba(26,18,8,0.45);}
+
+/* WIND BOX */
+.wind-box{background:white;border-radius:7px;padding:7px 10px;display:flex;align-items:center;gap:10px;border:1.5px solid rgba(26,18,8,0.1);}
+#wind-arrow{font-size:1.3rem;transition:transform .8s ease;}
+.wind-details{font-size:0.62rem;line-height:1.5;}
+.wind-speed{font-weight:500;color:var(–amber);}
+
+/* PHENOLOGY */
+.ph-grid{display:flex;flex-direction:column;gap:4px;}
+.ph-row{display:flex;align-items:center;gap:5px;font-size:0.61rem;}
+.ph-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.ph-name{width:46px;color:rgba(26,18,8,0.6);flex-shrink:0;}
+.ph-bw{flex:1;height:6px;background:rgba(26,18,8,0.07);border-radius:3px;overflow:hidden;position:relative;}
+.ph-b{height:100%;border-radius:3px;}
+.ph-peak{position:absolute;top:0;bottom:0;width:2px;background:rgba(26,18,8,0.3);}
+.ph-s{font-size:0.54rem;padding:1px 4px;border-radius:3px;flex-shrink:0;}
+.s-peak{background:#fef2f2;color:#dc2626;}.s-active{background:#fff7ed;color:#c2410c;}
+.s-soon{background:#fefce8;color:#a16207;}.s-past{background:#f0fdf4;color:#15803d;}
+
+/* AQI */
+.aqi-grid{display:flex;flex-direction:column;gap:3px;}
+.aqi-row{display:flex;align-items:center;font-size:0.62rem;}
+.aqi-label{width:46px;color:rgba(26,18,8,0.6);flex-shrink:0;}
+.aqi-bw{flex:1;margin:0 5px;height:4px;background:rgba(26,18,8,0.08);border-radius:2px;overflow:hidden;}
+.aqi-b{height:100%;border-radius:2px;}
+.aqi-val{font-weight:500;min-width:36px;text-align:right;}
+
+/* DATA SOURCES */
+.ds-footer{padding:10px 13px 14px;font-size:0.53rem;color:rgba(26,18,8,0.38);line-height:1.8;}
+.ds-footer a{color:var(–amber);text-decoration:none;}
+
+/* DISCLAIMER */
+#disclaimer{position:fixed;inset:0;z-index:3000;background:var(–ink);display:flex;align-items:center;justify-content:center;padding:24px;}
+#disclaimer.hidden{display:none;}
+.disc-card{background:var(–paper);border-radius:16px;max-width:480px;width:100%;padding:32px 28px;display:flex;flex-direction:column;gap:18px;}
+.disc-title{font-family:‘Source Serif 4’,serif;font-size:1.6rem;color:var(–ink);line-height:1.15;font-weight:600;}
+.disc-title span{color:var(–amber);}
+.disc-body{font-size:0.68rem;line-height:1.75;color:rgba(26,18,8,0.7);}
+.disc-body strong{color:var(–ink);font-weight:500;}
+.disc-sources{display:flex;flex-direction:column;gap:4px;padding:10px 12px;background:rgba(26,18,8,0.04);border-radius:8px;border-left:3px solid var(–amber);}
+.disc-source-row{font-size:0.62rem;color:rgba(26,18,8,0.6);display:flex;gap:6px;align-items:baseline;}
+.disc-source-row strong{color:var(–ink);min-width:90px;flex-shrink:0;}
+.disc-warn{font-size:0.62rem;color:rgba(26,18,8,0.5);line-height:1.6;padding-top:4px;border-top:1px solid rgba(26,18,8,0.08);}
+#disc-btn{background:var(–ink);color:var(–amber-light);border:none;border-radius:8px;padding:12px 20px;font-family:‘Inter’,sans-serif;font-size:0.72rem;cursor:pointer;letter-spacing:0.06em;transition:background .2s;align-self:stretch;text-align:center;font-weight:500;}
+#disc-btn:hover{background:#2e2010;}
+
+/* LOADING */
+#loading{position:fixed;inset:0;z-index:2000;background:var(–ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .6s;}
+#loading.hidden{opacity:0;pointer-events:none;}
+.ld-title{font-family:‘Source Serif 4’,serif;font-size:2rem;color:var(–amber-light);font-weight:600;}
+.ld-msg{font-size:0.63rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(245,240,232,.45);}
+.spinner{width:30px;height:30px;border:3px solid rgba(212,130,10,.2);border-top-color:var(–amber);border-radius:50%;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* ERRORS */
+#err-box{display:none;position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:1500;background:#fff0f0;border:1.5px solid var(–red);border-radius:7px;padding:7px 14px;font-size:0.67rem;color:var(–red);max-width:340px;text-align:center;}
+
+/* POPUPS */
+.leaflet-popup-content-wrapper{font-family:‘Inter’,sans-serif;font-size:0.69rem;border-radius:8px;background:var(–mist);border:1px solid rgba(26,18,8,0.12);color:var(–ink);}
+.leaflet-popup-tip{background:var(–mist);}
+.rbadge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:0.6rem;font-weight:500;margin-top:3px;}
+.r-low{background:#d1fae5;color:#065f46;}.r-mid{background:#fef3c7;color:#92400e;}
+.r-high{background:#fee2e2;color:#991b1b;}.r-vhigh{background:#dc2626;color:white;}
+
+/* MAP INFO */
+.map-info{position:fixed;bottom:16px;right:calc(var(–panel-w) + 12px);z-index:900;background:var(–mist);border:1.5px solid rgba(26,18,8,0.12);border-radius:9px;padding:8px 12px;font-size:0.6rem;max-width:200px;line-height:1.5;}
+.map-info strong{font-size:0.64rem;display:block;margin-bottom:2px;color:var(–amber);}
+</style>
+
+</head>
+<body>
+
+<div id="disclaimer">
+  <div class="disc-card">
+    <div class="disc-title">Pollen<span>radar</span><br><span style="font-size:0.9rem;font-family:'DM Mono',monospace;color:rgba(26,18,8,0.45);letter-spacing:.08em;font-style:normal">Meidezonen-Karte</span></div>
+
+```
+<div class="disc-body">
+  Diese App zeigt ein <strong>modellbasiertes Risikoindikator</strong> für Pollenbelastung in deiner Umgebung. Sie ist kein medizinisches Diagnosewerkzeug. Die angezeigten Risikogebiete entstehen aus einer Kombination offener Datenquellen.
+</div>
+
+<div class="disc-sources">
+  <div class="disc-source-row"><strong>DWD Pollen-API</strong>Regionale Tagesvorhersage auf der 0 bis 3 Skala. Kann durch CORS-Richtlinien blockiert werden.</div>
+  <div class="disc-source-row"><strong>Open-Meteo CAMS</strong>Copernicus-Atmosphärenmodell in µg/m³, normiert auf die DWD-Skala. Dient als Fallback.</div>
+  <div class="disc-source-row"><strong>OSM Overpass</strong>Einzelbäume und Vegetationsflächen aus OpenStreetMap. Vollständigkeit variiert regional.</div>
+  <div class="disc-source-row"><strong>Berlin Baumkataster</strong>FIS-Broker WFS mit rund 900.000 Bäumen. Nur innerhalb Berlins verfügbar.</div>
+  <div class="disc-source-row"><strong>DWD Phänologie</strong>Statistische Blütezeitnormen von 1961 bis 1990, angepasst durch eine aktuelle Temperaturkorrektur.</div>
+</div>
+
+<div class="disc-warn">
+  ⚠ Die Risikodarstellung ist eine Annäherung, keine Messung. Pollenflug hängt von Tageszeit, Luftfeuchtigkeit, Niederschlag und lokaler Topographie ab. Diese Faktoren werden hier nicht vollständig modelliert.<br><br>
+  Bei schwerer Allergie oder asthmatischen Beschwerden wende dich bitte an einen Arzt und nutze offizielle Quellen wie den <strong>DWD Pollenflugvorhersagedienst</strong>.
+</div>
+
+<button id="disc-btn">Verstanden. Karte öffnen</button>
+```
+
+  </div>
+</div>
+
+<div id="loading">
+  <div class="ld-title">Pollenradar</div>
+  <div class="spinner"></div>
+  <div class="ld-msg" id="ld-msg">Lade Berliner Pollendaten…</div>
+</div>
+<div id="err-box"></div>
+
+<header>
+  <div>
+    <h1>Pollenradar</h1>
+    <div class="subtitle">Meidezonen-Karte</div>
+  </div>
+  <div class="hdr-center">
+    <div class="status-dot" id="status-dot"></div>
+    <span id="status-text">Initialisierung…</span>
+  </div>
+  <button id="locate-btn">📍 Mein Standort</button>
+</header>
+
+<div id="app-body">
+  <div id="map"></div>
+
+  <div id="panel">
+
+```
+<!-- POLLEN CHIPS -->
+<div class="panel-section">
+  <div class="panel-label">🌿 Pollentyp</div>
+  <div class="pollen-grid" id="pollen-chips"></div>
+</div>
+
+<!-- LAYER TOGGLES -->
+<div class="panel-section">
+  <div class="panel-label">🗺 Kartenebenen</div>
+
+  <div class="layer-group-label">Risiko</div>
+  <div class="toggle-row">
+    <span class="toggle-label">🌡 Heatmap <span class="tbadge b-est">Modell</span></span>
+    <label class="toggle"><input type="checkbox" id="tog-heat" checked><span class="toggle-slider"></span></label>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">💨 Windpfeile <span class="tbadge b-live">DWD-ICON</span></span>
+    <label class="toggle"><input type="checkbox" id="tog-wind" checked><span class="toggle-slider"></span></label>
+  </div>
+
+  <div class="layer-group-label">Pollenquellen</div>
+  <div class="toggle-row">
+    <span class="toggle-label">🌳 OSM-Bäume <span class="tbadge b-live">OSM</span></span>
+    <label class="toggle"><input type="checkbox" id="tog-trees" checked><span class="toggle-slider"></span></label>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">🌿 OSM-Flächen <span class="tbadge b-live">OSM</span></span>
+    <label class="toggle"><input type="checkbox" id="tog-areas" checked><span class="toggle-slider"></span></label>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">🏙 Baumkataster <span class="tbadge b-ext">Berlin</span></span>
+    <label class="toggle"><input type="checkbox" id="tog-kataster"><span class="toggle-slider"></span></label>
+  </div>
+
+  <div class="layer-group-label">Umwelt</div>
+  <div class="toggle-row">
+    <span class="toggle-label">🏭 Luftqualität <span class="tbadge b-live">CAMS</span></span>
+    <label class="toggle"><input type="checkbox" id="tog-aqi"><span class="toggle-slider"></span></label>
+  </div>
+</div>
+
+<!-- RISK LEGEND -->
+<div class="panel-section">
+  <div class="panel-label">📊 Risikobelastung</div>
+  <div class="legend-bar"></div>
+  <div class="legend-labels"><span>Gering</span><span>Mittel</span><span>Hoch</span><span>Sehr hoch</span></div>
+</div>
+
+<!-- WIND -->
+<div class="panel-section">
+  <div class="panel-label">💨 Windlage</div>
+  <div class="wind-box">
+    <div id="wind-arrow">→</div>
+    <div class="wind-details">
+      <div><span class="wind-speed" id="wind-speed">0</span> km/h</div>
+      <div id="wind-dir-text" style="color:rgba(26,18,8,0.5)">Richtung wird geladen</div>
+    </div>
+  </div>
+</div>
+
+<!-- PHENOLOGY -->
+<div class="panel-section">
+  <div class="panel-label">🌱 Blütezeit <span style="font-weight:300;text-transform:none;letter-spacing:0;font-size:0.55rem">(DWD Phänologie / PEP725)</span></div>
+  <div class="ph-grid" id="pheno-grid"><div style="font-size:0.62rem;color:rgba(26,18,8,.4)">Wird geladen…</div></div>
+</div>
+
+<!-- POLLEN FORECAST -->
+<div class="panel-section">
+  <div class="panel-label">🌸 Pollenbelastung heute</div>
+  <div class="src-row">
+    <button class="src-btn active" id="src-dwd">DWD</button>
+    <button class="src-btn" id="src-om">Open-Meteo</button>
+  </div>
+  <div id="source-status"></div>
+  <div class="fc-grid" id="forecast-grid"><div style="font-size:0.62rem;color:rgba(26,18,8,.4)">Wird geladen…</div></div>
+</div>
+
+<!-- AIR QUALITY (hidden until toggled) -->
+<div class="panel-section" id="aqi-panel" style="display:none">
+  <div class="panel-label">🏭 Luftqualität <span style="font-weight:300;text-transform:none;letter-spacing:0;font-size:0.55rem">(CAMS via Open-Meteo)</span></div>
+  <div class="aqi-grid" id="aqi-grid"><div style="font-size:0.62rem;color:rgba(26,18,8,.4)">Wird geladen…</div></div>
+</div>
+
+<!-- DATA SOURCES -->
+<div class="ds-footer">
+  <strong style="display:block;margin-bottom:4px;color:rgba(26,18,8,0.45);font-size:0.56rem;letter-spacing:.1em;text-transform:uppercase">Datenquellen</strong>
+  <a href="https://opendata.dwd.de" target="_blank">DWD OpenData</a>: Pollen und Wind<br>
+  <a href="https://open-meteo.com" target="_blank">Open-Meteo</a>: CAMS/Copernicus Pollen und AQI<br>
+  <a href="https://overpass-api.de" target="_blank">OSM Overpass</a>: Bäume und Flächen<br>
+  <a href="https://www.berlin.de/sen/uvk/natur-und-gruen/stadtbaeume/baumbestand/" target="_blank">Berlin Baumkataster</a>: offener WFS<br>
+  <a href="https://pep725.eu" target="_blank">PEP725</a>: Phänologie Europa<br>
+  <a href="https://www.umweltbundesamt.de/daten/luft" target="_blank">UBA</a>: Luftqualität Deutschland
+</div>
+```
+
+  </div>
+</div>
+
+<div class="map-info">
+  <strong>Legende</strong>
+  🌳 OSM-Baum mit bekannter Art<br>
+  🌿 OSM-Fläche als Fallback<br>
+  🏙 Baumkataster Berlin (WFS)<br>
+  Rote Zonen zeigen Pollenzug per Wind.<br>
+  <span style="color:rgba(26,18,8,.4)">Phänologie basiert auf DWD-Normals mit Temperaturkorrektur.</span>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// CONFIG
+// ═══════════════════════════════════════════════
+const BERLIN = { lat:52.52, lon:13.405 };
+
+const POLLEN_TYPES = [
+  { id:'birke',    label:'Birke',    color:'#f97316', dwdKey:'birke',
+    genera:['Betula'], species:['betula pendula','betula pubescens','betula'],
+    bloomStart:80, bloomPeak:95, bloomEnd:120,
+    fallbackTags:[{key:'landuse',val:'forest'},{key:'landuse',val:'wood'},{key:'natural',val:'wood'},{key:'landuse',val:'park'}] },
+  { id:'erle',     label:'Erle',     color:'#84cc16', dwdKey:'erle',
+    genera:['Alnus'], species:['alnus glutinosa','alnus incana','alnus'],
+    bloomStart:20, bloomPeak:55, bloomEnd:90,
+    fallbackTags:[{key:'natural',val:'wetland'},{key:'landuse',val:'forest'},{key:'natural',val:'wood'}] },
+  { id:'hasel',    label:'Hasel',    color:'#a78bfa', dwdKey:'hasel',
+    genera:['Corylus'], species:['corylus avellana','corylus'],
+    bloomStart:15, bloomPeak:45, bloomEnd:80,
+    fallbackTags:[{key:'natural',val:'scrub'},{key:'landuse',val:'forest'},{key:'natural',val:'wood'}] },
+  { id:'esche',    label:'Esche',    color:'#34d399', dwdKey:'esche',
+    genera:['Fraxinus'], species:['fraxinus excelsior','fraxinus'],
+    bloomStart:95, bloomPeak:115, bloomEnd:150,
+    fallbackTags:[{key:'natural',val:'wood'},{key:'landuse',val:'forest'},{key:'landuse',val:'park'}] },
+  { id:'graeser',  label:'Gräser',   color:'#22c55e', dwdKey:'graeser',
+    genera:[], species:[],
+    bloomStart:130, bloomPeak:155, bloomEnd:240,
+    fallbackTags:[{key:'landuse',val:'meadow'},{key:'landuse',val:'grass'},{key:'natural',val:'grassland'},{key:'natural',val:'heath'}] },
+  { id:'roggen',   label:'Roggen',   color:'#fb923c', dwdKey:'roggen',
+    genera:['Secale'], species:['secale cereale','secale'],
+    bloomStart:140, bloomPeak:165, bloomEnd:200,
+    fallbackTags:[{key:'landuse',val:'farmland'},{key:'landuse',val:'meadow'}] },
+  { id:'ambrosia', label:'Ambrosia', color:'#eab308', dwdKey:'ambrosia',
+    genera:['Ambrosia'], species:['ambrosia artemisiifolia','ambrosia'],
+    bloomStart:195, bloomPeak:220, bloomEnd:275,
+    fallbackTags:[{key:'landuse',val:'meadow'},{key:'landuse',val:'farmland'},{key:'landuse',val:'brownfield'}] },
+  { id:'beifuss',  label:'Beifuß',   color:'#f472b6', dwdKey:'beifuss',
+    genera:['Artemisia'], species:['artemisia vulgaris','artemisia'],
+    bloomStart:185, bloomPeak:210, bloomEnd:265,
+    fallbackTags:[{key:'landuse',val:'meadow'},{key:'landuse',val:'brownfield'},{key:'natural',val:'heath'}] },
+];
+
+const DWD_REGIONS = [
+  {id:11,name:'Berlin/Brandenburg',   latMin:51.3,latMax:53.6,lonMin:11.3,lonMax:14.8},
+  {id:12,name:'Mecklenburg-Vorp.',    latMin:53.5,latMax:54.7,lonMin:10.6,lonMax:14.4},
+  {id:13,name:'Sachsen',              latMin:50.2,latMax:51.7,lonMin:12.0,lonMax:15.1},
+  {id:14,name:'Sachsen-Anhalt',       latMin:51.0,latMax:53.0,lonMin:10.5,lonMax:13.0},
+  {id:15,name:'Thüringen',            latMin:50.2,latMax:51.7,lonMin:9.8, lonMax:12.6},
+  {id:21,name:'Schleswig-Holstein',   latMin:53.4,latMax:55.1,lonMin:8.3, lonMax:11.0},
+  {id:22,name:'Hamburg',              latMin:53.4,latMax:53.8,lonMin:9.7, lonMax:10.4},
+  {id:23,name:'Niedersachsen W',      latMin:52.1,latMax:53.9,lonMin:6.6, lonMax:9.3 },
+  {id:24,name:'Niedersachsen O',      latMin:51.9,latMax:53.5,lonMin:9.2, lonMax:11.6},
+  {id:31,name:'Nordrhein-Westfalen W',latMin:51.0,latMax:52.6,lonMin:5.8, lonMax:7.8 },
+  {id:32,name:'Nordrhein-Westfalen O',latMin:51.0,latMax:52.3,lonMin:7.6, lonMax:9.5 },
+  {id:41,name:'Hessen N',             latMin:50.6,latMax:51.7,lonMin:8.5, lonMax:10.3},
+  {id:42,name:'Hessen M/S',           latMin:50.0,latMax:51.0,lonMin:8.0, lonMax:10.1},
+  {id:51,name:'Rheinland-Pfalz N',    latMin:49.8,latMax:50.9,lonMin:6.1, lonMax:8.5 },
+  {id:52,name:'Rheinland-Pfalz S',    latMin:48.9,latMax:50.1,lonMin:6.5, lonMax:8.4 },
+  {id:61,name:'Baden-Württemberg N',  latMin:48.6,latMax:49.8,lonMin:7.6, lonMax:10.0},
+  {id:62,name:'Baden-Württemberg M',  latMin:47.8,latMax:48.8,lonMin:7.5, lonMax:10.1},
+  {id:63,name:'Baden-Württemberg S',  latMin:47.5,latMax:48.2,lonMin:7.7, lonMax:10.0},
+  {id:71,name:'Bayern N',             latMin:49.6,latMax:50.6,lonMin:10.0,lonMax:13.5},
+  {id:72,name:'Bayern S',             latMin:47.3,latMax:49.8,lonMin:9.5, lonMax:13.8},
+  {id:81,name:'Saarland',             latMin:49.1,latMax:49.7,lonMin:6.3, lonMax:7.5 },
+];
+
+const OM_POLLEN_MAP = {
+  alder_pollen:'erle', birch_pollen:'birke', grass_pollen:'graeser',
+  mugwort_pollen:'beifuss', ragweed_pollen:'ambrosia'
+};
+
+// German common-name → pollen ID (for Baumkataster)
+const DE_NAME_MAP = {
+  birke:['birke','hängebirke','sandbirke','moorbirke','weißbirke'],
+  erle:['erle','schwarzerle','grauerle','weißerle','roterle'],
+  hasel:['hasel','haselnuss','gemeine hasel'],
+  esche:['esche','gemeine esche','gewöhnliche esche'],
+  graeser:['gras','rasen','wiese'],
+  roggen:['roggen'],
+  ambrosia:['ambrosia','traubenkraut'],
+  beifuss:['beifuß','beifuss','gemeiner beifuss','gewöhnlicher beifuß'],
+};
+
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+let map, heatLayer;
+let windMarkers=[], treeMarkers=[], areaMarkers=[], katasterMarkers=[], aqiMarkers=[];
+let userMarker;
+let userLat=BERLIN.lat, userLon=BERLIN.lon;
+let activePollenIds = new Set(['birke','graeser']);
+let pollenSource='dwd';
+let pollenDataDWD=null, pollenDataOM=null, pollenData=null;
+let windData=null, aqiData=null, phenoData=null;
+let osm_sources=[];
+let layerState={heat:true,wind:true,trees:true,areas:true,kataster:false,aqi:false};
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+// ─── DISCLAIMER ────────────────────────────────────────────────────────────
+document.getElementById('disc-btn').addEventListener('click', () => {
+  document.getElementById('disclaimer').classList.add('hidden');
+  startApp();
+});
+
+async function startApp() {
+  buildPollenChips();
+  setupLayerToggles();
+  initMap(BERLIN.lat, BERLIN.lon, 12);
+  setStatus('loading','Lade DWD-Daten für Berlin…');
+
+  const [wind, dwdP, omP, pheno, aqi] = await Promise.all([
+    fetchDWDWind(BERLIN.lat, BERLIN.lon),
+    fetchDWDPollen(BERLIN.lat, BERLIN.lon),
+    fetchOMPollen(BERLIN.lat, BERLIN.lon),
+    fetchPhenology(),
+    fetchAQI(BERLIN.lat, BERLIN.lon),
+  ]);
+  windData=wind; pollenDataDWD=dwdP; pollenDataOM=omP; phenoData=pheno; aqiData=aqi;
+  pollenData = pollenDataDWD ?? pollenDataOM;
+  if (!pollenDataDWD && pollenDataOM) pollenSource='openmeteo';
+
+  setupSourceToggle();
+  renderWindPanel();
+  renderPollenForecast();
+  renderPhenologyPanel();
+  renderAQIPanel();
+
+  setStatus('loading','Lade Bäume & Flächen (OSM)…');
+  await loadOSMSources();
+  renderAll();
+
+  setStatus('ok', DWD_REGIONS.find(r=>detectRegion(BERLIN.lat,BERLIN.lon)===r.id)?.name ?? 'Berlin');
+  hideLoading();
+
+  document.getElementById('locate-btn').addEventListener('click', activateLocation);
+}
+
+async function activateLocation() {
+  const btn = document.getElementById('locate-btn');
+  btn.disabled=true; btn.textContent='⏳ Wird ermittelt…';
+  setStatus('loading','Standort wird ermittelt…');
+  try {
+    const pos = await getLocation();
+    userLat=pos.coords.latitude; userLon=pos.coords.longitude;
+  } catch(e) {
+    showError('Standort nicht verfügbar. Bitte Berechtigung prüfen.');
+    btn.disabled=false; btn.textContent='📍 Mein Standort';
+    setStatus('error','Standort nicht verfügbar'); return;
+  }
+  map.flyTo([userLat,userLon],15,{animate:true,duration:1.4});
+  if (userMarker) map.removeLayer(userMarker);
+  userMarker = L.circleMarker([userLat,userLon],{radius:10,color:'#1a1208',fillColor:'#d4820a',fillOpacity:1,weight:2})
+    .addTo(map).bindPopup('<strong>📍 Dein Standort</strong>').openPopup();
+
+  btn.classList.add('active'); btn.textContent='📍 Aktiv';
+  setStatus('loading','Lade lokale Daten…');
+
+  // Reset Kataster cache — new location needs fresh data
+  katasterLoaded = false;
+  katasterCache = [];
+
+  const [wind,dwdP,omP,aqi] = await Promise.all([
+    fetchDWDWind(userLat,userLon), fetchDWDPollen(userLat,userLon),
+    fetchOMPollen(userLat,userLon), fetchAQI(userLat,userLon),
+  ]);
+  windData=wind; pollenDataDWD=dwdP; pollenDataOM=omP; aqiData=aqi;
+  pollenData = pollenSource==='dwd' ? (pollenDataDWD??pollenDataOM) : (pollenDataOM??pollenDataDWD);
+
+  renderWindPanel(); renderPollenForecast(); renderAQIPanel();
+  setStatus('loading','Lade OSM-Quellen…');
+  await loadOSMSources();
+  renderAll();
+  setStatus('ok', DWD_REGIONS.find(r=>detectRegion(userLat,userLon)===r.id)?.name ?? 'Region erkannt');
+}
+
+// ═══════════════════════════════════════════════
+// MAP
+// ═══════════════════════════════════════════════
+function initMap(lat, lon, zoom=14) {
+  map = L.map('map',{zoomControl:false}).setView([lat,lon],zoom);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© <a href="https://openstreetmap.org">OpenStreetMap</a>',maxZoom:19
+  }).addTo(map);
+  L.control.zoom({position:'bottomright'}).addTo(map);
+  let mv;
+  map.on('moveend zoomend',()=>{ clearTimeout(mv); mv=setTimeout(()=>{ clearWindMarkers(); if(layerState.wind) renderWindLayer(); },400); });
+}
+
+// ═══════════════════════════════════════════════
+// DATA FETCHERS
+// ═══════════════════════════════════════════════
+
+async function fetchDWDWind(lat, lon) {
+  try {
+    const r = await fetch(`https://api.open-meteo.com/v1/dwd-icon?latitude=${lat}&longitude=${lon}&current=wind_speed_10m,wind_direction_10m&wind_speed_unit=kmh`);
+    const d = await r.json();
+    return { speed:Math.round(d.current.wind_speed_10m), dir:d.current.wind_direction_10m };
+  } catch { return {speed:12,dir:270}; }
+}
+
+async function fetchDWDPollen(lat, lon) {
+  try {
+    const r = await fetch('https://opendata.dwd.de/climate_environment/health/alerts/s31fg.json');
+    const d = await r.json();
+    const region = d.content.find(c => c.region_id === detectRegion(lat,lon));
+    if (!region) return null;
+    const result = {};
+    for (const [k,v] of Object.entries(region.Pollen)) result[k.toLowerCase()] = parsePollenVal(v.today);
+    return result;
+  } catch(e) { console.warn('DWD pollen blocked (CORS)'); return null; }
+}
+
+function parsePollenVal(raw) {
+  if (raw===null||raw===undefined||raw===-1) return 0;
+  return {'0':0,'0-1':0.5,'1':1,'1-2':1.5,'2':2,'2-3':2.5,'3':3}[String(raw)] ?? parseFloat(raw) ?? 0;
+}
+
+async function fetchOMPollen(lat, lon) {
+  try {
+    const vars = Object.keys(OM_POLLEN_MAP).join(',');
+    const r = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=${vars}`);
+    const d = await r.json();
+    if (!d.current) return null;
+    const result = {};
+    for (const [k,pid] of Object.entries(OM_POLLEN_MAP)) {
+      const v = d.current[k]; if (v!=null) result[pid] = omScale(v);
+    }
+    return result;
+  } catch(e) { console.warn('OM pollen failed'); return null; }
+}
+
+function omScale(v) {
+  if (v<10)  return v/10;
+  if (v<50)  return 1+(v-10)/40;
+  if (v<150) return 2+(v-50)/100;
+  return 3;
+}
+
+// ─── PHENOLOGY ─────────────────────────────────────────────────────────────
+// Long-term Berlin/Brandenburg averages from DWD Phänologie-Jahrbuch &
+// PEP725 stations DE-BER (IDs 3987, 4169, 4170).
+// Values are DOY (Day of Year). Ranges include ±1σ natural variability.
+// Temperature offset: each 1°C above 1961-1990 baseline advances onset ~4–6 days
+// (Menzel et al. 2006, Adv. Sci. Res. 11:93-99).
+// We fetch current-year Feb mean temp from Open-Meteo to apply a live correction.
+async function fetchPhenology() {
+  const doy = getDOY(new Date());
+  const year = new Date().getFullYear();
+
+  // Baseline normals (1961–1990 Berlin/Brandenburg DWD Phänologie)
+  // start/peak/end are DOY medians; window = ±σ approx.
+  const normals = {
+    hasel:   {start:18,  peak:42,  end:75,  window:28, label:'Hasel'},
+    erle:    {start:25,  peak:52,  end:88,  window:30, label:'Erle'},
+    birke:   {start:88,  peak:100, end:125, window:18, label:'Birke'},
+    esche:   {start:98,  peak:118, end:148, window:22, label:'Esche'},
+    graeser: {start:128, peak:152, end:242, window:50, label:'Gräser'},
+    roggen:  {start:142, peak:162, end:198, window:30, label:'Roggen'},
+    beifuss: {start:182, peak:208, end:262, window:45, label:'Beifuß'},
+    ambrosia:{start:198, peak:222, end:272, window:40, label:'Ambrosia'},
+  };
+
+  // Try to get spring temperature anomaly from Open-Meteo to shift onset
+  let tempShift = 0;
+  try {
+    const tUrl = `https://api.open-meteo.com/v1/dwd-icon?latitude=52.52&longitude=13.41` +
+      `&daily=temperature_2m_mean&start_date=${year}-01-01&end_date=${year}-04-30&timezone=Europe/Berlin`;
+    const tr = await fetch(tUrl);
+    const td = await tr.json();
+    // Mean temp of Jan–Mar compared to baseline (~1°C → advance ~5 DOY)
+    const temps = td.daily?.temperature_2m_mean?.slice(0,90).filter(v=>v!=null) ?? [];
+    if (temps.length > 20) {
+      const meanTemp = temps.reduce((a,b)=>a+b,0)/temps.length;
+      const baseline = 2.8; // Berlin Jan–Mar 1961–1990 mean °C
+      tempShift = Math.round((meanTemp - baseline) * -4.5); // negative = earlier
+    }
+  } catch(e) { /* use no shift */ }
+
+  const result = {};
+  for (const [id,n] of Object.entries(normals)) {
+    // Apply temperature-based phenological shift (only to early-season species)
+    const shiftable = ['hasel','erle','birke','esche'].includes(id);
+    const shift = shiftable ? tempShift : Math.round(tempShift * 0.4);
+    const start = n.start + shift;
+    const peak  = n.peak  + shift;
+    const end   = n.end   + shift;
+
+    let status, pct;
+    if (doy < start - 7)  { status='soon';   pct=0; }
+    else if (doy > end)   { status='past';   pct=1; }
+    else {
+      pct = Math.max(0, Math.min(1, (doy-start)/(end-start)));
+      status = Math.abs(doy-peak) <= n.window/6 ? 'peak' : 'active';
+    }
+    result[id] = {...n, start, peak, end, shift, status, pct, doy};
+  }
+  return result;
+}
+
+function getDOY(d) {
+  return Math.floor((d - new Date(d.getFullYear(),0,0)) / 86400000);
+}
+
+async function fetchAQI(lat, lon) {
+  try {
+    const r = await fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${lat}&longitude=${lon}&current=pm10,pm2_5,nitrogen_dioxide,ozone,european_aqi`);
+    const d = await r.json();
+    if (!d.current) return null;
+    return { pm10:d.current.pm10, pm25:d.current.pm2_5, no2:d.current.nitrogen_dioxide, o3:d.current.ozone, aqi:d.current.european_aqi };
+  } catch(e) { return null; }
+}
+
+// ─── BERLIN BAUMKATASTER (FIS-Broker WFS) ──────────────────────────────────
+// Source: Senatsverwaltung für Mobilität, Verkehr, Klimaschutz und Umwelt Berlin
+// Endpoint: fbinter.stadt-berlin.de/fb/wfs/data/senstadt/s_wfs_baumbestand
+// CRS: EPSG:25833 (UTM Zone 33N). We project bbox and convert results to WGS84.
+// Datenlizenz Deutschland – Namensnennung – Version 2.0 (dl-de/by-2-0)
+// Fields: GATTUNG (genus), ARTBEZEICHNUNG (species), PFLANZJAHR (year planted),
+//         STAMMUMFG (girth), KRONENDURCHMESSER (crown diam), STRNAME (street)
+
+// Lightweight EPSG:25833 → WGS84 conversion (Helmert approximation, ~1m accuracy)
+function utm33nToWgs84(easting, northing) {
+  const a=6378137, f=1/298.257222101, k0=0.9996;
+  const e2=2*f-f*f, e1p2=e2/(1-e2);
+  const x=(easting-500000)/k0, y=northing/k0;
+  const mu=y/(a*(1-e2/4-3*e2*e2/64-5*e2*e2*e2/256));
+  const e1=(1-Math.sqrt(1-e2))/(1+Math.sqrt(1-e2));
+  const phi1=mu+(3*e1/2-27*e1*e1*e1/32)*Math.sin(2*mu)
+    +(21*e1*e1/16-55*e1*e1*e1*e1/32)*Math.sin(4*mu)
+    +(151*e1*e1*e1/96)*Math.sin(6*mu);
+  const N1=a/Math.sqrt(1-e2*Math.sin(phi1)*Math.sin(phi1));
+  const T1=Math.tan(phi1)*Math.tan(phi1);
+  const C1=e1p2*Math.cos(phi1)*Math.cos(phi1);
+  const R1=a*(1-e2)/Math.pow(1-e2*Math.sin(phi1)*Math.sin(phi1),1.5);
+  const D=x/N1;
+  const lat=phi1-(N1*Math.tan(phi1)/R1)*(D*D/2-(5+3*T1+10*C1-4*C1*C1-9*e1p2)*D*D*D*D/24);
+  const lon0=15*Math.PI/180;
+  const lng=lon0+(D-(1+2*T1+C1)*D*D*D/6)/Math.cos(phi1);
+  return [lat*180/Math.PI, lng*180/Math.PI];
+}
+
+// Convert WGS84 bbox → UTM33N bbox for FIS-Broker query
+function wgs84ToUtm33n(lat, lon) {
+  const a=6378137, f=1/298.257222101, k0=0.9996;
+  const e2=2*f-f*f, lon0=15*Math.PI/180;
+  const phi=lat*Math.PI/180, lam=lon*Math.PI/180;
+  const N=a/Math.sqrt(1-e2*Math.sin(phi)*Math.sin(phi));
+  const T=Math.tan(phi)*Math.tan(phi), C=e2/(1-e2)*Math.cos(phi)*Math.cos(phi);
+  const A=Math.cos(phi)*(lam-lon0);
+  const M=a*((1-e2/4-3*e2*e2/64-5*e2*e2*e2/256)*phi
+    -(3*e2/8+3*e2*e2/32+45*e2*e2*e2/1024)*Math.sin(2*phi)
+    +(15*e2*e2/256+45*e2*e2*e2/1024)*Math.sin(4*phi)
+    -(35*e2*e2*e2/3072)*Math.sin(6*phi));
+  const E=k0*N*(A+(1-T+C)*A*A*A/6)+500000;
+  const No=k0*(M+N*Math.tan(phi)*(A*A/2+(5-T+9*C+4*C*C)*A*A*A*A/24));
+  return [E, No];
+}
+
+// German genus name → pollen ID map (Baumkataster uses German names)
+const DE_GENUS_MAP = {
+  'betula':'birke','birke':'birke','hänge-birke':'birke','moorbirke':'birke',
+  'alnus':'erle','erle':'erle','schwarz-erle':'erle','grau-erle':'erle',
+  'fraxinus':'esche','esche':'esche','gewöhnliche esche':'esche',
+  'corylus':'hasel','hasel':'hasel','haselnuss':'hasel',
+  'artemisia':'beifuss','beifuß':'beifuss','beifuss':'beifuss',
+  'secale':'roggen','roggen':'roggen',
+};
+
+function resolveKatasterPollen(props) {
+  const gattung = (props.GATTUNG ?? props.gattung ?? '').toLowerCase().trim();
+  const art = (props.ARTBEZEICHNUNG ?? props.art_dtsch ?? props.GATTUNG_DEUTSCH ?? '').toLowerCase().trim();
+  for (const [k,v] of Object.entries(DE_GENUS_MAP)) {
+    if (gattung.includes(k) || art.includes(k)) return v;
+  }
+  return null;
+}
+
+let katasterMarkers = [];
+let katasterCache = [];
+let katasterLoaded = false;
+
+async function fetchBaumkataster(lat, lon) {
+  // Build UTM33N bbox with ~1km radius
+  const radius = 0.009; // ~1km in degrees
+  const [e1,n1] = wgs84ToUtm33n(lat-radius, lon-radius);
+  const [e2,n2] = wgs84ToUtm33n(lat+radius, lon+radius);
+  const bboxStr = `${Math.round(e1)},${Math.round(n1)},${Math.round(e2)},${Math.round(n2)}`;
+
+  const base = 'https://fbinter.stadt-berlin.de/fb/wfs/data/senstadt/s_wfs_baumbestand';
+  const params = new URLSearchParams({
+    SERVICE:'WFS', VERSION:'2.0.0', REQUEST:'GetFeature',
+    TYPENAMES:'fis:s_wfs_baumbestand',
+    SRSNAME:'EPSG:25833',
+    BBOX:`${bboxStr},EPSG:25833`,
+    outputFormat:'application/json',
+    COUNT:'600',
+  });
+  const url = `${base}?${params}`;
+
+  try {
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    return (d.features ?? []).map(f => {
+      const coords = f.geometry?.coordinates;
+      if (!coords) return null;
+      // Coordinates come in EPSG:25833 (easting, northing)
+      const [lat2, lon2] = utm33nToWgs84(coords[0], coords[1]);
+      if (lat2 < 52.3 || lat2 > 52.7 || lon2 < 13.0 || lon2 > 13.8) return null; // sanity
+      const pollenId = resolveKatasterPollen(f.properties ?? {});
+      return {
+        lat: lat2, lon: lon2,
+        pollenId,
+        sourceType: 'kataster',
+        genus:   f.properties?.GATTUNG ?? null,
+        species: f.properties?.ARTBEZEICHNUNG ?? null,
+        street:  f.properties?.STRNAME ?? null,
+        year:    f.properties?.PFLANZJAHR ?? null,
+        crown:   f.properties?.KRONENDURCHMESSER ?? null,
+      };
+    }).filter(t => t?.lat && t?.lon);
+  } catch(e) {
+    console.warn('Baumkataster WFS failed:', e.message);
+    return [];
+  }
+}
+
+async function renderKatasterLayer() {
+  katasterMarkers.forEach(m => map.removeLayer(m));
+  katasterMarkers = [];
+  if (!layerState.kataster) return;
+
+  // Only hit the WFS once per location — reuse cache on subsequent renderAll calls
+  if (!katasterLoaded) {
+    setStatus('loading', 'Lade Berliner Baumkataster…');
+    katasterCache = await fetchBaumkataster(userLat, userLon);
+    katasterLoaded = true;
+  }
+
+  const trees = katasterCache;
+
+  trees.forEach(t => {
+    const p = POLLEN_TYPES.find(pt => pt.id === t.pollenId);
+    const color = p?.color ?? '#888';
+    const dwd = pollenData?.[p?.dwdKey] ?? 1.5;
+    const ph = phenoData?.[t.pollenId];
+
+    const yearStr = t.year ? `Gepflanzt: ${t.year}` : '';
+    const crownStr = t.crown ? `Krone: ⌀ ${t.crown}m` : '';
+    const phLine = ph
+      ? `<br><span class="rbadge" style="background:${phColor(ph.status)};color:#fff">${phLabel(ph.status)}</span>`
+      : '';
+
+    const m = L.circleMarker([t.lat, t.lon], {
+      radius: 3.5,
+      color: color,
+      fillColor: color,
+      fillOpacity: 0.9,
+      weight: 1,
+    }).bindPopup(`
+      <strong>🏙 ${t.species ?? t.genus ?? 'Stadtbaum'}</strong>
+      ${t.street ? `<br><span style="color:rgba(26,18,8,.5)">${t.street}</span>` : ''}
+      <br>Quelle: Baumkataster Berlin
+      ${yearStr ? `<br>${yearStr}` : ''}
+      ${crownStr ? `<br>${crownStr}` : ''}
+      ${p ? `<br>Pollen: ${p.label}<br><span class="rbadge ${rClass(dwd)}">${rLabel(dwd)}</span>` : ''}
+      ${phLine}
+    `);
+    katasterMarkers.push(m);
+    m.addTo(map);
+  });
+
+  const n = trees.length;
+  const nAllergenic = trees.filter(t => t.pollenId).length;
+  setStatus('ok', `Baumkataster: ${n} Bäume (${nAllergenic} allergen) geladen`);
+}
+
+// OSM Overpass
+function buildGenusMap() {
+  const m={};
+  POLLEN_TYPES.forEach(p=>{
+    p.genera.forEach(g=>{ m[g.toLowerCase()]=p.id; });
+    p.species.forEach(s=>{ m[s.toLowerCase()]=p.id; });
+  });
+  return m;
+}
+const GENUS_MAP = buildGenusMap();
+
+function resolveTreePollenId(tags) {
+  const cands = [tags.genus,tags.species,tags.taxon,tags['species:de'],tags['name:botanical'],tags.name]
+    .filter(Boolean).map(v=>v.toLowerCase().trim());
+  for (const c of cands) {
+    if (GENUS_MAP[c]) return GENUS_MAP[c];
+    if (GENUS_MAP[c.split(' ')[0]]) return GENUS_MAP[c.split(' ')[0]];
+  }
+  return null;
+}
+
+async function loadOSMSources() {
+  const bbox = getBbox(userLat, userLon, 2500);
+  const treeQ = `[out:json][timeout:30];\n(\nnode["natural"="tree"](${bbox});\nway["natural"="tree_row"](${bbox});\n);\nout center tags;`;
+  const tagSet = new Set();
+  POLLEN_TYPES.forEach(p=>p.fallbackTags.forEach(t=>tagSet.add(`${t.key}=${t.val}`)));
+  const areaQ = `[out:json][timeout:30];\n(\n${[...tagSet].map(kv=>{const[k,v]=kv.split('=');return `way["${k}"="${v}"](${bbox});`;}).join('\n')}\n);\nout center tags;`;
+
+  try {
+    const [tr,ar] = await Promise.all([
+      fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(treeQ)}),
+      fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(areaQ)}),
+    ]);
+    const [td,ad] = await Promise.all([tr.json(),ar.json()]);
+
+    const trees = td.elements.map(el=>{
+      const pid = resolveTreePollenId(el.tags??{});
+      if (!pid) return null;
+      return {lat:el.center?.lat??el.lat, lon:el.center?.lon??el.lon, pollenId:pid, sourceType:'tree',
+        name:el.tags?.name??el.tags?.species??el.tags?.genus??null, genus:el.tags?.genus??null, species:el.tags?.species??null};
+    }).filter(s=>s?.lat&&s?.lon);
+
+    const treeIds = new Set(trees.map(t=>t.pollenId));
+    const areas = ad.elements.map(el=>{
+      const lu=el.tags?.landuse, nat=el.tags?.natural;
+      const m = POLLEN_TYPES.filter(p=>p.fallbackTags.some(t=>(t.key==='landuse'&&lu===t.val)||(t.key==='natural'&&nat===t.val)))
+        .filter(p=>!treeIds.has(p.id)||['graeser','roggen','beifuss'].includes(p.id));
+      if (!m.length) return null;
+      return {lat:el.center?.lat??el.lat, lon:el.center?.lon??el.lon, pollenId:m[0].id, pollenIds:m.map(p=>p.id),
+        sourceType:'area', areaType:lu??nat??'vegetation', name:el.tags?.name??null};
+    }).filter(s=>s?.lat&&s?.lon);
+
+    osm_sources = [...trees,...areas];
+  } catch(e) { console.warn('OSM load failed',e); osm_sources=[]; }
+}
+
+// ═══════════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════════
+function renderAll() {
+  clearAllLayers();
+  renderHeatmap(computeRisk());
+  renderWindLayer();
+  renderTreeMarkers();
+  renderAreaMarkers();
+  if (layerState.kataster) renderKatasterLayer();
+  if (layerState.aqi) renderAQIMarkers();
+}
+
+function clearAllLayers() {
+  if (heatLayer){map.removeLayer(heatLayer);heatLayer=null;}
+  clearWindMarkers();
+  [...treeMarkers,...areaMarkers,...katasterMarkers,...aqiMarkers].forEach(m=>map.removeLayer(m));
+  treeMarkers=[];areaMarkers=[];katasterMarkers=[];aqiMarkers=[];
+}
+function clearWindMarkers(){windMarkers.forEach(m=>map.removeLayer(m));windMarkers=[];}
+
+// Risk with phenology weighting
+function computeRisk() {
+  if (!windData) return [];
+  const pts=[];
+  const windRad=((windData.dir+180)%360)*Math.PI/180;
+  const wStr=Math.min(windData.speed/40,1);
+  osm_sources.forEach(src=>{
+    const pids=src.pollenIds??[src.pollenId];
+    let load=0;
+    pids.forEach(pid=>{
+      if (!activePollenIds.has(pid)) return;
+      const p=POLLEN_TYPES.find(p=>p.id===pid); if(!p) return;
+      const dwd=pollenData?.[p.dwdKey]??1.5;
+      const phW=phenoWeight(pid);
+      const tMul=src.sourceType==='tree'?1.2:0.8;
+      load=Math.max(load,(dwd/3)*tMul*phW);
+    });
+    if (load<0.01) return;
+    pts.push([src.lat,src.lon,load*0.6]);
+    for(let i=1;i<=6;i++){
+      const frac=i/6, drift=wStr*0.012*frac, decay=Math.pow(1-frac*0.7,1.5);
+      const dLat=Math.cos(windRad)*drift;
+      const dLon=Math.sin(windRad)*drift/Math.cos(userLat*Math.PI/180);
+      pts.push([src.lat+dLat,src.lon+dLon,load*decay*0.9]);
+    }
+  });
+  return pts;
+}
+
+function phenoWeight(pid) {
+  const ph=phenoData?.[pid]; if(!ph) return 1;
+  return {peak:1.35,active:1.0,soon:0.15,past:0.04}[ph.status]??1;
+}
+
+function renderHeatmap(pts) {
+  if (!pts.length||!layerState.heat) return;
+  heatLayer = L.heatLayer(pts,{radius:35,blur:22,maxZoom:17,
+    gradient:{0:'#4ade8000',0.3:'#4ade80',0.55:'#facc15',0.75:'#f97316',1:'#dc2626'}});
+  heatLayer.addTo(map);
+}
+
+function renderWindLayer() {
+  if (!windData||!layerState.wind) return;
+  const b=map.getBounds(), step=0.02;
+  for(let lat=b.getSouth();lat<b.getNorth();lat+=step)
+    for(let lon=b.getWest();lon<b.getEast();lon+=step){
+      const m=L.marker([lat,lon],{icon:L.divIcon({className:'',
+        html:`<div style="transform:rotate(${windData.dir}deg);font-size:${10+Math.min(windData.speed/5,8)}px;opacity:.28;color:#1a5c8a;line-height:1">➤</div>`,
+        iconSize:[16,16],iconAnchor:[8,8]}),interactive:false});
+      windMarkers.push(m); m.addTo(map);
+    }
+}
+
+function renderTreeMarkers() {
+  if (!layerState.trees) return;
+  osm_sources.filter(s=>s.sourceType==='tree').forEach(src=>{
+    if (!activePollenIds.has(src.pollenId)) return;
+    const p=POLLEN_TYPES.find(p=>p.id===src.pollenId); if(!p) return;
+    const dwd=pollenData?.[p.dwdKey]??1.5;
+    const ph=phenoData?.[src.pollenId];
+    const specLine=src.species?`<br><em style="color:rgba(26,18,8,.5)">${src.species}</em>`:src.genus?`<br><em style="color:rgba(26,18,8,.5)">Genus: ${src.genus}</em>`:'';
+    const phLine=ph?`<br><span class="rbadge" style="background:${phColor(ph.status)};color:#fff">${phLabel(ph.status)}</span>`:'';
+    const m=L.circleMarker([src.lat,src.lon],{radius:4,color:p.color,fillColor:p.color,fillOpacity:.8,weight:1.5})
+      .bindPopup(`<strong>🌳 ${src.name??src.genus??'Baum'}</strong>${specLine}<br>Pollen: ${p.label}<br><span class="rbadge ${rClass(dwd)}">${rLabel(dwd)}</span>${phLine}`);
+    treeMarkers.push(m); m.addTo(map);
+  });
+}
+
+function renderAreaMarkers() {
+  if (!layerState.areas) return;
+  osm_sources.filter(s=>s.sourceType==='area').forEach(src=>{
+    const pids=src.pollenIds??[src.pollenId];
+    const am=pids.filter(pid=>activePollenIds.has(pid)).map(pid=>POLLEN_TYPES.find(p=>p.id===pid)).filter(Boolean);
+    if (!am.length) return;
+    const p=am[0], dwd=pollenData?.[p.dwdKey]??1.5;
+    const m=L.circleMarker([src.lat,src.lon],{radius:6,color:p.color,fillColor:p.color,fillOpacity:.28,weight:1,dashArray:'3,3'})
+      .bindPopup(`<strong>🌿 ${src.name??src.areaType}</strong><br>Pollen: ${am.map(p=>p.label).join(', ')}<br>Quelle: OSM-Fläche<br><span class="rbadge ${rClass(dwd)}">${rLabel(dwd)}</span>`);
+    areaMarkers.push(m); m.addTo(map);
+  });
+}
+
+async function renderKatasterLayer() {
+function renderAQIMarkers() {
+  if (!aqiData||!layerState.aqi) return;
+  const aqi=aqiData.aqi??0;
+  const col=aqi<20?'#4ade80':aqi<40?'#facc15':aqi<60?'#f97316':'#dc2626';
+  const m=L.circleMarker([userLat,userLon],{radius:22,color:col,fillColor:col,fillOpacity:.12,weight:2,dashArray:'5,4'})
+    .bindPopup(`<strong>🏭 Luftqualität (CAMS)</strong><br>EU AQI: <b>${aqi}</b><br>PM10: ${aqiData.pm10?.toFixed(1)??'k.A.'} µg/m³<br>PM2.5: ${aqiData.pm25?.toFixed(1)??'k.A.'} µg/m³<br>NO2: ${aqiData.no2?.toFixed(1)??'k.A.'} µg/m³<br>O3: ${aqiData.o3?.toFixed(1)??'k.A.'} µg/m³`);
+  aqiMarkers.push(m); m.addTo(map);
+}
+
+// ═══════════════════════════════════════════════
+// PANELS
+// ═══════════════════════════════════════════════
+function renderWindPanel() {
+  if (!windData) return;
+  document.getElementById('wind-speed').textContent=windData.speed;
+  document.getElementById('wind-dir-text').textContent=`Richtung: ${windData.dir}° (${degCard(windData.dir)})`;
+  document.getElementById('wind-arrow').style.transform=`rotate(${windData.dir}deg)`;
+}
+
+function renderPollenForecast() {
+  const g=document.getElementById('forecast-grid'); g.innerHTML='';
+  if (!pollenData){g.innerHTML='<div style="font-size:.62rem;color:#c0392b">Keine Daten verfügbar</div>';return;}
+  POLLEN_TYPES.forEach(p=>{
+    const v=pollenData[p.dwdKey]; if(v==null||v<0) return;
+    const pct=Math.round((v/3)*100);
+    const bc=v<1?'#4ade80':v<2?'#facc15':v<2.8?'#f97316':'#dc2626';
+    const row=document.createElement('div'); row.className='fc-row';
+    row.innerHTML=`<span class="fc-name">${p.label}</span><div class="fc-bw"><div class="fc-b" style="width:${pct}%;background:${bc}"></div></div><span class="fc-val" style="color:${bc}">${fmtP(v)}</span>`;
+    g.appendChild(row);
+  });
+  if (!g.children.length) g.innerHTML='<div style="font-size:.62rem;color:rgba(26,18,8,.4)">Keine Daten für Region</div>';
+}
+
+function renderPhenologyPanel() {
+  const g=document.getElementById('pheno-grid'); g.innerHTML='';
+  if (!phenoData){g.innerHTML='<div style="font-size:.62rem;color:rgba(26,18,8,.4)">Keine Daten</div>';return;}
+  POLLEN_TYPES.forEach(p=>{
+    const ph=phenoData[p.id]; if(!ph) return;
+    const pct=Math.round(ph.pct*100);
+    const peakPct=Math.round(((ph.peak-ph.start)/(ph.end-ph.start))*100);
+    const row=document.createElement('div'); row.className='ph-row';
+    row.innerHTML=`
+      <div class="ph-dot" style="background:${p.color}"></div>
+      <span class="ph-name">${p.label}</span>
+      <div class="ph-bw">
+        <div class="ph-b" style="width:${pct}%;background:${p.color};opacity:.65"></div>
+        <div class="ph-peak" style="left:${peakPct}%"></div>
+      </div>
+      <span class="ph-s ${phSClass(ph.status)}">${phLabel(ph.status)}</span>`;
+    g.appendChild(row);
+  });
+  // Show temperature shift if significant
+  const sampleShift = phenoData.birke?.shift ?? 0;
+  const note=document.createElement('div');
+  note.style.cssText='font-size:.53rem;color:rgba(26,18,8,.32);margin-top:5px;line-height:1.4';
+  const shiftStr = sampleShift !== 0
+    ? ` · Temp.-Korrektur: ${sampleShift > 0 ? '+' : ''}${sampleShift} Tage`
+    : '';
+  note.textContent=`Ø Berlin · DWD Phänologie / PEP725${shiftStr}`;
+  g.appendChild(note);
+}
+
+function renderAQIPanel() {
+  const g=document.getElementById('aqi-grid'); g.innerHTML='';
+  if (!aqiData){g.innerHTML='<div style="font-size:.62rem;color:rgba(26,18,8,.4)">Nicht verfügbar</div>';return;}
+  const items=[
+    {label:'EU AQI',val:aqiData.aqi,  max:100},
+    {label:'PM10',  val:aqiData.pm10, max:150, unit:'µg/m³'},
+    {label:'PM2.5', val:aqiData.pm25, max:75,  unit:'µg/m³'},
+    {label:'NO₂',   val:aqiData.no2,  max:200, unit:'µg/m³'},
+    {label:'O₃',    val:aqiData.o3,   max:180, unit:'µg/m³'},
+  ];
+  items.forEach(item=>{
+    if (item.val==null) return;
+    const pct=Math.min(Math.round((item.val/item.max)*100),100);
+    const bc=pct<25?'#4ade80':pct<50?'#facc15':pct<75?'#f97316':'#dc2626';
+    const row=document.createElement('div'); row.className='aqi-row';
+    row.innerHTML=`<span class="aqi-label">${item.label}</span><div class="aqi-bw"><div class="aqi-b" style="width:${pct}%;background:${bc}"></div></div><span class="aqi-val" style="color:${bc}">${item.val.toFixed(0)}${item.unit?' '+item.unit:''}</span>`;
+    g.appendChild(row);
+  });
+  const note=document.createElement('div');
+  note.style.cssText='font-size:.53rem;color:rgba(26,18,8,.32);margin-top:4px';
+  note.textContent='Quelle: CAMS/Copernicus via Open-Meteo'; g.appendChild(note);
+}
+
+// ═══════════════════════════════════════════════
+// UI SETUP
+// ═══════════════════════════════════════════════
+function buildPollenChips() {
+  const grid=document.getElementById('pollen-chips');
+  POLLEN_TYPES.forEach(p=>{
+    const btn=document.createElement('button');
+    btn.className='pollen-chip'+(activePollenIds.has(p.id)?' active':'');
+    btn.textContent=p.label;
+    if (activePollenIds.has(p.id)){btn.style.background=p.color;btn.style.color='#fff';}
+    btn.addEventListener('click',()=>{
+      if (activePollenIds.has(p.id)){activePollenIds.delete(p.id);btn.classList.remove('active');btn.style.background='';btn.style.color='';}
+      else{activePollenIds.add(p.id);btn.classList.add('active');btn.style.background=p.color;btn.style.color='#fff';}
+      renderAll();
+    });
+    grid.appendChild(btn);
+  });
+}
+
+function setupLayerToggles() {
+  const T={
+    'tog-heat':{key:'heat', fn:()=>{
+      if(heatLayer){layerState.heat?heatLayer.addTo(map):map.removeLayer(heatLayer);}else renderAll();
+    }},
+    'tog-wind':{key:'wind', fn:()=>{clearWindMarkers();if(layerState.wind)renderWindLayer();}},
+    'tog-trees':{key:'trees', fn:()=>{treeMarkers.forEach(m=>map.removeLayer(m));treeMarkers=[];if(layerState.trees)renderTreeMarkers();}},
+    'tog-areas':{key:'areas', fn:()=>{areaMarkers.forEach(m=>map.removeLayer(m));areaMarkers=[];if(layerState.areas)renderAreaMarkers();}},
+    'tog-kataster':{key:'kataster', fn:()=>{katasterMarkers.forEach(m=>map.removeLayer(m));katasterMarkers=[];if(layerState.kataster)renderKatasterLayer();}},
+    'tog-aqi':{key:'aqi', fn:()=>{
+      document.getElementById('aqi-panel').style.display=layerState.aqi?'block':'none';
+      aqiMarkers.forEach(m=>map.removeLayer(m));aqiMarkers=[];if(layerState.aqi)renderAQIMarkers();
+    }},
+  };
+  for(const[id,cfg] of Object.entries(T)){
+    document.getElementById(id).addEventListener('change',e=>{layerState[cfg.key]=e.target.checked;cfg.fn();});
+  }
+}
+
+function setupSourceToggle() {
+  const bD=document.getElementById('src-dwd'), bO=document.getElementById('src-om');
+  function upd(){
+    const isDWD=pollenSource==='dwd';
+    bD.classList.toggle('active',isDWD); bO.classList.toggle('active',!isDWD);
+    const el=document.getElementById('source-status');
+    const active=isDWD?pollenDataDWD:pollenDataOM;
+    if(!active){el.style.color='#c0392b';el.textContent=isDWD?'⚠ DWD nicht verfügbar (CORS)':'⚠ Open-Meteo nicht verfügbar';}
+    else{el.style.color='rgba(26,18,8,0.4)';el.textContent=isDWD?'DWD regional, Skala 0 bis 3':'CAMS/Copernicus, µg/m³ normiert';}
+  }
+  bD.addEventListener('click',()=>{pollenSource='dwd';pollenData=pollenDataDWD??pollenDataOM;upd();renderPollenForecast();renderAll();});
+  bO.addEventListener('click',()=>{pollenSource='openmeteo';pollenData=pollenDataOM??pollenDataDWD;upd();renderPollenForecast();renderAll();});
+  if(!pollenDataDWD&&pollenDataOM){pollenSource='openmeteo';pollenData=pollenDataOM;}
+  upd();
+}
+
+// ═══════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════
+function rClass(v){return v<1?'r-low':v<2?'r-mid':v<2.8?'r-high':'r-vhigh';}
+function rLabel(v){return v<1?'Gering':v<2?'Mittel':v<2.8?'Hoch':'Sehr hoch';}
+function phSClass(s){return{peak:'s-peak',active:'s-active',soon:'s-soon',past:'s-past'}[s]??'';}
+function phLabel(s){return{peak:'⚠ Höhepunkt',active:'Aktiv',soon:'Bald',past:'Vorbei'}[s]??'k.A.';}
+function phColor(s){return{peak:'#dc2626',active:'#ea580c',soon:'#ca8a04',past:'#16a34a'}[s]??'#888';}
+function fmtP(v){if(v<0)return'k.A.';if(v===0)return'0';if(v<=.7)return'niedrig';if(v<=1.3)return'1';if(v<=1.7)return'1 bis 2';if(v<=2.3)return'2';if(v<=2.7)return'2 bis 3';return'3';}
+function degCard(d){return['N','NO','O','SO','S','SW','W','NW'][Math.round(d/45)%8];}
+function getBbox(lat,lon,m){const d=m/111320;return`${lat-d},${lon-d*1.4},${lat+d},${lon+d*1.4}`;}
+function detectRegion(lat,lon){for(const r of DWD_REGIONS)if(lat>=r.latMin&&lat<=r.latMax&&lon>=r.lonMin&&lon<=r.lonMax)return r.id;return 11;}
+function getLocation(){return new Promise((res,rej)=>{if(!navigator.geolocation)return rej();navigator.geolocation.getCurrentPosition(res,rej,{timeout:8000});});}
+function setStatus(s,t){document.getElementById('status-dot').className='status-dot '+s;document.getElementById('status-text').textContent=t;}
+function hideLoading(){const el=document.getElementById('loading');el.classList.add('hidden');setTimeout(()=>el.style.display='none',700);}
+function showError(msg){const el=document.getElementById('err-box');el.style.display='block';el.textContent=msg;setTimeout(()=>el.style.display='none',5000);}
+
+const MSGS=['Lade Berliner Pollendaten…','Verbinde mit DWD OpenData…','Analysiere Phänologie (PEP725)…','Lade Luftqualität CAMS…','Lade OSM-Baumkataster…'];
+let mi=0;
+const msgInt=setInterval(()=>{mi=(mi+1)%MSGS.length;const el=document.getElementById('ld-msg');if(el)el.textContent=MSGS[mi];},1600);
+setTimeout(()=>clearInterval(msgInt),14000);
+</script>
+
+</body>
+</html>
