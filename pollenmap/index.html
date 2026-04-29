@@ -156,7 +156,7 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 
 <div id="disclaimer">
   <div class="disc-card">
-    <div class="disc-title">Pollen<span>radar</span><br><span style="font-size:0.9rem;font-family:'DM Mono',monospace;color:rgba(26,18,8,0.45);letter-spacing:.08em;font-style:normal">Meidezonen-Karte</span></div>
+    <div class="disc-title">Pollen<span>radar</span><br><span style="font-size:0.9rem;font-family:'Inter',sans-serif;color:rgba(26,18,8,0.45);letter-spacing:.04em;font-style:normal;font-weight:300">Meidezonen-Karte</span></div>
 
 ```
 <div class="disc-body">
@@ -164,10 +164,10 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 </div>
 
 <div class="disc-sources">
-  <div class="disc-source-row"><strong>DWD Pollen-API</strong>Regionale Tagesvorhersage auf der 0 bis 3 Skala. Kann durch CORS-Richtlinien blockiert werden.</div>
-  <div class="disc-source-row"><strong>Open-Meteo CAMS</strong>Copernicus-Atmosphärenmodell in µg/m³, normiert auf die DWD-Skala. Dient als Fallback.</div>
+  <div class="disc-source-row"><strong>DWD Pollen-API</strong>Regionale Tagesvorhersage auf der 0 bis 3 Skala. Wird durch Browser-Sicherheitsregeln (CORS) blockiert. Open-Meteo dient als automatischer Ersatz.</div>
+  <div class="disc-source-row"><strong>Open-Meteo CAMS</strong>Copernicus-Atmosphärenmodell in µg/m³, normiert auf die DWD-Skala. Browserkompatibel und immer verfügbar.</div>
   <div class="disc-source-row"><strong>OSM Overpass</strong>Einzelbäume und Vegetationsflächen aus OpenStreetMap. Vollständigkeit variiert regional.</div>
-  <div class="disc-source-row"><strong>Berlin Baumkataster</strong>FIS-Broker WFS mit rund 900.000 Bäumen. Nur innerhalb Berlins verfügbar.</div>
+  <div class="disc-source-row"><strong>Berlin Baumkataster</strong>FIS-Broker WFS mit rund 900.000 Bäumen. Nur innerhalb Berlins verfügbar. Kann durch CORS blockiert werden.</div>
   <div class="disc-source-row"><strong>DWD Phänologie</strong>Statistische Blütezeitnormen von 1961 bis 1990, angepasst durch eine aktuelle Temperaturkorrektur.</div>
 </div>
 
@@ -692,7 +692,6 @@ function resolveKatasterPollen(props) {
   return null;
 }
 
-let katasterMarkers = [];
 let katasterCache = [];
 let katasterLoaded = false;
 
@@ -851,13 +850,13 @@ async function loadOSMSources() {
 // ═══════════════════════════════════════════════
 // RENDER
 // ═══════════════════════════════════════════════
-function renderAll() {
+async function renderAll() {
   clearAllLayers();
   renderHeatmap(computeRisk());
   renderWindLayer();
   renderTreeMarkers();
   renderAreaMarkers();
-  if (layerState.kataster) renderKatasterLayer();
+  if (layerState.kataster) await renderKatasterLayer();
   if (layerState.aqi) renderAQIMarkers();
 }
 
@@ -950,7 +949,6 @@ function renderAreaMarkers() {
   });
 }
 
-async function renderKatasterLayer() {
 function renderAQIMarkers() {
   if (!aqiData||!layerState.aqi) return;
   const aqi=aqiData.aqi??0;
@@ -1063,7 +1061,7 @@ function setupLayerToggles() {
     'tog-wind':{key:'wind', fn:()=>{clearWindMarkers();if(layerState.wind)renderWindLayer();}},
     'tog-trees':{key:'trees', fn:()=>{treeMarkers.forEach(m=>map.removeLayer(m));treeMarkers=[];if(layerState.trees)renderTreeMarkers();}},
     'tog-areas':{key:'areas', fn:()=>{areaMarkers.forEach(m=>map.removeLayer(m));areaMarkers=[];if(layerState.areas)renderAreaMarkers();}},
-    'tog-kataster':{key:'kataster', fn:()=>{katasterMarkers.forEach(m=>map.removeLayer(m));katasterMarkers=[];if(layerState.kataster)renderKatasterLayer();}},
+    'tog-kataster':{key:'kataster', fn:async ()=>{katasterMarkers.forEach(m=>map.removeLayer(m));katasterMarkers=[];if(layerState.kataster) await renderKatasterLayer();}},
     'tog-aqi':{key:'aqi', fn:()=>{
       document.getElementById('aqi-panel').style.display=layerState.aqi?'block':'none';
       aqiMarkers.forEach(m=>map.removeLayer(m));aqiMarkers=[];if(layerState.aqi)renderAQIMarkers();
