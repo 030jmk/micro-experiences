@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Group Photo Challenge</title>
+  <meta name="description" content="Assign random photo challenges to your group.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #f5f4f0;
+      --surface: #ffffff;
+      --border: #e0ddd6;
+      --text: #1a1a1a;
+      --muted: #888;
+    }
+    body {
+      background: var(--bg);
+      font-family: 'DM Sans', sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+    }
+    h1 {
+      font-family: 'DM Mono', monospace;
+      font-size: 1.1rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    .card {
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      box-shadow: none;
+      background: var(--surface);
+    }
+    label {
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 500;
+    }
+    textarea, input[type="number"] {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.88rem;
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+    textarea { resize: vertical; }
+    textarea:focus, input[type="number"]:focus {
+      border-color: #aaa;
+      box-shadow: none;
+    }
+
+```
+/* Challenge type tabs */
+.challenge-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.challenge-tab {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  cursor: pointer;
+  background: var(--bg);
+  color: var(--muted);
+  transition: all 0.12s;
+  user-select: none;
+}
+.challenge-tab:hover { border-color: #aaa; color: var(--text); }
+.challenge-tab.active {
+  background: var(--text);
+  color: #fff;
+  border-color: var(--text);
+}
+
+/* Color swatches */
+.color-wheel-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.color-swatch {
+  position: relative;
+  cursor: pointer;
+}
+.color-swatch input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0; height: 0;
+}
+.swatch-inner {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2.5px solid transparent;
+  transition: transform 0.15s, border-color 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.color-swatch input:checked + .swatch-inner {
+  border-color: var(--text);
+  transform: scale(1.15);
+}
+.swatch-inner::after {
+  content: '✓';
+  font-size: 0.75rem;
+  color: rgba(255,255,255,0.85);
+  opacity: 0;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+}
+.color-swatch input:checked + .swatch-inner::after { opacity: 1; }
+.swatch-label {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.65rem;
+  text-align: center;
+  margin-top: 3px;
+  color: var(--muted);
+}
+
+/* Tag pills (letter, texture, emotion) */
+.tag-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.tag-pill {
+  position: relative;
+  cursor: pointer;
+}
+.tag-pill input[type="checkbox"] {
+  position: absolute;
+  opacity: 0;
+  width: 0; height: 0;
+}
+.pill-inner {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--bg);
+  color: var(--muted);
+  transition: all 0.12s;
+  display: block;
+}
+.tag-pill input:checked + .pill-inner {
+  background: var(--text);
+  color: #fff;
+  border-color: var(--text);
+}
+
+/* Buttons */
+.btn-assign {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--text);
+  color: #fff;
+  border: none;
+  border-radius: 3px;
+  padding: 10px 24px;
+}
+.btn-assign:hover { background: #333; color: #fff; }
+.btn-outline-secondary {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  border-radius: 3px;
+}
+
+/* Results */
+#result-list { list-style: none; padding: 0; margin: 0; }
+#result-list li {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+#result-list li:last-child { border-bottom: none; }
+.result-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.78rem;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--bg);
+  font-weight: 500;
+}
+.result-name {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.88rem;
+}
+.result-value {
+  margin-left: auto;
+  font-size: 0.72rem;
+  color: var(--muted);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.section-title {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+  margin-bottom: 14px;
+}
+#error-msg {
+  font-size: 0.8rem;
+  color: #c0392b;
+}
+.challenge-panel { display: none; }
+.challenge-panel.active { display: block; }
+```
+
+  </style>
+</head>
+<body>
+  <div class="container py-5" style="max-width:640px">
+
+```
+<div class="mb-4">
+  <h1 class="mb-0">Group Photo Challenge</h1>
+</div>
+
+<!-- Participants -->
+<div class="card p-4 mb-3">
+  <div class="section-title">Participants</div>
+  <label for="names-input" class="form-label">Names <span class="text-muted" style="text-transform:none;letter-spacing:0">(one per line)</span></label>
+  <textarea id="names-input" class="form-control" rows="6" placeholder="Alice&#10;Bob&#10;Carol&#10;David"></textarea>
+</div>
+
+<!-- Challenge selector -->
+<div class="card p-4 mb-3">
+  <div class="section-title">Challenge Type</div>
+  <div class="challenge-tabs mb-4">
+    <div class="challenge-tab active" data-type="color">Color</div>
+    <div class="challenge-tab" data-type="letter">Letter</div>
+    <div class="challenge-tab" data-type="number">Number</div>
+    <div class="challenge-tab" data-type="texture">Texture</div>
+    <div class="challenge-tab" data-type="emotion">Emotion</div>
+  </div>
+
+  <!-- COLOR -->
+  <div class="challenge-panel active" id="panel-color">
+    <label class="form-label d-block mb-2">Select colors to include</label>
+    <div class="color-wheel-grid" id="color-grid"></div>
+    <div class="mt-3 d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" onclick="selectAll('color-grid')">Select all</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="selectNone('color-grid')">Clear</button>
+    </div>
+  </div>
+
+  <!-- LETTER -->
+  <div class="challenge-panel" id="panel-letter">
+    <label class="form-label d-block mb-2">Select letters to include</label>
+    <div class="tag-grid" id="letter-grid"></div>
+    <div class="mt-3 d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" onclick="selectAll('letter-grid')">Select all</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="selectNone('letter-grid')">Clear</button>
+    </div>
+  </div>
+
+  <!-- NUMBER -->
+  <div class="challenge-panel" id="panel-number">
+    <label class="form-label d-block mb-2">Random number range</label>
+    <div class="d-flex align-items-center gap-3 mt-2">
+      <div>
+        <label class="form-label">Min</label>
+        <input type="number" id="num-min" class="form-control" value="1" min="0" style="width:90px">
+      </div>
+      <div>
+        <label class="form-label">Max</label>
+        <input type="number" id="num-max" class="form-control" value="100" min="1" style="width:90px">
+      </div>
+    </div>
+    <p class="mt-2 mb-0" style="font-size:0.78rem;color:var(--muted)">Each participant gets a unique number from this range.</p>
+  </div>
+
+  <!-- TEXTURE -->
+  <div class="challenge-panel" id="panel-texture">
+    <label class="form-label d-block mb-2">Select textures to include</label>
+    <div class="tag-grid" id="texture-grid"></div>
+    <div class="mt-3 d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" onclick="selectAll('texture-grid')">Select all</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="selectNone('texture-grid')">Clear</button>
+    </div>
+  </div>
+
+  <!-- EMOTION -->
+  <div class="challenge-panel" id="panel-emotion">
+    <label class="form-label d-block mb-2">Select emotions to include</label>
+    <div class="tag-grid" id="emotion-grid"></div>
+    <div class="mt-3 d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" onclick="selectAll('emotion-grid')">Select all</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="selectNone('emotion-grid')">Clear</button>
+    </div>
+  </div>
+
+</div>
+
+<div class="d-flex align-items-center gap-3 mb-4">
+  <button class="btn btn-assign" onclick="assign()">Assign</button>
+  <span id="error-msg"></span>
+</div>
+
+<div id="result-section" style="display:none">
+  <div class="card p-4">
+    <div class="section-title">Result</div>
+    <ul id="result-list"></ul>
+    <div class="mt-3">
+      <button class="btn btn-outline-secondary btn-sm" onclick="copyResult()">Copy as text</button>
+    </div>
+  </div>
+</div>
+```
+
+  </div>
+
+  <script>
+    // --- Data ---
+    const COLORS = [
+      { name: 'Red',    hex: '#E53935' }, { name: 'Orange', hex: '#FB8C00' },
+      { name: 'Yellow', hex: '#FDD835' }, { name: 'Lime',   hex: '#7CB342' },
+      { name: 'Green',  hex: '#2E7D32' }, { name: 'Teal',   hex: '#00897B' },
+      { name: 'Cyan',   hex: '#00ACC1' }, { name: 'Sky',    hex: '#039BE5' },
+      { name: 'Blue',   hex: '#1E88E5' }, { name: 'Indigo', hex: '#3949AB' },
+      { name: 'Violet', hex: '#8E24AA' }, { name: 'Pink',   hex: '#E91E8C' },
+      { name: 'Rose',   hex: '#F06292' }, { name: 'Brown',  hex: '#795548' },
+      { name: 'Grey',   hex: '#757575' }, { name: 'White',  hex: '#F5F5F5', border: true },
+      { name: 'Black',  hex: '#212121' }, { name: 'Gold',   hex: '#F9A825' },
+      { name: 'Silver', hex: '#B0BEC5' }, { name: 'Coral',  hex: '#FF7043' },
+    ];
+
+    const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+
+    const TEXTURES = [
+      'Rough','Smooth','Bumpy','Grainy','Fuzzy','Silky','Cracked',
+      'Woven','Scaly','Porous','Glossy','Matte','Rubbery','Spiky',
+      'Flaky','Wrinkled','Ribbed','Foamy','Powdery','Metallic'
+    ];
+
+    const EMOTIONS = [
+      'Joy','Calm','Melancholy','Anger','Surprise','Fear','Disgust',
+      'Anticipation','Nostalgia','Awe','Loneliness','Hope','Anxiety',
+      'Serenity','Excitement','Boredom','Tenderness','Pride','Shame','Love'
+    ];
+
+    // --- Build grids ---
+    function buildColorGrid() {
+      const grid = document.getElementById('color-grid');
+      COLORS.forEach((c, i) => {
+        const wrap = document.createElement('label');
+        wrap.className = 'color-swatch text-center';
+        wrap.title = c.name;
+        wrap.innerHTML = `
+          <input type="checkbox" value="${i}" checked>
+          <div class="swatch-inner" style="background:${c.hex};${c.border ? 'border-color:#ccc!important;' : ''}"></div>
+          <div class="swatch-label">${c.name}</div>`;
+        grid.appendChild(wrap);
+      });
+    }
+
+    function buildTagGrid(gridId, items) {
+      const grid = document.getElementById(gridId);
+      items.forEach(item => {
+        const wrap = document.createElement('label');
+        wrap.className = 'tag-pill';
+        wrap.innerHTML = `<input type="checkbox" value="${item}" checked><span class="pill-inner">${item}</span>`;
+        grid.appendChild(wrap);
+      });
+    }
+
+    buildColorGrid();
+    buildTagGrid('letter-grid', LETTERS);
+    buildTagGrid('texture-grid', TEXTURES);
+    buildTagGrid('emotion-grid', EMOTIONS);
+
+    // --- Tab switching ---
+    let activeType = 'color';
+    document.querySelectorAll('.challenge-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.challenge-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.challenge-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        activeType = tab.dataset.type;
+        document.getElementById('panel-' + activeType).classList.add('active');
+        document.getElementById('result-section').style.display = 'none';
+        document.getElementById('error-msg').textContent = '';
+      });
+    });
+
+    // --- Helpers ---
+    function selectAll(gridId) {
+      document.querySelectorAll(`#${gridId} input`).forEach(el => el.checked = true);
+    }
+    function selectNone(gridId) {
+      document.querySelectorAll(`#${gridId} input`).forEach(el => el.checked = false);
+    }
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function getCheckedValues(gridId) {
+      return [...document.querySelectorAll(`#${gridId} input:checked`)].map(el => el.value);
+    }
+
+    // Generate unique random integers in [min, max]
+    function uniqueRandomInts(min, max, count) {
+      const pool = [];
+      for (let i = min; i <= max; i++) pool.push(i);
+      if (pool.length < count) return null;
+      return shuffle(pool).slice(0, count);
+    }
+
+    // --- Assign ---
+    function assign() {
+      const err = document.getElementById('error-msg');
+      const names = document.getElementById('names-input').value
+        .split('\n').map(s => s.trim()).filter(Boolean);
+
+      if (!names.length) { err.textContent = 'Add at least one name.'; return; }
+      err.textContent = '';
+
+      let assignments = []; // [{name, label, dot}] dot = hex or null
+
+      if (activeType === 'color') {
+        const vals = getCheckedValues('color-grid');
+        if (!vals.length) { err.textContent = 'Select at least one color.'; return; }
+        if (vals.length < names.length) { err.textContent = `Need at least ${names.length} colors.`; return; }
+        const picked = shuffle(vals).slice(0, names.length);
+        assignments = names.map((n, i) => ({ name: n, label: COLORS[+picked[i]].name, dot: COLORS[+picked[i]].hex, border: COLORS[+picked[i]].border }));
+
+      } else if (activeType === 'letter') {
+        const vals = getCheckedValues('letter-grid');
+        if (!vals.length) { err.textContent = 'Select at least one letter.'; return; }
+        if (vals.length < names.length) { err.textContent = `Need at least ${names.length} letters.`; return; }
+        const picked = shuffle(vals).slice(0, names.length);
+        assignments = names.map((n, i) => ({ name: n, label: picked[i], dot: null }));
+
+      } else if (activeType === 'number') {
+        const min = parseInt(document.getElementById('num-min').value);
+        const max = parseInt(document.getElementById('num-max').value);
+        if (isNaN(min) || isNaN(max) || min >= max) { err.textContent = 'Invalid range.'; return; }
+        const nums = uniqueRandomInts(min, max, names.length);
+        if (!nums) { err.textContent = `Range too small for ${names.length} unique numbers.`; return; }
+        assignments = names.map((n, i) => ({ name: n, label: String(nums[i]), dot: null }));
+
+      } else if (activeType === 'texture') {
+        const vals = getCheckedValues('texture-grid');
+        if (!vals.length) { err.textContent = 'Select at least one texture.'; return; }
+        if (vals.length < names.length) { err.textContent = `Need at least ${names.length} textures.`; return; }
+        const picked = shuffle(vals).slice(0, names.length);
+        assignments = names.map((n, i) => ({ name: n, label: picked[i], dot: null }));
+
+      } else if (activeType === 'emotion') {
+        const vals = getCheckedValues('emotion-grid');
+        if (!vals.length) { err.textContent = 'Select at least one emotion.'; return; }
+        if (vals.length < names.length) { err.textContent = `Need at least ${names.length} emotions.`; return; }
+        const picked = shuffle(vals).slice(0, names.length);
+        assignments = names.map((n, i) => ({ name: n, label: picked[i], dot: null }));
+      }
+
+      renderResults(assignments);
+    }
+
+    function renderResults(assignments) {
+      const list = document.getElementById('result-list');
+      list.innerHTML = '';
+      assignments.forEach(a => {
+        const li = document.createElement('li');
+        const badge = a.dot
+          ? `<div class="result-badge" style="background:${a.dot};border-color:${a.border ? '#ccc' : a.dot};"></div>`
+          : `<div class="result-badge">${a.label.length === 1 ? a.label : '·'}</div>`;
+        li.innerHTML = `
+          ${badge}
+          <span class="result-name">${a.name}</span>
+          <span class="result-value">${a.label}</span>`;
+        list.appendChild(li);
+      });
+      document.getElementById('result-section').style.display = 'block';
+      document.getElementById('result-section').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function copyResult() {
+      const items = [...document.querySelectorAll('#result-list li')].map(li => {
+        const name = li.querySelector('.result-name').textContent.trim();
+        const val  = li.querySelector('.result-value').textContent.trim();
+        return `${name} → ${val}`;
+      });
+      navigator.clipboard.writeText(items.join('\n'));
+    }
+  </script>
+
+</body>
+</html>
