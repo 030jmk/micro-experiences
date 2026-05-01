@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pollenradar: Meidezonen-Karte</title>
+<title>Pollenradar Berlin · Meidezonen-Karte</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -172,18 +172,18 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 
 <div id="disclaimer">
   <div class="disc-card">
-    <div class="disc-title">Pollen<span>radar</span><br><span style="font-size:0.9rem;font-family:'Inter',sans-serif;color:rgba(26,18,8,0.45);letter-spacing:.04em;font-style:normal;font-weight:300">Meidezonen-Karte</span></div>
+    <div class="disc-title">Pollen<span>radar</span><br><span style="font-size:0.9rem;font-family:'Inter',sans-serif;color:rgba(26,18,8,0.45);letter-spacing:.04em;font-style:normal;font-weight:300">Meidezonen-Karte · Berlin</span></div>
 
 <div class="disc-body">
-  Diese App zeigt einen <strong>modellbasierten Risikoindikator</strong> für Pollenbelastung in deiner Umgebung. Sie ist kein medizinisches Diagnosewerkzeug. Die angezeigten Risikogebiete entstehen aus einer Kombination offener Datenquellen.
+  Diese Karte ist auf <strong>Berlin</strong> ausgerichtet: Sie kombiniert amtliche Baumdaten der Stadt mit Wetter- und Pollenvorhersagen für die Region <strong>Berlin–Brandenburg</strong>. Der angezeigte Risikoindikator ist <strong>modellbasiert</strong> — kein medizinisches Diagnosewerkzeug.
 </div>
 
 <div class="disc-sources">
-  <div class="disc-source-row"><strong>DWD Pollen-API</strong> — Regionale Tagesvorhersage auf der 0 bis 3 Skala. Direkt aus dem Browser oft durch CORS blockiert; die App lädt die gleichen Daten über einen kleinen Proxy. Open-Meteo bleibt als Alternative.</div>
-  <div class="disc-source-row"><strong>Open-Meteo CAMS</strong> — Copernicus-Atmosphärenmodell in µg/m³, normiert auf die DWD-Skala. Browserkompatibel und immer verfügbar.</div>
-  <div class="disc-source-row"><strong>OSM Overpass</strong> — Einzelbäume und Vegetationsflächen aus OpenStreetMap. Vollständigkeit variiert regional.</div>
-  <div class="disc-source-row"><strong>Berlin Baumkataster</strong> — FIS-Broker WFS mit rund 900.000 Bäumen. Nur innerhalb Berlins verfügbar. Kann durch CORS blockiert werden.</div>
-  <div class="disc-source-row"><strong>DWD Phänologie</strong> — Statistische Blütezeitnormen von 1961 bis 1990, angepasst durch eine aktuelle Temperaturkorrektur.</div>
+  <div class="disc-source-row"><strong>Baumbestand Berlin (WFS)</strong> — <em>Kernquelle für Bäume in Berlin:</em> Straßen- und Anlagenbäume über <a href="https://gdi.berlin.de/services/wfs/baumbestand" target="_blank" rel="noopener noreferrer">GDI Berlin</a> · <a href="https://daten.berlin.de/datensaetze/baumbestand-berlin-wfs-48ad3a23" target="_blank" rel="noopener noreferrer">Open Data</a>.</div>
+  <div class="disc-source-row"><strong>DWD · Region 11</strong> — Tagesvorhersage Pollen (0–3) und Wind für Berlin–Brandenburg. Ein kleiner Proxy umgeht Browser-CORS; dieselben Daten wie beim DWD OpenData.</div>
+  <div class="disc-source-row"><strong>Open-Meteo CAMS</strong> — Alternative zur DWD-Pollenlinie: Copernicus-Atmosphäre am gleichen Ort, in µg/m³ auf die DWD-Skala normiert. Zusätzlich Luftqualität (PM, Ozon) ohne Extra-Zugang.</div>
+  <div class="disc-source-row"><strong>OSM Overpass</strong> — <em>Optional:</em> Freiwillig gemappte Bäume und Flächen in OpenStreetMap. Ergänzt den amtlichen Bestand, ersetzt ihn nicht.</div>
+  <div class="disc-source-row"><strong>Phänologie (DWD / PEP725)</strong> — Typische Blühfenster für Mitteleuropa, mit Temperaturkorrektur — Orientierung, keine Echtzeitmessung.</div>
 </div>
 
 <div class="disc-warn">
@@ -206,7 +206,7 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 <header>
   <div>
     <h1>Pollenradar</h1>
-    <div class="subtitle">Meidezonen-Karte</div>
+    <div class="subtitle">Meidezonen-Karte · Berlin</div>
   </div>
   <div class="hdr-center">
     <div class="status-dot" id="status-dot"></div>
@@ -240,17 +240,17 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
     <label class="toggle"><input type="checkbox" id="tog-wind" checked><span class="toggle-slider"></span></label>
   </div>
 
-  <div class="layer-group-label">Pollenquellen</div>
+  <div class="layer-group-label">Bäume & Flächen</div>
   <div class="toggle-row">
-    <span class="toggle-label">🌳 OSM-Bäume <span class="tbadge b-live">OSM</span></span>
+    <span class="toggle-label">🌳 OSM-Bäume <span class="tbadge b-live">optional</span></span>
     <label class="toggle"><input type="checkbox" id="tog-trees" checked><span class="toggle-slider"></span></label>
   </div>
   <div class="toggle-row">
-    <span class="toggle-label">🌿 OSM-Flächen <span class="tbadge b-live">OSM</span></span>
+    <span class="toggle-label">🌿 OSM-Flächen <span class="tbadge b-live">optional</span></span>
     <label class="toggle"><input type="checkbox" id="tog-areas" checked><span class="toggle-slider"></span></label>
   </div>
   <div class="toggle-row">
-    <span class="toggle-label">🏙 Baumkataster <span class="tbadge b-ext">Berlin</span></span>
+    <span class="toggle-label">🏙 Baumbestand <span class="tbadge b-ext">amtlich</span></span>
     <label class="toggle"><input type="checkbox" id="tog-kataster"><span class="toggle-slider"></span></label>
   </div>
 
@@ -305,25 +305,23 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 
 <!-- DATA SOURCES -->
 <div class="ds-footer">
-  <strong style="display:block;margin-bottom:4px;color:rgba(26,18,8,0.45);font-size:0.56rem;letter-spacing:.1em;text-transform:uppercase">Datenquellen</strong>
-  <a href="https://dwd-pollen-proxy.jan-f2c.workers.dev/" target="_blank" rel="noopener noreferrer">DWD OpenData</a>: Pollen und Wind<br>
-  <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a>: CAMS/Copernicus Pollen und AQI<br>
-  <a href="https://overpass-api.de" target="_blank" rel="noopener noreferrer">OSM Overpass</a>: Bäume und Flächen<br>
-  <a href="https://www.berlin.de/sen/uvk/natur-und-gruen/stadtbaeume/baumbestand/" target="_blank" rel="noopener noreferrer">Berlin Baumkataster</a>: offener WFS<br>
-  <a href="https://pep725.eu" target="_blank" rel="noopener noreferrer">PEP725</a>: Phänologie Europa<br>
-  <a href="https://www.umweltbundesamt.de/daten/luft" target="_blank" rel="noopener noreferrer">UBA</a>: Luftqualität Deutschland
+  <strong style="display:block;margin-bottom:4px;color:rgba(26,18,8,0.45);font-size:0.56rem;letter-spacing:.1em;text-transform:uppercase">Datenquellen · Fokus Berlin</strong>
+  <a href="https://daten.berlin.de/datensaetze/baumbestand-berlin-wfs-48ad3a23" target="_blank" rel="noopener noreferrer">Baumbestand Berlin</a> · <a href="https://gdi.berlin.de/services/wfs/baumbestand" target="_blank" rel="noopener noreferrer">WFS</a> (Straßen- &amp; Anlagenbäume)<br>
+  <a href="https://dwd-pollen-proxy.jan-f2c.workers.dev/" target="_blank" rel="noopener noreferrer">DWD OpenData</a> via Proxy: Pollen &amp; Wind · Region Berlin–Brandenburg<br>
+  <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a>: CAMS Pollen &amp; Luftqualität (Copernicus), normiert<br>
+  <a href="https://overpass-api.de" target="_blank" rel="noopener noreferrer">OSM Overpass</a>: freiwillige Baum- &amp; Flächendaten (Ergänzung)<br>
+  <a href="https://pep725.eu" target="_blank" rel="noopener noreferrer">PEP725</a> · DWD-Normals: Phänologie
 </div>
 
   </div>
 </div>
 
 <div class="map-info">
-  <strong>Legende</strong>
-  🌳 OSM-Baum mit bekannter Art<br>
-  🌿 OSM-Fläche als Fallback<br>
-  🏙 Baumkataster Berlin (WFS)<br>
-  Rote Zonen zeigen Pollenzug per Wind.<br>
-  <span style="color:rgba(26,18,8,.4)">Phänologie basiert auf DWD-Normals mit Temperaturkorrektur.</span>
+  <strong>Legende · Berlin</strong>
+  🏙 Amtlicher Baumbestand (SenMVKU / GDI)<br>
+  🌳 OSM-Baum · 🌿 OSM-Fläche <span style="color:rgba(26,18,8,.45)">(optional)</span><br>
+  Rote Zonen: modellierter Pollenzug mit Wind (DWD).<br>
+  <span style="color:rgba(26,18,8,.4)">Vorhersage: Region 11 · Blühstreifen: DWD/PEP725, näherungsweise.</span>
 </div>
 
 <script>
@@ -411,7 +409,7 @@ const OM_POLLEN_MAP = {
   mugwort_pollen:'beifuss', ragweed_pollen:'ambrosia'
 };
 
-// German common-name → pollen ID (for Baumkataster)
+// German common-name → pollen ID (for Berlin Baumbestand / OSM)
 const DE_NAME_MAP = {
   birke:['birke','hängebirke','sandbirke','moorbirke','weißbirke'],
   erle:['erle','schwarzerle','grauerle','weißerle','roterle'],
@@ -670,53 +668,19 @@ async function fetchAQI(lat, lon) {
   } catch(e) { return null; }
 }
 
-// ─── BERLIN BAUMKATASTER (FIS-Broker WFS) ──────────────────────────────────
-// Source: Senatsverwaltung für Mobilität, Verkehr, Klimaschutz und Umwelt Berlin
-// Endpoint: fbinter.stadt-berlin.de/fb/wfs/data/senstadt/s_wfs_baumbestand
-// CRS: EPSG:25833 (UTM Zone 33N). We project bbox and convert results to WGS84.
-// Datenlizenz Deutschland – Namensnennung – Version 2.0 (dl-de/by-2-0)
-// Fields: GATTUNG (genus), ARTBEZEICHNUNG (species), PFLANZJAHR (year planted),
-//         STAMMUMFG (girth), KRONENDURCHMESSER (crown diam), STRNAME (street)
+// ─── BERLIN BAUMBESTAND (GDI WFS) ──────────────────────────────────────────
+// Source: SenMVKU Berlin — Straßen- und Anlagenbäume
+// Dataset: https://daten.berlin.de/datensaetze/baumbestand-berlin-wfs-48ad3a23
+// Endpoint: https://gdi.berlin.de/services/wfs/baumbestand
+// CRS: EPSG:4326 (GeoJSON lon,lat). Two typenames fetched separately — combined
+//      GetFeature+BBOX with multiple layers is rejected by the server.
+// Datenlizenz Deutschland – Zero – Version 2.0 (dl-de-zero-2.0)
+// Fields: gattung, art_dtsch, art_bot, strname | namenr, pflanzjahr, kronedurch
 
-// Lightweight EPSG:25833 → WGS84 conversion (Helmert approximation, ~1m accuracy)
-function utm33nToWgs84(easting, northing) {
-  const a=6378137, f=1/298.257222101, k0=0.9996;
-  const e2=2*f-f*f, e1p2=e2/(1-e2);
-  const x=(easting-500000)/k0, y=northing/k0;
-  const mu=y/(a*(1-e2/4-3*e2*e2/64-5*e2*e2*e2/256));
-  const e1=(1-Math.sqrt(1-e2))/(1+Math.sqrt(1-e2));
-  const phi1=mu+(3*e1/2-27*e1*e1*e1/32)*Math.sin(2*mu)
-    +(21*e1*e1/16-55*e1*e1*e1*e1/32)*Math.sin(4*mu)
-    +(151*e1*e1*e1/96)*Math.sin(6*mu);
-  const N1=a/Math.sqrt(1-e2*Math.sin(phi1)*Math.sin(phi1));
-  const T1=Math.tan(phi1)*Math.tan(phi1);
-  const C1=e1p2*Math.cos(phi1)*Math.cos(phi1);
-  const R1=a*(1-e2)/Math.pow(1-e2*Math.sin(phi1)*Math.sin(phi1),1.5);
-  const D=x/N1;
-  const lat=phi1-(N1*Math.tan(phi1)/R1)*(D*D/2-(5+3*T1+10*C1-4*C1*C1-9*e1p2)*D*D*D*D/24);
-  const lon0=15*Math.PI/180;
-  const lng=lon0+(D-(1+2*T1+C1)*D*D*D/6)/Math.cos(phi1);
-  return [lat*180/Math.PI, lng*180/Math.PI];
-}
+const WFS_BAUMBESTAND_BERLIN = 'https://gdi.berlin.de/services/wfs/baumbestand';
+const WFS_BAUM_TYPENAMES = ['baumbestand:strassenbaeume', 'baumbestand:anlagenbaeume'];
 
-// Convert WGS84 bbox → UTM33N bbox for FIS-Broker query
-function wgs84ToUtm33n(lat, lon) {
-  const a=6378137, f=1/298.257222101, k0=0.9996;
-  const e2=2*f-f*f, lon0=15*Math.PI/180;
-  const phi=lat*Math.PI/180, lam=lon*Math.PI/180;
-  const N=a/Math.sqrt(1-e2*Math.sin(phi)*Math.sin(phi));
-  const T=Math.tan(phi)*Math.tan(phi), C=e2/(1-e2)*Math.cos(phi)*Math.cos(phi);
-  const A=Math.cos(phi)*(lam-lon0);
-  const M=a*((1-e2/4-3*e2*e2/64-5*e2*e2*e2/256)*phi
-    -(3*e2/8+3*e2*e2/32+45*e2*e2*e2/1024)*Math.sin(2*phi)
-    +(15*e2*e2/256+45*e2*e2*e2/1024)*Math.sin(4*phi)
-    -(35*e2*e2*e2/3072)*Math.sin(6*phi));
-  const E=k0*N*(A+(1-T+C)*A*A*A/6)+500000;
-  const No=k0*(M+N*Math.tan(phi)*(A*A/2+(5-T+9*C+4*C*C)*A*A*A*A/24));
-  return [E, No];
-}
-
-// German genus name → pollen ID map (Baumkataster uses German names)
+// German genus name → pollen ID map (Baumbestand uses German + Latin fields)
 const DE_GENUS_MAP = {
   'betula':'birke','birke':'birke','hänge-birke':'birke','moorbirke':'birke',
   'alnus':'erle','erle':'erle','schwarz-erle':'erle','grau-erle':'erle',
@@ -727,59 +691,71 @@ const DE_GENUS_MAP = {
 };
 
 function resolveKatasterPollen(props) {
-  const gattung = (props.GATTUNG ?? props.gattung ?? '').toLowerCase().trim();
-  const art = (props.ARTBEZEICHNUNG ?? props.art_dtsch ?? props.GATTUNG_DEUTSCH ?? '').toLowerCase().trim();
+  const gattung = String(props.gattung ?? props.GATTUNG ?? '').toLowerCase().trim();
+  const art = String(props.art_dtsch ?? props.ARTBEZEICHNUNG ?? props.GATTUNG_DEUTSCH ?? '').toLowerCase().trim();
+  const artBot = String(props.art_bot ?? '').toLowerCase().trim();
   for (const [k,v] of Object.entries(DE_GENUS_MAP)) {
-    if (gattung.includes(k) || art.includes(k)) return v;
+    if (gattung.includes(k) || art.includes(k) || artBot.includes(k)) return v;
   }
   return null;
+}
+
+async function fetchWfsBaumLayer(typeName, minLon, minLat, maxLon, maxLat) {
+  const params = new URLSearchParams({
+    SERVICE:'WFS', VERSION:'2.0.0', REQUEST:'GetFeature',
+    TYPENAMES:typeName,
+    SRSNAME:'EPSG:4326',
+    BBOX:`${minLon},${minLat},${maxLon},${maxLat},EPSG:4326`,
+    outputFormat:'application/json',
+    COUNT:'600',
+  });
+  const r = await fetch(`${WFS_BAUMBESTAND_BERLIN}?${params}`);
+  if (!r.ok) throw new Error(`${typeName} HTTP ${r.status}`);
+  return r.json();
 }
 
 let katasterCache = [];
 let katasterLoaded = false;
 
 async function fetchBaumkataster(lat, lon) {
-  // Build UTM33N bbox with ~1km radius
-  const radius = 0.009; // ~1km in degrees
-  const [e1,n1] = wgs84ToUtm33n(lat-radius, lon-radius);
-  const [e2,n2] = wgs84ToUtm33n(lat+radius, lon+radius);
-  const bboxStr = `${Math.round(e1)},${Math.round(n1)},${Math.round(e2)},${Math.round(n2)}`;
-
-  const base = 'https://fbinter.stadt-berlin.de/fb/wfs/data/senstadt/s_wfs_baumbestand';
-  const params = new URLSearchParams({
-    SERVICE:'WFS', VERSION:'2.0.0', REQUEST:'GetFeature',
-    TYPENAMES:'fis:s_wfs_baumbestand',
-    SRSNAME:'EPSG:25833',
-    BBOX:`${bboxStr},EPSG:25833`,
-    outputFormat:'application/json',
-    COUNT:'600',
-  });
-  const url = `${base}?${params}`;
-
+  const radiusDeg = 0.009;
+  const minLon = lon - radiusDeg;
+  const maxLon = lon + radiusDeg;
+  const minLat = lat - radiusDeg;
+  const maxLat = lat + radiusDeg;
   try {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    const d = await r.json();
-    return (d.features ?? []).map(f => {
+    const settled = await Promise.allSettled(
+      WFS_BAUM_TYPENAMES.map((tn) => fetchWfsBaumLayer(tn, minLon, minLat, maxLon, maxLat))
+    );
+    const raw = [];
+    settled.forEach((res, i) => {
+      if (res.status === 'fulfilled' && res.value?.features?.length) {
+        raw.push(...res.value.features);
+      } else if (res.status === 'rejected') {
+        console.warn('WFS layer failed:', WFS_BAUM_TYPENAMES[i], res.reason?.message);
+      }
+    });
+    return raw.map((f) => {
       const coords = f.geometry?.coordinates;
-      if (!coords) return null;
-      // Coordinates come in EPSG:25833 (easting, northing)
-      const [lat2, lon2] = utm33nToWgs84(coords[0], coords[1]);
-      if (lat2 < 52.3 || lat2 > 52.7 || lon2 < 13.0 || lon2 > 13.8) return null; // sanity
-      const pollenId = resolveKatasterPollen(f.properties ?? {});
+      if (!coords || coords.length < 2) return null;
+      const lon2 = coords[0];
+      const lat2 = coords[1];
+      if (lat2 < 52.3 || lat2 > 52.7 || lon2 < 13.0 || lon2 > 13.8) return null;
+      const p = f.properties ?? {};
+      const pollenId = resolveKatasterPollen(p);
       return {
         lat: lat2, lon: lon2,
         pollenId,
         sourceType: 'kataster',
-        genus:   f.properties?.GATTUNG ?? null,
-        species: f.properties?.ARTBEZEICHNUNG ?? null,
-        street:  f.properties?.STRNAME ?? null,
-        year:    f.properties?.PFLANZJAHR ?? null,
-        crown:   f.properties?.KRONENDURCHMESSER ?? null,
+        genus: p.gattung ?? p.GATTUNG ?? null,
+        species: p.art_dtsch ?? p.art_bot ?? p.ARTBEZEICHNUNG ?? null,
+        street: p.strname ?? p.namenr ?? p.STRNAME ?? null,
+        year: p.pflanzjahr ?? p.PFLANZJAHR ?? null,
+        crown: p.kronedurch ?? p.KRONENDURCHMESSER ?? null,
       };
-    }).filter(t => t?.lat && t?.lon);
-  } catch(e) {
-    console.warn('Baumkataster WFS failed:', e.message);
+    }).filter((t) => t?.lat != null && t?.lon != null);
+  } catch (e) {
+    console.warn('Baumbestand WFS failed:', e.message);
     return [];
   }
 }
@@ -791,7 +767,7 @@ async function renderKatasterLayer() {
 
   // Only hit the WFS once per location — reuse cache on subsequent renderAll calls
   if (!katasterLoaded) {
-    setStatus('loading', 'Lade Berliner Baumkataster…');
+    setStatus('loading', 'Lade Berliner Baumbestand (WFS)…');
     katasterCache = await fetchBaumkataster(userLat, userLon);
     katasterLoaded = true;
   }
@@ -819,7 +795,7 @@ async function renderKatasterLayer() {
     }).bindPopup(`
       <strong>🏙 ${t.species ?? t.genus ?? 'Stadtbaum'}</strong>
       ${t.street ? `<br><span style="color:rgba(26,18,8,.5)">${t.street}</span>` : ''}
-      <br>Quelle: Baumkataster Berlin
+      <br>Quelle: Baumbestand Berlin (<a href="https://gdi.berlin.de/services/wfs/baumbestand" target="_blank" rel="noopener noreferrer">WFS</a>)
       ${yearStr ? `<br>${yearStr}` : ''}
       ${crownStr ? `<br>${crownStr}` : ''}
       ${p ? `<br>Pollen: ${p.label}<br><span class="rbadge ${rClass(dwd)}">${rLabel(dwd)}</span>` : ''}
@@ -831,7 +807,7 @@ async function renderKatasterLayer() {
 
   const n = trees.length;
   const nAllergenic = trees.filter(t => t.pollenId).length;
-  setStatus('ok', `Baumkataster: ${n} Bäume (${nAllergenic} allergen) geladen`);
+  setStatus('ok', `Baumbestand: ${n} Bäume (${nAllergenic} allergen) geladen`);
 }
 
 // OSM Overpass
@@ -1124,7 +1100,7 @@ function setupSourceToggle() {
     const el=document.getElementById('source-status');
     const active=isDWD?pollenDataDWD:pollenDataOM;
     if(!active){el.style.color='#c0392b';el.textContent=isDWD?'⚠ DWD nicht verfügbar':'⚠ Open-Meteo nicht verfügbar';}
-    else{el.style.color='rgba(26,18,8,0.4)';el.textContent=isDWD?'DWD regional, Skala 0 bis 3':'CAMS/Copernicus, µg/m³ normiert';}
+    else{el.style.color='rgba(26,18,8,0.4)';el.textContent=isDWD?'DWD Region 11 (Berlin–Brandenburg), 0–3':'CAMS/Open-Meteo, µg/m³ normiert';}
   }
   bD.addEventListener('click',()=>{pollenSource='dwd';pollenData=pollenDataDWD??pollenDataOM;upd();renderPollenForecast();renderAll();});
   bO.addEventListener('click',()=>{pollenSource='openmeteo';pollenData=pollenDataOM??pollenDataDWD;upd();renderPollenForecast();renderAll();});
@@ -1149,7 +1125,7 @@ function setStatus(s,t){document.getElementById('status-dot').className='status-
 function hideLoading(){const el=document.getElementById('loading');el.classList.add('hidden');setTimeout(()=>el.style.display='none',700);}
 function showError(msg){const el=document.getElementById('err-box');el.style.display='block';el.textContent=msg;setTimeout(()=>el.style.display='none',5000);}
 
-const MSGS=['Lade Berliner Pollendaten…','Verbinde mit DWD OpenData…','Analysiere Phänologie (PEP725)…','Lade Luftqualität CAMS…','Lade OSM-Baumkataster…'];
+const MSGS=['Lade Berliner Pollendaten…','Verbinde mit DWD OpenData…','Analysiere Phänologie (PEP725)…','Lade Luftqualität CAMS…','Lade OSM-Bäume…'];
 let mi=0;
 const msgInt=setInterval(()=>{mi=(mi+1)%MSGS.length;const el=document.getElementById('ld-msg');if(el)el.textContent=MSGS[mi];},1600);
 setTimeout(()=>clearInterval(msgInt),14000);
