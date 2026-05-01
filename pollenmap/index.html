@@ -3,202 +3,447 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Berlin · Pollen-Meidezonen</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f4f3ef">
+<title>Berlin · Meidezonen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
 <style>
 :root {
-  --ink:#1a1208; --paper:#f5f0e8; --amber:#d4820a;
-  --amber-light:#f0b432; --red:#c0392b;
-  --mist:rgba(245,240,232,0.95); --shadow:0 4px 24px rgba(26,18,8,0.18);
-  --panel-w:262px;
+  --ink: #14120e;
+  --muted: rgba(20, 18, 14, 0.55);
+  --line: rgba(20, 18, 14, 0.08);
+  --surface: #f4f3ef;
+  --card: #fff;
+  --accent: #b8860b;
+  --accent-soft: rgba(184, 134, 11, 0.12);
+  --red: #b91c1c;
+  --ok: #16a34a;
+  --warn: #d97706;
+  --panel-max: 380px;
+  --safe-b: env(safe-area-inset-bottom, 0px);
+  --safe-t: env(safe-area-inset-top, 0px);
+  --tap: 44px;
 }
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Inter',sans-serif;background:var(--ink);color:var(--ink);height:100vh;height:100dvh;display:flex;flex-direction:column;overflow:hidden;}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html{-webkit-text-size-adjust:100%;}
+body{
+  font-family:'Inter',system-ui,-apple-system,sans-serif;
+  background:var(--surface);
+  color:var(--ink);
+  height:100vh;
+  height:100dvh;
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+  -webkit-tap-highlight-color:transparent;
+}
 
-/* HEADER */
-header{background:var(--ink);color:var(--paper);padding:9px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;border-bottom:2px solid var(--amber);z-index:1000;gap:12px;}
-h1{font-family:'Source Serif 4',serif;font-size:1.35rem;color:var(--amber-light);font-weight:600;}
-.subtitle{font-size:0.58rem;color:rgba(245,240,232,0.45);letter-spacing:.12em;text-transform:uppercase;}
-.hdr-center{display:flex;align-items:center;gap:8px;flex:1;justify-content:center;min-width:0;}
-.status-dot{width:6px;height:6px;border-radius:50%;background:#888;flex-shrink:0;transition:background .4s;}
-.status-dot.ok{background:#4ade80;}.status-dot.loading{background:var(--amber-light);animation:pulse 1s infinite;}.status-dot.error{background:var(--red);}
-#status-text{font-size:0.6rem;color:rgba(245,240,232,0.55);letter-spacing:.08em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:240px;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-#locate-btn{display:flex;align-items:center;gap:5px;padding:5px 11px;border-radius:6px;border:1.5px solid var(--amber);background:transparent;color:var(--amber-light);font-family:'Inter',sans-serif;font-size:0.65rem;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0;}
-#locate-btn:hover{background:var(--amber);color:var(--ink);}
-#locate-btn:disabled{opacity:.4;cursor:default;}
-#locate-btn.active{background:var(--amber);color:var(--ink);}
-#locate-btn{-webkit-tap-highlight-color:transparent;}
-#locate-btn:focus-visible{outline:2px solid var(--amber-light);outline-offset:2px;}
-#disc-btn{-webkit-tap-highlight-color:transparent;}
-#disc-btn:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+/* —— Header (minimal) —— */
+.app-header{
+  flex-shrink:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  padding-top:calc(10px + var(--safe-t));
+  background:var(--card);
+  border-bottom:1px solid var(--line);
+  z-index:1000;
+}
+.app-header__brand{flex:1;min-width:0;}
+.app-header h1{
+  font-size:1.05rem;
+  font-weight:600;
+  letter-spacing:-0.02em;
+  line-height:1.2;
+}
+.app-header__sub{
+  font-size:0.68rem;
+  color:var(--muted);
+  font-weight:400;
+  margin-top:1px;
+}
+.app-header__status{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  max-width:42%;
+  min-width:0;
+}
+.status-dot{width:6px;height:6px;border-radius:50%;background:#9ca3af;flex-shrink:0;transition:background .35s;}
+.status-dot.ok{background:var(--ok);}
+.status-dot.loading{background:var(--warn);animation:pulse 1s ease infinite;}
+.status-dot.error{background:var(--red);}
+.status-text{
+  font-size:0.65rem;
+  color:var(--muted);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
 
-/* LAYOUT */
-#app-body{display:flex;flex:1;overflow:hidden;min-height:0;}
-#map{flex:1;min-height:0;}
+#locate-btn{
+  flex-shrink:0;
+  min-width:var(--tap);
+  min-height:var(--tap);
+  padding:0 14px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  color:var(--ink);
+  font-size:0.72rem;
+  font-weight:500;
+  cursor:pointer;
+}
+#locate-btn:active{background:#e8e6e0;}
+#locate-btn:disabled{opacity:.45;cursor:default;}
+#locate-btn.active{border-color:var(--accent);background:var(--accent-soft);}
+#locate-btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
-/* PANEL */
-#panel{width:var(--panel-w);flex-shrink:0;background:var(--paper);border-left:2px solid rgba(26,18,8,0.1);overflow-y:auto;display:flex;flex-direction:column;z-index:500;}
-#panel::-webkit-scrollbar{width:4px;}
-#panel::-webkit-scrollbar-thumb{background:rgba(26,18,8,0.15);border-radius:2px;}
-.panel-section{padding:11px 13px;border-bottom:1px solid rgba(26,18,8,0.08);}
-.panel-label{font-size:0.57rem;letter-spacing:.14em;text-transform:uppercase;color:var(--amber);margin-bottom:7px;font-weight:500;}
+/* —— Map + panel: mobile-first column —— */
+#app-body{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  min-height:0;
+  overflow:hidden;
+}
+#map{
+  flex:1 1 52%;
+  min-height:min(52vh, 420px);
+  z-index:1;
+}
+#panel{
+  flex:1 1 48%;
+  min-height:0;
+  width:100%;
+  max-height:min(48vh, var(--panel-max));
+  background:var(--card);
+  border-radius:16px 16px 0 0;
+  box-shadow:0 -6px 32px rgba(0,0,0,.06);
+  overflow-x:hidden;
+  overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+  padding-bottom:calc(12px + var(--safe-b));
+  z-index:500;
+}
+.panel-sheet-handle{
+  width:36px;
+  height:4px;
+  border-radius:4px;
+  background:var(--line);
+  margin:10px auto 4px;
+  flex-shrink:0;
+}
+#panel::-webkit-scrollbar{width:3px;}
+#panel::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:3px;}
 
-/* POLLEN CHIPS */
-.pollen-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;}
-.pollen-chip{padding:5px 5px;border-radius:5px;border:1.5px solid rgba(26,18,8,0.18);background:white;font-size:0.63rem;cursor:pointer;transition:all .2s;text-align:center;font-family:'Inter',sans-serif;color:var(--ink);-webkit-tap-highlight-color:transparent;}
-.pollen-chip:focus-visible{outline:2px solid var(--amber);outline-offset:2px;}
+.panel-section{
+  padding:12px 16px;
+  border-bottom:1px solid var(--line);
+}
+.panel-section:last-of-type{border-bottom:none;}
+.panel-label{
+  font-size:0.62rem;
+  font-weight:600;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+
+/* Details / hint */
+.panel-details{border-bottom:1px solid var(--line);}
+.panel-details > summary{
+  list-style:none;
+  padding:14px 16px;
+  font-size:0.78rem;
+  font-weight:500;
+  color:var(--ink);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.panel-details > summary::-webkit-details-marker{display:none;}
+.panel-details > summary::after{
+  content:'';
+  width:6px;height:6px;
+  border-right:1.5px solid var(--muted);
+  border-bottom:1.5px solid var(--muted);
+  transform:rotate(-45deg);
+  transition:transform .2s;
+}
+.panel-details[open] > summary::after{transform:rotate(135deg);}
+.hint-text{
+  font-size:0.75rem;
+  line-height:1.55;
+  color:var(--muted);
+  padding:0 16px 14px;
+}
+
+/* Pollen chips */
+.pollen-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+}
+.pollen-chip{
+  min-height:var(--tap);
+  padding:10px 8px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  font-size:0.78rem;
+  font-weight:500;
+  cursor:pointer;
+  text-align:center;
+  color:var(--ink);
+}
 .pollen-chip.active{color:#fff;border-color:transparent;}
-.pollen-chip:hover:not(.active){border-color:var(--amber);}
+.pollen-chip:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
 
-/* LAYER TOGGLES */
-.layer-group-label{font-size:0.55rem;color:rgba(26,18,8,0.38);letter-spacing:.08em;text-transform:uppercase;margin:8px 0 4px;}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;}
-.toggle-label{font-size:0.66rem;color:var(--ink);display:flex;align-items:center;gap:4px;flex:1;}
-.tbadge{font-size:0.52rem;padding:1px 4px;border-radius:3px;font-weight:500;flex-shrink:0;}
-.b-live{background:#d1fae5;color:#065f46;}.b-est{background:#fef3c7;color:#92400e;}.b-ext{background:#ede9fe;color:#5b21b6;}
-.toggle{position:relative;width:34px;height:17px;flex-shrink:0;}
+/* Toggles */
+.layer-group-label{
+  font-size:0.58rem;
+  font-weight:600;
+  text-transform:uppercase;
+  letter-spacing:0.06em;
+  color:var(--muted);
+  margin:14px 0 8px;
+}
+.layer-group-label:first-child{margin-top:0;}
+.toggle-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  min-height:var(--tap);
+  margin-bottom:2px;
+}
+.toggle-label{font-size:0.8rem;color:var(--ink);flex:1;line-height:1.25;}
+.tbadge{
+  font-size:0.55rem;
+  padding:2px 6px;
+  border-radius:4px;
+  font-weight:500;
+  color:var(--muted);
+  background:var(--surface);
+}
+.b-live{color:#047857;background:#ecfdf5;}
+.b-est{color:#92400e;background:#fffbeb;}
+.b-ext{color:#5b21b6;background:#f5f3ff;}
+.toggle{position:relative;width:48px;height:28px;flex-shrink:0;}
 .toggle input{opacity:0;width:0;height:0;}
-.toggle-slider{position:absolute;inset:0;background:#ccc;border-radius:9px;cursor:pointer;transition:.25s;}
-.toggle-slider:before{content:'';position:absolute;width:11px;height:11px;left:3px;top:3px;background:white;border-radius:50%;transition:.25s;}
-input:checked+.toggle-slider{background:var(--amber);}
-input:checked+.toggle-slider:before{transform:translateX(17px);}
+.toggle-slider{
+  position:absolute;
+  inset:0;
+  background:#d1d5db;
+  border-radius:14px;
+  cursor:pointer;
+  transition:background .2s;
+}
+.toggle-slider:before{
+  content:'';
+  position:absolute;
+  width:22px;height:22px;
+  left:3px;top:3px;
+  background:#fff;
+  border-radius:50%;
+  box-shadow:0 1px 3px rgba(0,0,0,.12);
+  transition:transform .2s;
+}
+input:checked+.toggle-slider{background:var(--accent);}
+input:checked+.toggle-slider:before{transform:translateX(20px);}
 
-/* SOURCE TOGGLE */
-.src-row{display:flex;gap:4px;margin-bottom:6px;}
-.src-btn{flex:1;padding:4px 0;border-radius:5px;border:1.5px solid rgba(26,18,8,0.2);background:white;font-family:'Inter',sans-serif;font-size:0.62rem;cursor:pointer;color:rgba(26,18,8,0.5);transition:all .2s;}
-.src-btn.active{background:var(--ink);color:var(--amber-light);border-color:var(--ink);}
-.src-btn:hover:not(.active){border-color:var(--amber);color:var(--ink);}
-#source-status{font-size:0.56rem;color:rgba(26,18,8,0.4);margin-bottom:6px;line-height:1.4;}
+/* Source DWD / OM */
+.src-row{display:flex;gap:8px;margin-bottom:8px;}
+.src-btn{
+  flex:1;
+  min-height:40px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:var(--surface);
+  font-size:0.78rem;
+  font-weight:500;
+  color:var(--muted);
+  cursor:pointer;
+}
+.src-btn.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+#source-status{font-size:0.65rem;color:var(--muted);margin-bottom:8px;line-height:1.4;}
 
-/* FORECAST BARS */
-.fc-grid{display:flex;flex-direction:column;gap:4px;}
-.fc-row{display:flex;align-items:center;font-size:0.62rem;}
-.fc-name{width:50px;color:rgba(26,18,8,0.6);flex-shrink:0;}
-.fc-bw{flex:1;margin:0 5px;height:4px;background:rgba(26,18,8,0.08);border-radius:2px;overflow:hidden;}
-.fc-b{height:100%;border-radius:2px;transition:width .6s ease;}
-.fc-val{font-weight:500;min-width:18px;text-align:right;}
+/* Forecast */
+.fc-grid{display:flex;flex-direction:column;gap:6px;}
+.fc-row{display:flex;align-items:center;font-size:0.76rem;}
+.fc-name{width:52px;color:var(--muted);flex-shrink:0;}
+.fc-bw{flex:1;margin:0 8px;height:5px;background:var(--line);border-radius:3px;overflow:hidden;}
+.fc-b{height:100%;border-radius:3px;transition:width .5s ease;}
+.fc-val{font-weight:600;min-width:22px;text-align:right;font-size:0.72rem;}
 
-/* LEGEND */
-.legend-bar{height:7px;border-radius:3px;background:linear-gradient(to right,#4ade80,#facc15,#f97316,#dc2626);margin-bottom:3px;}
-.legend-labels{display:flex;justify-content:space-between;font-size:0.54rem;color:rgba(26,18,8,0.45);}
+/* Legend */
+.legend-bar{height:8px;border-radius:4px;background:linear-gradient(90deg,#4ade80,#facc15,#f97316,#dc2626);margin-bottom:6px;}
+.legend-labels{display:flex;justify-content:space-between;font-size:0.58rem;color:var(--muted);}
 
-/* WIND BOX */
-.wind-box{background:white;border-radius:7px;padding:7px 10px;display:flex;align-items:center;gap:10px;border:1.5px solid rgba(26,18,8,0.1);}
-#wind-arrow{font-size:1.3rem;transition:transform .8s ease;}
+/* Wind */
+.wind-box{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:12px 14px;
+  background:var(--surface);
+  border-radius:12px;
+  border:1px solid var(--line);
+}
+#wind-arrow{font-size:1.5rem;line-height:1;transition:transform .7s ease;}
 .pollen-wind-canvas{pointer-events:none;}
-.wind-details{font-size:0.62rem;line-height:1.5;}
-.wind-speed{font-weight:500;color:var(--amber);}
+.wind-details{font-size:0.76rem;line-height:1.45;}
+.wind-speed{font-weight:600;color:var(--ink);}
 
-/* PHENOLOGY */
-.ph-grid{display:flex;flex-direction:column;gap:4px;}
-.ph-row{display:flex;align-items:center;gap:5px;font-size:0.61rem;}
-.ph-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
-.ph-name{width:46px;color:rgba(26,18,8,0.6);flex-shrink:0;}
-.ph-bw{flex:1;height:6px;background:rgba(26,18,8,0.07);border-radius:3px;overflow:hidden;position:relative;}
+/* Phenology */
+.ph-grid{display:flex;flex-direction:column;gap:6px;}
+.ph-row{display:flex;align-items:center;gap:6px;font-size:0.72rem;}
+.ph-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.ph-name{width:48px;color:var(--muted);flex-shrink:0;}
+.ph-bw{flex:1;height:6px;background:var(--line);border-radius:3px;overflow:hidden;position:relative;}
 .ph-b{height:100%;border-radius:3px;}
-.ph-peak{position:absolute;top:0;bottom:0;width:2px;background:rgba(26,18,8,0.3);}
-.ph-s{font-size:0.54rem;padding:1px 4px;border-radius:3px;flex-shrink:0;}
-.s-peak{background:#fef2f2;color:#dc2626;}.s-active{background:#fff7ed;color:#c2410c;}
-.s-soon{background:#fefce8;color:#a16207;}.s-past{background:#f0fdf4;color:#15803d;}
+.ph-peak{position:absolute;top:0;bottom:0;width:2px;background:rgba(0,0,0,.2);}
+.ph-s{font-size:0.58rem;padding:2px 5px;border-radius:4px;flex-shrink:0;font-weight:500;}
+.s-peak{background:#fef2f2;color:#b91c1c;}
+.s-active{background:#fff7ed;color:#c2410c;}
+.s-soon{background:#fefce8;color:#a16207;}
+.s-past{background:#f0fdf4;color:#15803d;}
 
 /* AQI */
-.aqi-grid{display:flex;flex-direction:column;gap:3px;}
-.aqi-row{display:flex;align-items:center;font-size:0.62rem;}
-.aqi-label{width:46px;color:rgba(26,18,8,0.6);flex-shrink:0;}
-.aqi-bw{flex:1;margin:0 5px;height:4px;background:rgba(26,18,8,0.08);border-radius:2px;overflow:hidden;}
+.aqi-grid{display:flex;flex-direction:column;gap:5px;}
+.aqi-row{display:flex;align-items:center;font-size:0.74rem;}
+.aqi-label{width:48px;color:var(--muted);flex-shrink:0;}
+.aqi-bw{flex:1;margin:0 8px;height:5px;background:var(--line);border-radius:2px;overflow:hidden;}
 .aqi-b{height:100%;border-radius:2px;}
-.aqi-val{font-weight:500;min-width:36px;text-align:right;}
+.aqi-val{font-weight:600;min-width:38px;text-align:right;}
 
-/* DATA SOURCES */
-.ds-footer{padding:10px 13px 14px;font-size:0.53rem;color:rgba(26,18,8,0.38);line-height:1.8;}
-.ds-footer a{color:var(--amber);text-decoration:none;}
-.intro-strip{font-size:0.64rem;line-height:1.55;color:rgba(26,18,8,0.72);padding:10px 12px;background:rgba(212,130,10,0.08);border-radius:8px;border:1px solid rgba(212,130,10,0.2);margin-bottom:2px;}
-.intro-strip strong{color:var(--ink);font-weight:600;}
+/* Footer */
+.ds-footer{
+  padding:14px 16px calc(18px + var(--safe-b));
+  font-size:0.62rem;
+  color:var(--muted);
+  line-height:1.65;
+}
+.ds-footer a{color:var(--accent);text-decoration:none;font-weight:500;}
+.panel-details .ds-footer{padding-top:0;border:none;}
 
-/* DISCLAIMER */
-#disclaimer{position:fixed;inset:0;z-index:3000;background:var(--ink);display:flex;align-items:center;justify-content:center;padding:24px;}
-#disclaimer.hidden{display:none;}
-.disc-card{background:var(--paper);border-radius:16px;max-width:480px;width:100%;padding:32px 28px;display:flex;flex-direction:column;gap:18px;}
-.disc-title{font-family:'Source Serif 4',serif;font-size:1.6rem;color:var(--ink);line-height:1.15;font-weight:600;}
-.disc-title span{color:var(--amber);}
-.disc-body{font-size:0.68rem;line-height:1.75;color:rgba(26,18,8,0.7);}
-.disc-body strong{color:var(--ink);font-weight:500;}
-.disc-sources{display:flex;flex-direction:column;gap:4px;padding:10px 12px;background:rgba(26,18,8,0.04);border-radius:8px;border-left:3px solid var(--amber);}
-.disc-source-row{font-size:0.62rem;color:rgba(26,18,8,0.6);display:flex;gap:6px;align-items:baseline;}
-.disc-source-row strong{color:var(--ink);min-width:90px;flex-shrink:0;}
-.disc-warn{font-size:0.62rem;color:rgba(26,18,8,0.5);line-height:1.6;padding-top:4px;border-top:1px solid rgba(26,18,8,0.08);}
-#disc-btn{background:var(--ink);color:var(--amber-light);border:none;border-radius:8px;padding:12px 20px;font-family:'Inter',sans-serif;font-size:0.72rem;cursor:pointer;letter-spacing:0.06em;transition:background .2s;align-self:stretch;text-align:center;font-weight:500;}
-#disc-btn:hover{background:#2e2010;}
-
-/* LOADING */
-#loading{position:fixed;inset:0;z-index:2000;background:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;transition:opacity .6s;}
+/* Loading */
+#loading{
+  position:fixed;
+  inset:0;
+  z-index:2000;
+  background:var(--surface);
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:16px;
+  transition:opacity .45s;
+}
 #loading.hidden{opacity:0;pointer-events:none;}
-.ld-title{font-family:'Source Serif 4',serif;font-size:2rem;color:var(--amber-light);font-weight:600;}
-.ld-msg{font-size:0.63rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(245,240,232,.45);}
-.spinner{width:30px;height:30px;border:3px solid rgba(212,130,10,.2);border-top-color:var(--amber);border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
+.ld-title{font-size:1.25rem;font-weight:600;color:var(--ink);letter-spacing:-0.02em;}
+.ld-msg{font-size:0.65rem;color:var(--muted);letter-spacing:.04em;}
+.spinner{
+  width:28px;height:28px;
+  border:2px solid var(--line);
+  border-top-color:var(--accent);
+  border-radius:50%;
+  animation:spin .75s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
 
-/* ERRORS */
-#err-box{display:none;position:fixed;top:68px;left:50%;transform:translateX(-50%);z-index:1500;background:#fff0f0;border:1.5px solid var(--red);border-radius:7px;padding:7px 14px;font-size:0.67rem;color:var(--red);max-width:340px;text-align:center;}
+/* Errors */
+#err-box{
+  display:none;
+  position:fixed;
+  top:calc(56px + var(--safe-t));
+  left:50%;
+  transform:translateX(-50%);
+  z-index:1500;
+  background:#fff;
+  border:1px solid #fecaca;
+  border-radius:10px;
+  padding:10px 16px;
+  font-size:0.75rem;
+  color:var(--red);
+  max-width:min(340px,calc(100vw - 24px));
+  text-align:center;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+}
 
-/* POPUPS */
-.leaflet-popup-content-wrapper{font-family:'Inter',sans-serif;font-size:0.69rem;border-radius:8px;background:var(--mist);border:1px solid rgba(26,18,8,0.12);color:var(--ink);}
-.leaflet-popup-tip{background:var(--mist);}
-.rbadge{display:inline-block;padding:2px 6px;border-radius:4px;font-size:0.6rem;font-weight:500;margin-top:3px;}
-.r-low{background:#d1fae5;color:#065f46;}.r-mid{background:#fef3c7;color:#92400e;}
-.r-high{background:#fee2e2;color:#991b1b;}.r-vhigh{background:#dc2626;color:white;}
+/* Leaflet */
+.leaflet-popup-content-wrapper{
+  font-family:'Inter',sans-serif;
+  font-size:0.75rem;
+  border-radius:10px;
+  background:var(--card);
+  border:1px solid var(--line);
+  box-shadow:0 8px 32px rgba(0,0,0,.1);
+  color:var(--ink);
+}
+.leaflet-popup-tip{background:var(--card);}
+.rbadge{display:inline-block;padding:3px 7px;border-radius:5px;font-size:0.62rem;font-weight:500;margin-top:4px;}
+.r-low{background:#ecfdf5;color:#047857;}
+.r-mid{background:#fffbeb;color:#b45309;}
+.r-high{background:#fef2f2;color:#b91c1c;}
+.r-vhigh{background:#dc2626;color:#fff;}
 
-/* MAP INFO */
-.map-info{position:fixed;bottom:16px;right:calc(var(--panel-w) + 12px);z-index:900;background:var(--mist);border:1.5px solid rgba(26,18,8,0.12);border-radius:9px;padding:8px 12px;font-size:0.6rem;max-width:200px;line-height:1.5;}
-.map-info strong{font-size:0.64rem;display:block;margin-bottom:2px;color:var(--amber);}
+/* Map legend chip */
+.map-info{
+  position:fixed;
+  z-index:900;
+  left:12px;
+  bottom:calc(12px + var(--safe-b));
+  max-width:min(200px,calc(100vw - 24px));
+  background:rgba(255,255,255,.94);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:0.65rem;
+  line-height:1.45;
+  color:var(--muted);
+  box-shadow:0 4px 20px rgba(0,0,0,.06);
+}
+.map-info strong{font-size:0.68rem;display:block;margin-bottom:4px;color:var(--ink);font-weight:600;}
 
-/* Mobile / narrow: stack map above scrollable panel */
-@media (max-width: 768px) {
-  #app-body{flex-direction:column;}
-  #map{min-height:42vh;flex:1;}
-  #panel{width:100%;max-height:42vh;border-left:none;border-top:2px solid rgba(26,18,8,0.1);}
-  .map-info{right:12px;left:auto;max-width:min(200px,calc(100vw - 24px));}
-  header{flex-wrap:wrap;row-gap:6px;}
-  .hdr-center{order:3;flex:1 1 100%;justify-content:flex-start;}
-  #status-text{max-width:none;}
+/* Desktop: side panel */
+@media (min-width:900px){
+  #app-body{flex-direction:row;}
+  #map{
+    flex:1;
+    min-height:0;
+    min-width:0;
+  }
+  #panel{
+    width:min(340px,36vw);
+    max-height:none;
+    border-radius:0;
+    box-shadow:none;
+    border-left:1px solid var(--line);
+    padding-bottom:16px;
+  }
+  .panel-sheet-handle{display:none;}
+  .map-info{
+    left:auto;
+    right:calc(min(340px,36vw) + 12px);
+    bottom:16px;
+  }
 }
 </style>
 
 </head>
 <body>
-
-<div id="disclaimer">
-  <div class="disc-card">
-    <div class="disc-title">Meide<span>zonen</span><br><span style="font-size:0.9rem;font-family:'Inter',sans-serif;color:rgba(26,18,8,0.45);letter-spacing:.04em;font-style:normal;font-weight:300">Wo in Berlin Pollen heute stärker mitspielen</span></div>
-
-<div class="disc-body">
-  Die Karte zeigt <strong>modellierte Zonen höherer Belastung</strong>: Pollenquellen (Bäume, Grünflächen) werden mit der <strong>aktuellen Windrichtung</strong>, der <strong>täglichen Pollenvorhersage</strong> (DWD) und der <strong>jähreszeitlichen Blütlage</strong> verknüpft. <strong>Rot</strong> = eher meiden, <strong>grün</strong> = günstiger — keine medizinische Messung.
-</div>
-
-<div class="disc-sources">
-  <div class="disc-source-row"><strong>Meidezonen-Modell</strong> — Heatmap aus Quellen + Abdrift in Windrichtung (Stärke abhängig von Windgeschwindigkeit).</div>
-  <div class="disc-source-row"><strong>Baumbestand Berlin (WFS)</strong> — Straßen- &amp; Anlagenbäume: <a href="https://gdi.berlin.de/services/wfs/baumbestand" target="_blank" rel="noopener noreferrer">GDI</a> · <a href="https://daten.berlin.de/datensaetze/baumbestand-berlin-wfs-48ad3a23" target="_blank" rel="noopener noreferrer">Open Data</a>.</div>
-  <div class="disc-source-row"><strong>DWD · Region 11</strong> — Tagesvorhersage 0–3 &amp; Wind (Proxy: <a href="https://dwd-pollen-proxy.jan-f2c.workers.dev/" target="_blank" rel="noopener noreferrer">Worker</a>).</div>
-  <div class="disc-source-row"><strong>Open-Meteo</strong> — CAMS-Fallback &amp; Luftqualität.</div>
-  <div class="disc-source-row"><strong>OSM Overpass</strong> — Zusätzliche Bäume &amp; Wiesen/Flächen (freiwillig erfasst).</div>
-  <div class="disc-source-row"><strong>Phänologie</strong> — DWD/PEP725 + Temperaturkorrektur für die Saison.</div>
-</div>
-
-<div class="disc-warn">
-  ⚠ Die Risikodarstellung ist eine Annäherung, keine Messung. Pollenflug hängt von Tageszeit, Luftfeuchtigkeit, Niederschlag und lokaler Topographie ab. Diese Faktoren werden hier nicht vollständig modelliert.<br><br>
-  Bei schwerer Allergie oder asthmatischen Beschwerden wende dich bitte an einen Arzt und nutze offizielle Quellen wie den <strong>DWD Pollenflugvorhersagedienst</strong>.
-</div>
-
-<button type="button" id="disc-btn">Karte öffnen</button>
-
-  </div>
-</div>
 
 <div id="loading">
   <div class="ld-title">Meidezonen</div>
@@ -207,38 +452,38 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 </div>
 <div id="err-box"></div>
 
-<header>
-  <div>
-    <h1>Pollen-Meidezonen</h1>
-    <div class="subtitle">Berlin · Quellen, Wind &amp; Saison</div>
+<header class="app-header">
+  <div class="app-header__brand">
+    <h1>Meidezonen</h1>
+    <p class="app-header__sub">Berlin</p>
   </div>
-  <div class="hdr-center">
+  <div class="app-header__status">
     <div class="status-dot" id="status-dot"></div>
-    <span id="status-text">Initialisierung…</span>
+    <span id="status-text" class="status-text">…</span>
   </div>
-  <button type="button" id="locate-btn">📍 Mein Standort</button>
+  <button type="button" id="locate-btn" title="Standort">Ort</button>
 </header>
 
 <div id="app-body">
   <div id="map"></div>
 
   <div id="panel">
+  <div class="panel-sheet-handle" aria-hidden="true"></div>
 
-<div class="panel-section" style="padding-top:12px">
-  <div class="intro-strip">
-    <strong>So liest du die Karte:</strong> Grünflächen und Bäume sind Pollenquellen. Der Wind transportiert Pollen <em>in Lee-Richtung</em> — dort erscheint die Heatmap intensiver (Meidezonen). Wähle unten deine Allergene und blende bei Bedarf Datenquellen ein.
-  </div>
-</div>
+<details class="panel-details">
+  <summary>Hinweis</summary>
+  <p class="hint-text">Bäume und Grünflächen sind Quellen. Wind trägt Pollen leewärts — dort wirkt die Heatmap stärker. Allergene wählen, Layer bei Bedarf einblenden.</p>
+</details>
 
 <!-- POLLEN CHIPS -->
 <div class="panel-section">
-  <div class="panel-label">🌿 Allergene im Modell</div>
+  <div class="panel-label">Allergene</div>
   <div class="pollen-grid" id="pollen-chips"></div>
 </div>
 
 <!-- POLLEN FORECAST -->
 <div class="panel-section">
-  <div class="panel-label">📡 Region heute · Berlin–Brandenburg</div>
+  <div class="panel-label">Vorhersage · Region 11</div>
   <div class="src-row">
     <button type="button" class="src-btn active" id="src-dwd">DWD</button>
     <button type="button" class="src-btn" id="src-om">Open-Meteo</button>
@@ -249,7 +494,7 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 
 <!-- WIND -->
 <div class="panel-section">
-  <div class="panel-label">💨 Transportwind (DWD-ICON)</div>
+  <div class="panel-label">Wind</div>
   <div class="wind-box">
     <div id="wind-arrow">→</div>
     <div class="wind-details">
@@ -261,77 +506,76 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 
 <!-- PHENOLOGY -->
 <div class="panel-section">
-  <div class="panel-label">🌱 Saison · Blühfenster <span style="font-weight:300;text-transform:none;letter-spacing:0;font-size:0.55rem">(DWD / PEP725)</span></div>
+  <div class="panel-label">Saison · Blüte</div>
   <div class="ph-grid" id="pheno-grid"><div style="font-size:0.62rem;color:rgba(26,18,8,.4)">Wird geladen…</div></div>
 </div>
 
 <!-- LAYER TOGGLES -->
 <div class="panel-section">
-  <div class="panel-label">🗺 Karte · Meidezonen &amp; Quellen</div>
+  <div class="panel-label">Karte</div>
 
-  <div class="layer-group-label">Modell</div>
+  <div class="layer-group-label">Anzeige</div>
   <div class="toggle-row">
-    <span class="toggle-label">🌡 Meidezonen <span class="tbadge b-est">Heatmap</span></span>
+    <span class="toggle-label">Meidezonen <span class="tbadge b-est">Heatmap</span></span>
     <label class="toggle"><input type="checkbox" id="tog-heat" checked><span class="toggle-slider"></span></label>
   </div>
   <div class="toggle-row">
-    <span class="toggle-label">💨 Wind-Strömung <span class="tbadge b-live">animiert</span></span>
+    <span class="toggle-label">Wind <span class="tbadge b-live">Flow</span></span>
     <label class="toggle"><input type="checkbox" id="tog-wind" checked><span class="toggle-slider"></span></label>
   </div>
 
-  <div class="layer-group-label">Quellen sichtbar</div>
+  <div class="layer-group-label">Quellen</div>
   <div class="toggle-row">
-    <span class="toggle-label">🌳 OSM-Bäume</span>
+    <span class="toggle-label">OSM Bäume</span>
     <label class="toggle"><input type="checkbox" id="tog-trees" checked><span class="toggle-slider"></span></label>
   </div>
   <div class="toggle-row">
-    <span class="toggle-label">🌿 OSM-Flächen</span>
+    <span class="toggle-label">OSM Flächen</span>
     <label class="toggle"><input type="checkbox" id="tog-areas" checked><span class="toggle-slider"></span></label>
   </div>
   <div class="toggle-row">
-    <span class="toggle-label">🏙 Baumbestand Berlin <span class="tbadge b-ext">amtlich</span></span>
+    <span class="toggle-label">Baumbestand <span class="tbadge b-ext">amtlich</span></span>
     <label class="toggle"><input type="checkbox" id="tog-kataster"><span class="toggle-slider"></span></label>
   </div>
 
-  <div class="layer-group-label">Weiteres</div>
+  <div class="layer-group-label">Sonstiges</div>
   <div class="toggle-row">
-    <span class="toggle-label">🏭 Luftqualität <span class="tbadge b-live">CAMS</span></span>
+    <span class="toggle-label">Luftqualität <span class="tbadge b-live">CAMS</span></span>
     <label class="toggle"><input type="checkbox" id="tog-aqi"><span class="toggle-slider"></span></label>
   </div>
 </div>
 
 <!-- RISK LEGEND -->
 <div class="panel-section">
-  <div class="panel-label">📊 Intensität der Meidezonen</div>
+  <div class="panel-label">Intensität</div>
   <div class="legend-bar"></div>
   <div class="legend-labels"><span>Gering</span><span>Mittel</span><span>Hoch</span><span>Sehr hoch</span></div>
 </div>
 
 <!-- AIR QUALITY (hidden until toggled) -->
 <div class="panel-section" id="aqi-panel" style="display:none">
-  <div class="panel-label">🏭 Luftqualität <span style="font-weight:300;text-transform:none;letter-spacing:0;font-size:0.55rem">(CAMS via Open-Meteo)</span></div>
+  <div class="panel-label">Luft · CAMS</div>
   <div class="aqi-grid" id="aqi-grid"><div style="font-size:0.62rem;color:rgba(26,18,8,.4)">Wird geladen…</div></div>
 </div>
 
-<!-- DATA SOURCES -->
-<div class="ds-footer">
-  <strong style="display:block;margin-bottom:4px;color:rgba(26,18,8,0.45);font-size:0.56rem;letter-spacing:.1em;text-transform:uppercase">Daten · Meidezonen-Modell · Berlin</strong>
-  Heatmap-Quellen: OSM + <a href="https://daten.berlin.de/datensaetze/baumbestand-berlin-wfs-48ad3a23" target="_blank" rel="noopener noreferrer">Baumbestand Berlin</a> (<a href="https://gdi.berlin.de/services/wfs/baumbestand" target="_blank" rel="noopener noreferrer">WFS</a>)<br>
-  <a href="https://dwd-pollen-proxy.jan-f2c.workers.dev/" target="_blank" rel="noopener noreferrer">DWD OpenData</a> via Proxy: Pollen &amp; Wind · Region Berlin–Brandenburg<br>
-  <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a>: CAMS Pollen &amp; Luftqualität (Copernicus), normiert<br>
-  <a href="https://overpass-api.de" target="_blank" rel="noopener noreferrer">OSM Overpass</a>: freiwillige Baum- &amp; Flächendaten (Ergänzung)<br>
-  <a href="https://pep725.eu" target="_blank" rel="noopener noreferrer">PEP725</a> · DWD-Normals: Phänologie
-</div>
+<details class="panel-details">
+  <summary>Datenquellen</summary>
+  <div class="ds-footer">
+    OSM + <a href="https://daten.berlin.de/datensaetze/baumbestand-berlin-wfs-48ad3a23" target="_blank" rel="noopener noreferrer">Baumbestand</a>
+    · <a href="https://gdi.berlin.de/services/wfs/baumbestand" target="_blank" rel="noopener noreferrer">WFS</a><br>
+    <a href="https://dwd-pollen-proxy.jan-f2c.workers.dev/" target="_blank" rel="noopener noreferrer">DWD</a> (Proxy)
+    · <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a>
+    · <a href="https://overpass-api.de" target="_blank" rel="noopener noreferrer">Overpass</a>
+    · <a href="https://pep725.eu" target="_blank" rel="noopener noreferrer">PEP725</a>
+  </div>
+</details>
 
   </div>
 </div>
 
 <div class="map-info">
-  <strong>Meidezonen · Kurz</strong>
-  <span style="color:rgba(26,18,8,.75)"><strong>Rot / Orange</strong> = eher meiden (abwind von Quellen).</span><br>
-  Modell: OSM + <strong>amtlicher Baumbestand</strong> (WFS) + DWD + Blühzeit.<br>
-  💨 Partikel = Windrichtung (DWD), keine Messung.<br>
-  <span style="color:rgba(26,18,8,.4)">Keine medizinische Beratung.</span>
+  <strong>Karte</strong>
+  Warme Farben ≈ stärker meiden (Lee zu Quellen). Modell, keine Messung.
 </div>
 
 <script>
@@ -448,12 +692,6 @@ let layerState={heat:true,wind:true,trees:true,areas:true,kataster:false,aqi:fal
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
-// ─── DISCLAIMER ────────────────────────────────────────────────────────────
-document.getElementById('disc-btn').addEventListener('click', () => {
-  document.getElementById('disclaimer').classList.add('hidden');
-  startApp();
-});
-
 async function startApp() {
   buildPollenChips();
   setupLayerToggles();
@@ -491,14 +729,14 @@ async function startApp() {
 
 async function activateLocation() {
   const btn = document.getElementById('locate-btn');
-  btn.disabled=true; btn.textContent='⏳ Wird ermittelt…';
+  btn.disabled=true; btn.textContent='…';
   setStatus('loading','Standort wird ermittelt…');
   try {
     const pos = await getLocation();
     userLat=pos.coords.latitude; userLon=pos.coords.longitude;
   } catch(e) {
     showError('Standort nicht verfügbar. Bitte Berechtigung prüfen.');
-    btn.disabled=false; btn.textContent='📍 Mein Standort';
+    btn.disabled=false; btn.textContent='Ort';
     setStatus('error','Standort nicht verfügbar'); return;
   }
   map.flyTo([userLat,userLon],15,{animate:true,duration:1.4});
@@ -506,7 +744,7 @@ async function activateLocation() {
   userMarker = L.circleMarker([userLat,userLon],{radius:10,color:'#1a1208',fillColor:'#d4820a',fillOpacity:1,weight:2})
     .addTo(map).bindPopup('<strong>📍 Dein Standort</strong>').openPopup();
 
-  btn.classList.add('active'); btn.textContent='📍 Aktiv';
+  btn.classList.add('active'); btn.textContent='Aktiv';
   setStatus('loading','Lade lokale Daten…');
 
   katasterCache = [];
@@ -1317,6 +1555,7 @@ const MSGS=['Lade Meidezonen-Daten…','DWD Region 11 & Wind…','Phänologie & 
 let mi=0;
 const msgInt=setInterval(()=>{mi=(mi+1)%MSGS.length;const el=document.getElementById('ld-msg');if(el)el.textContent=MSGS[mi];},1600);
 setTimeout(()=>clearInterval(msgInt),14000);
+startApp();
 </script>
 
 </body>
