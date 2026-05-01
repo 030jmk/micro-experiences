@@ -55,7 +55,7 @@
       box-shadow: none;
     }
 
-```
+
 /* Challenge type tabs */
 .challenge-tabs {
   display: flex;
@@ -230,14 +230,11 @@
 }
 .challenge-panel { display: none; }
 .challenge-panel.active { display: block; }
-```
 
   </style>
 </head>
 <body>
   <div class="container py-5" style="max-width:640px">
-
-```
 <div class="mb-4">
   <h1 class="mb-0">Group Photo Challenge</h1>
 </div>
@@ -325,17 +322,17 @@
 
 <div id="result-section" style="display:none">
   <div class="card p-4">
-    <div class="section-title">Result</div>
+    <div class="section-title d-flex justify-content-between align-items-center">
+      <span>Result</span>
+      <span id="result-date" style="font-weight:400;color:var(--muted)"></span>
+    </div>
     <ul id="result-list"></ul>
     <div class="mt-3">
       <button class="btn btn-outline-secondary btn-sm" onclick="copyResult()">Copy as text</button>
     </div>
   </div>
 </div>
-```
-
   </div>
-
   <script>
     // --- Data ---
     const COLORS = [
@@ -360,9 +357,26 @@
     ];
 
     const EMOTIONS = [
-      'Joy','Calm','Melancholy','Anger','Surprise','Fear','Disgust',
-      'Anticipation','Nostalgia','Awe','Loneliness','Hope','Anxiety',
-      'Serenity','Excitement','Boredom','Tenderness','Pride','Shame','Love'
+      { name: 'Joy',          emoji: '😄' },
+      { name: 'Calm',         emoji: '😌' },
+      { name: 'Melancholy',   emoji: '😔' },
+      { name: 'Anger',        emoji: '😠' },
+      { name: 'Surprise',     emoji: '😲' },
+      { name: 'Fear',         emoji: '😨' },
+      { name: 'Disgust',      emoji: '🤢' },
+      { name: 'Anticipation', emoji: '🫀' },
+      { name: 'Nostalgia',    emoji: '🥹' },
+      { name: 'Awe',          emoji: '🤯' },
+      { name: 'Loneliness',   emoji: '🥺' },
+      { name: 'Hope',         emoji: '🌟' },
+      { name: 'Anxiety',      emoji: '😰' },
+      { name: 'Serenity',     emoji: '🕊️' },
+      { name: 'Excitement',   emoji: '🎉' },
+      { name: 'Boredom',      emoji: '😑' },
+      { name: 'Tenderness',   emoji: '🥰' },
+      { name: 'Pride',        emoji: '🦁' },
+      { name: 'Shame',        emoji: '😳' },
+      { name: 'Love',         emoji: '❤️' },
     ];
 
     // --- Build grids ---
@@ -393,7 +407,7 @@
     buildColorGrid();
     buildTagGrid('letter-grid', LETTERS);
     buildTagGrid('texture-grid', TEXTURES);
-    buildTagGrid('emotion-grid', EMOTIONS);
+    buildTagGrid('emotion-grid', EMOTIONS.map(e => e.emoji + ' ' + e.name));
 
     // --- Tab switching ---
     let activeType = 'color';
@@ -483,7 +497,12 @@
         if (!vals.length) { err.textContent = 'Select at least one emotion.'; return; }
         if (vals.length < names.length) { err.textContent = `Need at least ${names.length} emotions.`; return; }
         const picked = shuffle(vals).slice(0, names.length);
-        assignments = names.map((n, i) => ({ name: n, label: picked[i], dot: null }));
+        assignments = names.map((n, i) => {
+          const parts = picked[i].split(' ');
+          const emoji = parts[0];
+          const label = parts.slice(1).join(' ');
+          return { name: n, label, emoji, dot: null };
+        });
       }
 
       renderResults(assignments);
@@ -492,15 +511,23 @@
     function renderResults(assignments) {
       const list = document.getElementById('result-list');
       list.innerHTML = '';
+
+      // Date header
+      const dateStr = new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+      const challengeLabel = activeType.charAt(0).toUpperCase() + activeType.slice(1);
+      document.getElementById('result-date').textContent = dateStr + ' · ' + challengeLabel + ' Challenge';
+
       assignments.forEach(a => {
         const li = document.createElement('li');
         const badge = a.dot
           ? `<div class="result-badge" style="background:${a.dot};border-color:${a.border ? '#ccc' : a.dot};"></div>`
-          : `<div class="result-badge">${a.label.length === 1 ? a.label : '·'}</div>`;
+          : a.emoji
+            ? `<div class="result-badge" style="font-size:1.1rem">${a.emoji}</div>`
+            : `<div class="result-badge" style="font-size:${a.label.length > 2 ? '0.6rem' : '0.78rem'}">${a.label}</div>`;
         li.innerHTML = `
           ${badge}
           <span class="result-name">${a.name}</span>
-          <span class="result-value">${a.label}</span>`;
+          <span class="result-value">${a.emoji ? a.emoji + ' ' + a.label : a.label}</span>`;
         list.appendChild(li);
       });
       document.getElementById('result-section').style.display = 'block';
@@ -508,12 +535,13 @@
     }
 
     function copyResult() {
+      const dateLabel = document.getElementById('result-date').textContent;
       const items = [...document.querySelectorAll('#result-list li')].map(li => {
         const name = li.querySelector('.result-name').textContent.trim();
         const val  = li.querySelector('.result-value').textContent.trim();
         return `${name} → ${val}`;
       });
-      navigator.clipboard.writeText(items.join('\n'));
+      navigator.clipboard.writeText(dateLabel + '\n' + items.join('\n'));
     }
   </script>
 
