@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pollenradar Berlin · Meidezonen-Karte</title>
+<title>Berlin · Pollen-Meidezonen</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -91,6 +91,7 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 /* WIND BOX */
 .wind-box{background:white;border-radius:7px;padding:7px 10px;display:flex;align-items:center;gap:10px;border:1.5px solid rgba(26,18,8,0.1);}
 #wind-arrow{font-size:1.3rem;transition:transform .8s ease;}
+.pollen-wind-canvas{pointer-events:none;}
 .wind-details{font-size:0.62rem;line-height:1.5;}
 .wind-speed{font-weight:500;color:var(--amber);}
 
@@ -117,6 +118,8 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 /* DATA SOURCES */
 .ds-footer{padding:10px 13px 14px;font-size:0.53rem;color:rgba(26,18,8,0.38);line-height:1.8;}
 .ds-footer a{color:var(--amber);text-decoration:none;}
+.intro-strip{font-size:0.64rem;line-height:1.55;color:rgba(26,18,8,0.72);padding:10px 12px;background:rgba(212,130,10,0.08);border-radius:8px;border:1px solid rgba(212,130,10,0.2);margin-bottom:2px;}
+.intro-strip strong{color:var(--ink);font-weight:600;}
 
 /* DISCLAIMER */
 #disclaimer{position:fixed;inset:0;z-index:3000;background:var(--ink);display:flex;align-items:center;justify-content:center;padding:24px;}
@@ -172,18 +175,19 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 
 <div id="disclaimer">
   <div class="disc-card">
-    <div class="disc-title">Pollen<span>radar</span><br><span style="font-size:0.9rem;font-family:'Inter',sans-serif;color:rgba(26,18,8,0.45);letter-spacing:.04em;font-style:normal;font-weight:300">Meidezonen-Karte · Berlin</span></div>
+    <div class="disc-title">Meide<span>zonen</span><br><span style="font-size:0.9rem;font-family:'Inter',sans-serif;color:rgba(26,18,8,0.45);letter-spacing:.04em;font-style:normal;font-weight:300">Wo in Berlin Pollen heute stärker mitspielen</span></div>
 
 <div class="disc-body">
-  Diese Karte ist auf <strong>Berlin</strong> ausgerichtet: Sie kombiniert amtliche Baumdaten der Stadt mit Wetter- und Pollenvorhersagen für die Region <strong>Berlin–Brandenburg</strong>. Der angezeigte Risikoindikator ist <strong>modellbasiert</strong> — kein medizinisches Diagnosewerkzeug.
+  Die Karte zeigt <strong>modellierte Zonen höherer Belastung</strong>: Pollenquellen (Bäume, Grünflächen) werden mit der <strong>aktuellen Windrichtung</strong>, der <strong>täglichen Pollenvorhersage</strong> (DWD) und der <strong>jähreszeitlichen Blütlage</strong> verknüpft. <strong>Rot</strong> = eher meiden, <strong>grün</strong> = günstiger — keine medizinische Messung.
 </div>
 
 <div class="disc-sources">
-  <div class="disc-source-row"><strong>Baumbestand Berlin (WFS)</strong> — <em>Kernquelle für Bäume in Berlin:</em> Straßen- und Anlagenbäume über <a href="https://gdi.berlin.de/services/wfs/baumbestand" target="_blank" rel="noopener noreferrer">GDI Berlin</a> · <a href="https://daten.berlin.de/datensaetze/baumbestand-berlin-wfs-48ad3a23" target="_blank" rel="noopener noreferrer">Open Data</a>.</div>
-  <div class="disc-source-row"><strong>DWD · Region 11</strong> — Tagesvorhersage Pollen (0–3) und Wind für Berlin–Brandenburg. Ein kleiner Proxy umgeht Browser-CORS; dieselben Daten wie beim DWD OpenData.</div>
-  <div class="disc-source-row"><strong>Open-Meteo CAMS</strong> — Alternative zur DWD-Pollenlinie: Copernicus-Atmosphäre am gleichen Ort, in µg/m³ auf die DWD-Skala normiert. Zusätzlich Luftqualität (PM, Ozon) ohne Extra-Zugang.</div>
-  <div class="disc-source-row"><strong>OSM Overpass</strong> — <em>Optional:</em> Freiwillig gemappte Bäume und Flächen in OpenStreetMap. Ergänzt den amtlichen Bestand, ersetzt ihn nicht.</div>
-  <div class="disc-source-row"><strong>Phänologie (DWD / PEP725)</strong> — Typische Blühfenster für Mitteleuropa, mit Temperaturkorrektur — Orientierung, keine Echtzeitmessung.</div>
+  <div class="disc-source-row"><strong>Meidezonen-Modell</strong> — Heatmap aus Quellen + Abdrift in Windrichtung (Stärke abhängig von Windgeschwindigkeit).</div>
+  <div class="disc-source-row"><strong>Baumbestand Berlin (WFS)</strong> — Straßen- &amp; Anlagenbäume: <a href="https://gdi.berlin.de/services/wfs/baumbestand" target="_blank" rel="noopener noreferrer">GDI</a> · <a href="https://daten.berlin.de/datensaetze/baumbestand-berlin-wfs-48ad3a23" target="_blank" rel="noopener noreferrer">Open Data</a>.</div>
+  <div class="disc-source-row"><strong>DWD · Region 11</strong> — Tagesvorhersage 0–3 &amp; Wind (Proxy: <a href="https://dwd-pollen-proxy.jan-f2c.workers.dev/" target="_blank" rel="noopener noreferrer">Worker</a>).</div>
+  <div class="disc-source-row"><strong>Open-Meteo</strong> — CAMS-Fallback &amp; Luftqualität.</div>
+  <div class="disc-source-row"><strong>OSM Overpass</strong> — Zusätzliche Bäume &amp; Wiesen/Flächen (freiwillig erfasst).</div>
+  <div class="disc-source-row"><strong>Phänologie</strong> — DWD/PEP725 + Temperaturkorrektur für die Saison.</div>
 </div>
 
 <div class="disc-warn">
@@ -191,22 +195,22 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
   Bei schwerer Allergie oder asthmatischen Beschwerden wende dich bitte an einen Arzt und nutze offizielle Quellen wie den <strong>DWD Pollenflugvorhersagedienst</strong>.
 </div>
 
-<button type="button" id="disc-btn">Verstanden. Karte öffnen</button>
+<button type="button" id="disc-btn">Karte öffnen</button>
 
   </div>
 </div>
 
 <div id="loading">
-  <div class="ld-title">Pollenradar</div>
+  <div class="ld-title">Meidezonen</div>
   <div class="spinner"></div>
-  <div class="ld-msg" id="ld-msg">Lade Berliner Pollendaten…</div>
+  <div class="ld-msg" id="ld-msg">Lade Meidezonen…</div>
 </div>
 <div id="err-box"></div>
 
 <header>
   <div>
-    <h1>Pollenradar</h1>
-    <div class="subtitle">Meidezonen-Karte · Berlin</div>
+    <h1>Pollen-Meidezonen</h1>
+    <div class="subtitle">Berlin · Quellen, Wind &amp; Saison</div>
   </div>
   <div class="hdr-center">
     <div class="status-dot" id="status-dot"></div>
@@ -220,57 +224,32 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 
   <div id="panel">
 
+<div class="panel-section" style="padding-top:12px">
+  <div class="intro-strip">
+    <strong>So liest du die Karte:</strong> Grünflächen und Bäume sind Pollenquellen. Der Wind transportiert Pollen <em>in Lee-Richtung</em> — dort erscheint die Heatmap intensiver (Meidezonen). Wähle unten deine Allergene und blende bei Bedarf Datenquellen ein.
+  </div>
+</div>
+
 <!-- POLLEN CHIPS -->
 <div class="panel-section">
-  <div class="panel-label">🌿 Pollentyp</div>
+  <div class="panel-label">🌿 Allergene im Modell</div>
   <div class="pollen-grid" id="pollen-chips"></div>
 </div>
 
-<!-- LAYER TOGGLES -->
+<!-- POLLEN FORECAST -->
 <div class="panel-section">
-  <div class="panel-label">🗺 Kartenebenen</div>
-
-  <div class="layer-group-label">Risiko</div>
-  <div class="toggle-row">
-    <span class="toggle-label">🌡 Heatmap <span class="tbadge b-est">Modell</span></span>
-    <label class="toggle"><input type="checkbox" id="tog-heat" checked><span class="toggle-slider"></span></label>
+  <div class="panel-label">📡 Region heute · Berlin–Brandenburg</div>
+  <div class="src-row">
+    <button type="button" class="src-btn active" id="src-dwd">DWD</button>
+    <button type="button" class="src-btn" id="src-om">Open-Meteo</button>
   </div>
-  <div class="toggle-row">
-    <span class="toggle-label">💨 Windpfeile <span class="tbadge b-live">DWD-ICON</span></span>
-    <label class="toggle"><input type="checkbox" id="tog-wind" checked><span class="toggle-slider"></span></label>
-  </div>
-
-  <div class="layer-group-label">Bäume & Flächen</div>
-  <div class="toggle-row">
-    <span class="toggle-label">🌳 OSM-Bäume <span class="tbadge b-live">optional</span></span>
-    <label class="toggle"><input type="checkbox" id="tog-trees" checked><span class="toggle-slider"></span></label>
-  </div>
-  <div class="toggle-row">
-    <span class="toggle-label">🌿 OSM-Flächen <span class="tbadge b-live">optional</span></span>
-    <label class="toggle"><input type="checkbox" id="tog-areas" checked><span class="toggle-slider"></span></label>
-  </div>
-  <div class="toggle-row">
-    <span class="toggle-label">🏙 Baumbestand <span class="tbadge b-ext">amtlich</span></span>
-    <label class="toggle"><input type="checkbox" id="tog-kataster"><span class="toggle-slider"></span></label>
-  </div>
-
-  <div class="layer-group-label">Umwelt</div>
-  <div class="toggle-row">
-    <span class="toggle-label">🏭 Luftqualität <span class="tbadge b-live">CAMS</span></span>
-    <label class="toggle"><input type="checkbox" id="tog-aqi"><span class="toggle-slider"></span></label>
-  </div>
-</div>
-
-<!-- RISK LEGEND -->
-<div class="panel-section">
-  <div class="panel-label">📊 Risikobelastung</div>
-  <div class="legend-bar"></div>
-  <div class="legend-labels"><span>Gering</span><span>Mittel</span><span>Hoch</span><span>Sehr hoch</span></div>
+  <div id="source-status"></div>
+  <div class="fc-grid" id="forecast-grid"><div style="font-size:0.62rem;color:rgba(26,18,8,.4)">Wird geladen…</div></div>
 </div>
 
 <!-- WIND -->
 <div class="panel-section">
-  <div class="panel-label">💨 Windlage</div>
+  <div class="panel-label">💨 Transportwind (DWD-ICON)</div>
   <div class="wind-box">
     <div id="wind-arrow">→</div>
     <div class="wind-details">
@@ -282,19 +261,50 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 
 <!-- PHENOLOGY -->
 <div class="panel-section">
-  <div class="panel-label">🌱 Blütezeit <span style="font-weight:300;text-transform:none;letter-spacing:0;font-size:0.55rem">(DWD Phänologie / PEP725)</span></div>
+  <div class="panel-label">🌱 Saison · Blühfenster <span style="font-weight:300;text-transform:none;letter-spacing:0;font-size:0.55rem">(DWD / PEP725)</span></div>
   <div class="ph-grid" id="pheno-grid"><div style="font-size:0.62rem;color:rgba(26,18,8,.4)">Wird geladen…</div></div>
 </div>
 
-<!-- POLLEN FORECAST -->
+<!-- LAYER TOGGLES -->
 <div class="panel-section">
-  <div class="panel-label">🌸 Pollenbelastung heute</div>
-  <div class="src-row">
-    <button type="button" class="src-btn active" id="src-dwd">DWD</button>
-    <button type="button" class="src-btn" id="src-om">Open-Meteo</button>
+  <div class="panel-label">🗺 Karte · Meidezonen &amp; Quellen</div>
+
+  <div class="layer-group-label">Modell</div>
+  <div class="toggle-row">
+    <span class="toggle-label">🌡 Meidezonen <span class="tbadge b-est">Heatmap</span></span>
+    <label class="toggle"><input type="checkbox" id="tog-heat" checked><span class="toggle-slider"></span></label>
   </div>
-  <div id="source-status"></div>
-  <div class="fc-grid" id="forecast-grid"><div style="font-size:0.62rem;color:rgba(26,18,8,.4)">Wird geladen…</div></div>
+  <div class="toggle-row">
+    <span class="toggle-label">💨 Wind-Strömung <span class="tbadge b-live">animiert</span></span>
+    <label class="toggle"><input type="checkbox" id="tog-wind" checked><span class="toggle-slider"></span></label>
+  </div>
+
+  <div class="layer-group-label">Quellen sichtbar</div>
+  <div class="toggle-row">
+    <span class="toggle-label">🌳 OSM-Bäume</span>
+    <label class="toggle"><input type="checkbox" id="tog-trees" checked><span class="toggle-slider"></span></label>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">🌿 OSM-Flächen</span>
+    <label class="toggle"><input type="checkbox" id="tog-areas" checked><span class="toggle-slider"></span></label>
+  </div>
+  <div class="toggle-row">
+    <span class="toggle-label">🏙 Baumbestand Berlin <span class="tbadge b-ext">amtlich</span></span>
+    <label class="toggle"><input type="checkbox" id="tog-kataster"><span class="toggle-slider"></span></label>
+  </div>
+
+  <div class="layer-group-label">Weiteres</div>
+  <div class="toggle-row">
+    <span class="toggle-label">🏭 Luftqualität <span class="tbadge b-live">CAMS</span></span>
+    <label class="toggle"><input type="checkbox" id="tog-aqi"><span class="toggle-slider"></span></label>
+  </div>
+</div>
+
+<!-- RISK LEGEND -->
+<div class="panel-section">
+  <div class="panel-label">📊 Intensität der Meidezonen</div>
+  <div class="legend-bar"></div>
+  <div class="legend-labels"><span>Gering</span><span>Mittel</span><span>Hoch</span><span>Sehr hoch</span></div>
 </div>
 
 <!-- AIR QUALITY (hidden until toggled) -->
@@ -305,8 +315,8 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 
 <!-- DATA SOURCES -->
 <div class="ds-footer">
-  <strong style="display:block;margin-bottom:4px;color:rgba(26,18,8,0.45);font-size:0.56rem;letter-spacing:.1em;text-transform:uppercase">Datenquellen · Fokus Berlin</strong>
-  <a href="https://daten.berlin.de/datensaetze/baumbestand-berlin-wfs-48ad3a23" target="_blank" rel="noopener noreferrer">Baumbestand Berlin</a> · <a href="https://gdi.berlin.de/services/wfs/baumbestand" target="_blank" rel="noopener noreferrer">WFS</a> (Straßen- &amp; Anlagenbäume)<br>
+  <strong style="display:block;margin-bottom:4px;color:rgba(26,18,8,0.45);font-size:0.56rem;letter-spacing:.1em;text-transform:uppercase">Daten · Meidezonen-Modell · Berlin</strong>
+  Heatmap-Quellen: OSM + <a href="https://daten.berlin.de/datensaetze/baumbestand-berlin-wfs-48ad3a23" target="_blank" rel="noopener noreferrer">Baumbestand Berlin</a> (<a href="https://gdi.berlin.de/services/wfs/baumbestand" target="_blank" rel="noopener noreferrer">WFS</a>)<br>
   <a href="https://dwd-pollen-proxy.jan-f2c.workers.dev/" target="_blank" rel="noopener noreferrer">DWD OpenData</a> via Proxy: Pollen &amp; Wind · Region Berlin–Brandenburg<br>
   <a href="https://open-meteo.com" target="_blank" rel="noopener noreferrer">Open-Meteo</a>: CAMS Pollen &amp; Luftqualität (Copernicus), normiert<br>
   <a href="https://overpass-api.de" target="_blank" rel="noopener noreferrer">OSM Overpass</a>: freiwillige Baum- &amp; Flächendaten (Ergänzung)<br>
@@ -317,11 +327,11 @@ input:checked+.toggle-slider:before{transform:translateX(17px);}
 </div>
 
 <div class="map-info">
-  <strong>Legende · Berlin</strong>
-  🏙 Amtlicher Baumbestand (SenMVKU / GDI)<br>
-  🌳 OSM-Baum · 🌿 OSM-Fläche <span style="color:rgba(26,18,8,.45)">(optional)</span><br>
-  Rote Zonen: modellierter Pollenzug mit Wind (DWD).<br>
-  <span style="color:rgba(26,18,8,.4)">Vorhersage: Region 11 · Blühstreifen: DWD/PEP725, näherungsweise.</span>
+  <strong>Meidezonen · Kurz</strong>
+  <span style="color:rgba(26,18,8,.75)"><strong>Rot / Orange</strong> = eher meiden (abwind von Quellen).</span><br>
+  Modell: OSM + <strong>amtlicher Baumbestand</strong> (WFS) + DWD + Blühzeit.<br>
+  💨 Partikel = Windrichtung (DWD), keine Messung.<br>
+  <span style="color:rgba(26,18,8,.4)">Keine medizinische Beratung.</span>
 </div>
 
 <script>
@@ -425,7 +435,7 @@ const DE_NAME_MAP = {
 // STATE
 // ═══════════════════════════════════════════════
 let map, heatLayer;
-let windMarkers=[], treeMarkers=[], areaMarkers=[], katasterMarkers=[], aqiMarkers=[];
+let windParticleLayer=null, treeMarkers=[], areaMarkers=[], katasterMarkers=[], aqiMarkers=[];
 let userMarker;
 let userLat=BERLIN.lat, userLon=BERLIN.lon;
 let activePollenIds = new Set(['birke','graeser']);
@@ -448,7 +458,7 @@ async function startApp() {
   buildPollenChips();
   setupLayerToggles();
   initMap(BERLIN.lat, BERLIN.lon, 12);
-  setStatus('loading','Lade DWD-Daten für Berlin…');
+  setStatus('loading','Lade Vorhersage & Wind für Berlin…');
 
   const [wind, dwdP, omP, pheno, aqi] = await Promise.all([
     fetchDWDWind(BERLIN.lat, BERLIN.lon),
@@ -467,8 +477,10 @@ async function startApp() {
   renderPhenologyPanel();
   renderAQIPanel();
 
-  setStatus('loading','Lade Bäume & Flächen (OSM)…');
+  setStatus('loading','Lade Vegetationsquellen (OSM)…');
   await loadOSMSources();
+  setStatus('loading','Lade amtlichen Baumbestand (WFS)…');
+  await loadBerlinKatasterForModel();
   renderAll();
 
   setStatus('ok', DWD_REGIONS.find(r=>detectRegion(BERLIN.lat,BERLIN.lon)===r.id)?.name ?? 'Berlin');
@@ -497,8 +509,6 @@ async function activateLocation() {
   btn.classList.add('active'); btn.textContent='📍 Aktiv';
   setStatus('loading','Lade lokale Daten…');
 
-  // Reset Kataster cache — new location needs fresh data
-  katasterLoaded = false;
   katasterCache = [];
 
   const [wind,dwdP,omP,aqi] = await Promise.all([
@@ -509,8 +519,9 @@ async function activateLocation() {
   pollenData = pollenSource==='dwd' ? (pollenDataDWD??pollenDataOM) : (pollenDataOM??pollenDataDWD);
 
   renderWindPanel(); renderPollenForecast(); renderAQIPanel();
-  setStatus('loading','Lade OSM-Quellen…');
+  setStatus('loading','Lade OSM & Baumbestand…');
   await loadOSMSources();
+  await loadBerlinKatasterForModel();
   renderAll();
   setStatus('ok', DWD_REGIONS.find(r=>detectRegion(userLat,userLon)===r.id)?.name ?? 'Region erkannt');
 }
@@ -715,7 +726,16 @@ async function fetchWfsBaumLayer(typeName, minLon, minLat, maxLon, maxLat) {
 }
 
 let katasterCache = [];
-let katasterLoaded = false;
+
+/** Load SenMVKU trees for heatmap + optional markers (same bbox as fetchBaumkataster). */
+async function loadBerlinKatasterForModel() {
+  try {
+    katasterCache = await fetchBaumkataster(userLat, userLon);
+  } catch (e) {
+    console.warn('Baumbestand preload failed:', e);
+    katasterCache = [];
+  }
+}
 
 async function fetchBaumkataster(lat, lon) {
   const radiusDeg = 0.009;
@@ -760,16 +780,14 @@ async function fetchBaumkataster(lat, lon) {
   }
 }
 
-async function renderKatasterLayer() {
+function renderKatasterLayer() {
   katasterMarkers.forEach(m => map.removeLayer(m));
   katasterMarkers = [];
   if (!layerState.kataster) return;
 
-  // Only hit the WFS once per location — reuse cache on subsequent renderAll calls
-  if (!katasterLoaded) {
-    setStatus('loading', 'Lade Berliner Baumbestand (WFS)…');
-    katasterCache = await fetchBaumkataster(userLat, userLon);
-    katasterLoaded = true;
+  if (!katasterCache.length) {
+    setStatus('ok', 'Baumbestand: keine Punkte in diesem Ausschnitt');
+    return;
   }
 
   const trees = katasterCache;
@@ -807,7 +825,7 @@ async function renderKatasterLayer() {
 
   const n = trees.length;
   const nAllergenic = trees.filter(t => t.pollenId).length;
-  setStatus('ok', `Baumbestand: ${n} Bäume (${nAllergenic} allergen) geladen`);
+  setStatus('ok', `Baumbestand: ${n} Bäume markiert (${nAllergenic} mit Pollen-Match)`);
 }
 
 // OSM Overpass
@@ -875,7 +893,7 @@ async function renderAll() {
   renderWindLayer();
   renderTreeMarkers();
   renderAreaMarkers();
-  if (layerState.kataster) await renderKatasterLayer();
+  if (layerState.kataster) renderKatasterLayer();
   if (layerState.aqi) renderAQIMarkers();
 }
 
@@ -885,32 +903,50 @@ function clearAllLayers() {
   [...treeMarkers,...areaMarkers,...katasterMarkers,...aqiMarkers].forEach(m=>map.removeLayer(m));
   treeMarkers=[];areaMarkers=[];katasterMarkers=[];aqiMarkers=[];
 }
-function clearWindMarkers(){windMarkers.forEach(m=>map.removeLayer(m));windMarkers=[];}
+function clearWindMarkers(){
+  if(windParticleLayer){map.removeLayer(windParticleLayer);windParticleLayer=null;}
+}
 
-// Risk with phenology weighting
+/** OSM + amtlicher Baumbestand (nur Einträge mit Pollen-Match) für das Expositionsmodell. */
+function buildExposureSources() {
+  const k = katasterCache.filter(t => t.pollenId);
+  return [...osm_sources, ...k];
+}
+
+/** Downwind smear: regional forecast × season × source strength; wind sets plume length. */
 function computeRisk() {
   if (!windData) return [];
-  const pts=[];
-  const windRad=((windData.dir+180)%360)*Math.PI/180;
-  const wStr=Math.min(windData.speed/40,1);
-  osm_sources.forEach(src=>{
-    const pids=src.pollenIds??[src.pollenId];
-    let load=0;
-    pids.forEach(pid=>{
+  const pts = [];
+  const windRad = ((windData.dir + 180) % 360) * Math.PI / 180;
+  const wStr = Math.min(windData.speed / 32, 1.2);
+  const cosLat = Math.cos(userLat * Math.PI / 180);
+  const sources = buildExposureSources();
+
+  sources.forEach(src => {
+    const pids = src.pollenIds ?? [src.pollenId];
+    let load = 0;
+    pids.forEach(pid => {
       if (!activePollenIds.has(pid)) return;
-      const p=POLLEN_TYPES.find(p=>p.id===pid); if(!p) return;
-      const dwd=pollenData?.[p.dwdKey]??1.5;
-      const phW=phenoWeight(pid);
-      const tMul=src.sourceType==='tree'?1.2:0.8;
-      load=Math.max(load,(dwd/3)*tMul*phW);
+      const p = POLLEN_TYPES.find(x => x.id === pid);
+      if (!p) return;
+      const dwd = pollenData?.[p.dwdKey] ?? 1.5;
+      const phW = phenoWeight(pid);
+      const tMul =
+        src.sourceType === 'kataster' ? 1.12 :
+        src.sourceType === 'tree' ? 1.2 : 0.82;
+      load = Math.max(load, (dwd / 3) * tMul * phW);
     });
-    if (load<0.01) return;
-    pts.push([src.lat,src.lon,load*0.6]);
-    for(let i=1;i<=6;i++){
-      const frac=i/6, drift=wStr*0.012*frac, decay=Math.pow(1-frac*0.7,1.5);
-      const dLat=Math.cos(windRad)*drift;
-      const dLon=Math.sin(windRad)*drift/Math.cos(userLat*Math.PI/180);
-      pts.push([src.lat+dLat,src.lon+dLon,load*decay*0.9]);
+    if (load < 0.008) return;
+    const baseW = load * 0.62;
+    pts.push([src.lat, src.lon, baseW]);
+    const nPlume = 8;
+    for (let i = 1; i <= nPlume; i++) {
+      const frac = i / nPlume;
+      const drift = wStr * 0.014 * frac;
+      const decay = Math.pow(1 - frac * 0.72, 1.45);
+      const dLat = Math.cos(windRad) * drift;
+      const dLon = Math.sin(windRad) * drift / cosLat;
+      pts.push([src.lat + dLat, src.lon + dLon, baseW * decay * 0.92]);
     }
   });
   return pts;
@@ -921,23 +957,175 @@ function phenoWeight(pid) {
   return {peak:1.35,active:1.0,soon:0.15,past:0.04}[ph.status]??1;
 }
 
+/** Canvas layer: animated streaks drift with DWD wind (same vector as heatmap drift). */
+const WindParticleLayer = L.Layer.extend({
+  options: { particleCount: 96, tailAlpha: 0.5 },
+
+  initialize(windData, options) {
+    L.setOptions(this, options);
+    this._windData = windData;
+    this._particles = [];
+    this._running = false;
+    this._raf = null;
+    this._lastT = 0;
+    this._canvas = null;
+    this._dpr = 1;
+  },
+
+  onAdd(map) {
+    this._map = map;
+    const canvas = L.DomUtil.create('canvas', 'pollen-wind-canvas');
+    this._canvas = canvas;
+    map.getContainer().appendChild(canvas);
+    Object.assign(canvas.style, {
+      position: 'absolute',
+      left: '0',
+      top: '0',
+      pointerEvents: 'none',
+      zIndex: '450',
+    });
+    this._syncSize = () => {
+      if (!this._map || !this._canvas) return;
+      const sz = this._map.getSize();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      this._dpr = dpr;
+      this._canvas.width = Math.floor(sz.x * dpr);
+      this._canvas.height = Math.floor(sz.y * dpr);
+      this._canvas.style.width = `${sz.x}px`;
+      this._canvas.style.height = `${sz.y}px`;
+      const ctx = this._canvas.getContext('2d');
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    };
+    this._onZoomEnd = () => this._spawnParticles();
+    map.on('resize zoomend', this._syncSize, this);
+    map.on('zoomend', this._onZoomEnd, this);
+    this._syncSize();
+    this._spawnParticles();
+    this._running = true;
+    this._lastT = performance.now();
+    this._loop();
+  },
+
+  onRemove(map) {
+    this._running = false;
+    if (this._raf) cancelAnimationFrame(this._raf);
+    map.off('resize zoomend', this._syncSize, this);
+    map.off('zoomend', this._onZoomEnd, this);
+    if (this._canvas?.parentNode) this._canvas.parentNode.removeChild(this._canvas);
+    this._canvas = null;
+  },
+
+  _spawnParticles() {
+    if (!this._map) return;
+    const b = this._map.getBounds();
+    const n = this.options.particleCount;
+    this._particles = [];
+    const south = b.getSouth(), north = b.getNorth(), west = b.getWest(), east = b.getEast();
+    for (let i = 0; i < n; i++) {
+      this._particles.push({
+        lat: south + Math.random() * (north - south),
+        lng: west + Math.random() * (east - west),
+        phase: Math.random() * Math.PI * 2,
+        jitter: 0.82 + Math.random() * 0.36,
+      });
+    }
+  },
+
+  _wrapParticle(p, b) {
+    if (b.contains(L.latLng(p.lat, p.lng))) return;
+    p.lat = b.getSouth() + Math.random() * (b.getNorth() - b.getSouth());
+    p.lng = b.getWest() + Math.random() * (b.getEast() - b.getWest());
+  },
+
+  _step(dt) {
+    const w = this._windData;
+    if (!w || !this._map) return;
+    const windRad = ((w.dir + 180) % 360) * Math.PI / 180;
+    const b = this._map.getBounds();
+    const kmh = Math.max(w.speed, 0.5);
+    const mps = kmh / 3.6;
+    const base = 2.6e-6 * mps * dt * 60;
+    for (const p of this._particles) {
+      const latRad = p.lat * Math.PI / 180;
+      const sc = base * p.jitter;
+      p.lat += Math.cos(windRad) * sc;
+      p.lng += Math.sin(windRad) * sc / Math.cos(latRad);
+      p.phase += dt * 3.2;
+      this._wrapParticle(p, b);
+    }
+  },
+
+  _draw() {
+    const map = this._map;
+    const ctx = this._canvas.getContext('2d');
+    const sz = map.getSize();
+    ctx.setTransform(this._dpr, 0, 0, this._dpr, 0, 0);
+    ctx.clearRect(0, 0, sz.x, sz.y);
+
+    const w = this._windData;
+    if (!w) return;
+
+    const windRad = ((w.dir + 180) % 360) * Math.PI / 180;
+    const streakLen = 9 + Math.min(w.speed / 4, 16);
+    const lineW = 0.85 + Math.min(w.speed / 30, 2.2);
+    const ta = this.options.tailAlpha;
+
+    for (const p of this._particles) {
+      const pt = map.latLngToContainerPoint(L.latLng(p.lat, p.lng));
+      if (pt.x < -50 || pt.y < -50 || pt.x > sz.x + 50 || pt.y > sz.y + 50) continue;
+
+      const latRad = p.lat * Math.PI / 180;
+      const dLat = Math.cos(windRad) * 1e-5;
+      const dLon = Math.sin(windRad) * 1e-5 / Math.cos(latRad);
+      const pt2 = map.latLngToContainerPoint(L.latLng(p.lat + dLat, p.lng + dLon));
+      let dx = pt2.x - pt.x, dy = pt2.y - pt.y;
+      const len = Math.hypot(dx, dy) || 1;
+      dx = (dx / len) * streakLen;
+      dy = (dy / len) * streakLen;
+
+      const pulse = 0.38 + 0.42 * Math.sin(p.phase);
+      const a = ta * pulse;
+
+      ctx.strokeStyle = `rgba(26, 124, 168, ${a})`;
+      ctx.lineWidth = lineW;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(pt.x - dx * 0.88, pt.y - dy * 0.88);
+      ctx.lineTo(pt.x + dx * 0.12, pt.y + dy * 0.12);
+      ctx.stroke();
+
+      ctx.fillStyle = `rgba(190, 230, 255, ${a * 0.5})`;
+      ctx.beginPath();
+      ctx.arc(pt.x, pt.y, 1.05, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  },
+
+  _loop() {
+    if (!this._running || !this._map) return;
+    const now = performance.now();
+    const dt = Math.min(Math.max((now - this._lastT) / 1000, 0.001), 0.09);
+    this._lastT = now;
+    this._step(dt);
+    this._draw();
+    this._raf = requestAnimationFrame(() => this._loop());
+  },
+});
+
 function renderHeatmap(pts) {
-  if (!pts.length||!layerState.heat) return;
-  heatLayer = L.heatLayer(pts,{radius:35,blur:22,maxZoom:17,
-    gradient:{0:'#4ade8000',0.3:'#4ade80',0.55:'#facc15',0.75:'#f97316',1:'#dc2626'}});
+  if (!pts.length || !layerState.heat) return;
+  heatLayer = L.heatLayer(pts, {
+    radius: 42,
+    blur: 26,
+    maxZoom: 17,
+    gradient: { 0: '#4ade8000', 0.28: '#4ade80', 0.52: '#facc15', 0.74: '#f97316', 1: '#dc2626' },
+  });
   heatLayer.addTo(map);
 }
 
 function renderWindLayer() {
-  if (!windData||!layerState.wind) return;
-  const b=map.getBounds(), step=0.02;
-  for(let lat=b.getSouth();lat<b.getNorth();lat+=step)
-    for(let lon=b.getWest();lon<b.getEast();lon+=step){
-      const m=L.marker([lat,lon],{icon:L.divIcon({className:'',
-        html:`<div style="transform:rotate(${windData.dir}deg);font-size:${10+Math.min(windData.speed/5,8)}px;opacity:.28;color:#1a5c8a;line-height:1">➤</div>`,
-        iconSize:[16,16],iconAnchor:[8,8]}),interactive:false});
-      windMarkers.push(m); m.addTo(map);
-    }
+  if (!windData || !layerState.wind) return;
+  windParticleLayer = new WindParticleLayer(windData, { particleCount: 96, tailAlpha: 0.48 }).addTo(map);
 }
 
 function renderTreeMarkers() {
@@ -1026,7 +1214,7 @@ function renderPhenologyPanel() {
   const shiftStr = sampleShift !== 0
     ? ` · Temp.-Korrektur: ${sampleShift > 0 ? '+' : ''}${sampleShift} Tage`
     : '';
-  note.textContent=`Ø Berlin · DWD Phänologie / PEP725${shiftStr}`;
+  note.textContent=`Saisonale Gewichtung für Meidezonen · DWD/PEP725${shiftStr}`;
   g.appendChild(note);
 }
 
@@ -1081,7 +1269,7 @@ function setupLayerToggles() {
     'tog-wind':{key:'wind', fn:()=>{clearWindMarkers();if(layerState.wind)renderWindLayer();}},
     'tog-trees':{key:'trees', fn:()=>{treeMarkers.forEach(m=>map.removeLayer(m));treeMarkers=[];if(layerState.trees)renderTreeMarkers();}},
     'tog-areas':{key:'areas', fn:()=>{areaMarkers.forEach(m=>map.removeLayer(m));areaMarkers=[];if(layerState.areas)renderAreaMarkers();}},
-    'tog-kataster':{key:'kataster', fn:async ()=>{katasterMarkers.forEach(m=>map.removeLayer(m));katasterMarkers=[];if(layerState.kataster) await renderKatasterLayer();}},
+    'tog-kataster':{key:'kataster', fn:()=>{katasterMarkers.forEach(m=>map.removeLayer(m));katasterMarkers=[];if(layerState.kataster) renderKatasterLayer();}},
     'tog-aqi':{key:'aqi', fn:()=>{
       document.getElementById('aqi-panel').style.display=layerState.aqi?'block':'none';
       aqiMarkers.forEach(m=>map.removeLayer(m));aqiMarkers=[];if(layerState.aqi)renderAQIMarkers();
@@ -1125,7 +1313,7 @@ function setStatus(s,t){document.getElementById('status-dot').className='status-
 function hideLoading(){const el=document.getElementById('loading');el.classList.add('hidden');setTimeout(()=>el.style.display='none',700);}
 function showError(msg){const el=document.getElementById('err-box');el.style.display='block';el.textContent=msg;setTimeout(()=>el.style.display='none',5000);}
 
-const MSGS=['Lade Berliner Pollendaten…','Verbinde mit DWD OpenData…','Analysiere Phänologie (PEP725)…','Lade Luftqualität CAMS…','Lade OSM-Bäume…'];
+const MSGS=['Lade Meidezonen-Daten…','DWD Region 11 & Wind…','Phänologie & Saison…','OSM & amtlicher Baumbestand…','Luftqualität CAMS…'];
 let mi=0;
 const msgInt=setInterval(()=>{mi=(mi+1)%MSGS.length;const el=document.getElementById('ld-msg');if(el)el.textContent=MSGS[mi];},1600);
 setTimeout(()=>clearInterval(msgInt),14000);
