@@ -235,6 +235,8 @@
 </head>
 <body>
   <div class="container py-5" style="max-width:640px">
+
+
 <div class="mb-4">
   <h1 class="mb-0">Group Photo Challenge</h1>
 </div>
@@ -255,6 +257,7 @@
     <div class="challenge-tab" data-type="number">Number</div>
     <div class="challenge-tab" data-type="texture">Texture</div>
     <div class="challenge-tab" data-type="emotion">Emotion</div>
+    <div class="challenge-tab" data-type="shape">Shape</div>
   </div>
 
   <!-- COLOR -->
@@ -313,6 +316,16 @@
     </div>
   </div>
 
+  <!-- SHAPE -->
+  <div class="challenge-panel" id="panel-shape">
+    <label class="form-label d-block mb-2">Select shapes to include</label>
+    <div class="tag-grid" id="shape-grid"></div>
+    <div class="mt-3 d-flex gap-2">
+      <button class="btn btn-outline-secondary btn-sm" onclick="selectAll('shape-grid')">Select all</button>
+      <button class="btn btn-outline-secondary btn-sm" onclick="selectNone('shape-grid')">Clear</button>
+    </div>
+  </div>
+
 </div>
 
 <div class="d-flex align-items-center gap-3 mb-4">
@@ -332,7 +345,10 @@
     </div>
   </div>
 </div>
+
+
   </div>
+
   <script>
     // --- Data ---
     const COLORS = [
@@ -356,7 +372,20 @@
       'Flaky','Wrinkled','Ribbed','Foamy','Powdery','Metallic'
     ];
 
-    const EMOTIONS = [
+    const SHAPES = [
+      { name: 'Circle',    emoji: '⭕' },
+      { name: 'Triangle',  emoji: '🔺' },
+      { name: 'Square',    emoji: '🟥' },
+      { name: 'Rectangle', emoji: '▬' },
+      { name: 'Oval',      emoji: '🥚' },
+      { name: 'Star',      emoji: '⭐' },
+      { name: 'Diamond',   emoji: '💎' },
+      { name: 'Heart',     emoji: '❤️' },
+      { name: 'Cross',     emoji: '✚' },
+      { name: 'Spiral',    emoji: '🌀' },
+      { name: 'Arrow',     emoji: '➡️' },
+      { name: 'Crescent',  emoji: '🌙' },
+    ];
       { name: 'Joy',          emoji: '😄' },
       { name: 'Calm',         emoji: '😌' },
       { name: 'Melancholy',   emoji: '😔' },
@@ -408,6 +437,7 @@
     buildTagGrid('letter-grid', LETTERS);
     buildTagGrid('texture-grid', TEXTURES);
     buildTagGrid('emotion-grid', EMOTIONS.map(e => e.emoji + ' ' + e.name));
+    buildTagGrid('shape-grid', SHAPES.map(s => s.emoji + ' ' + s.name));
 
     // --- Tab switching ---
     let activeType = 'color';
@@ -503,9 +533,18 @@
           const label = parts.slice(1).join(' ');
           return { name: n, label, emoji, dot: null };
         });
+      } else if (activeType === 'shape') {
+        const vals = getCheckedValues('shape-grid');
+        if (!vals.length) { err.textContent = 'Select at least one shape.'; return; }
+        if (vals.length < names.length) { err.textContent = `Need at least ${names.length} shapes.`; return; }
+        const picked = shuffle(vals).slice(0, names.length);
+        assignments = names.map((n, i) => {
+          const parts = picked[i].split(' ');
+          const emoji = parts[0];
+          const label = parts.slice(1).join(' ');
+          return { name: n, label, emoji, dot: null };
+        });
       }
-
-      renderResults(assignments);
     }
 
     function renderResults(assignments) {
