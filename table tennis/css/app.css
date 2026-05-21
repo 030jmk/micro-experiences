@@ -14,6 +14,10 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html {
+  touch-action: manipulation;
+}
+
 html, body {
   overscroll-behavior: none;
   min-height: 100dvh;
