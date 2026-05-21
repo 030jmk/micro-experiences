@@ -1,0 +1,24 @@
+{
+  "name": "Beach Volleyball Score Tracker",
+  "short_name": "BeachVolley",
+  "description": "Beach volleyball scoring for matches & tournaments",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#264653",
+  "background_color": "#264653",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

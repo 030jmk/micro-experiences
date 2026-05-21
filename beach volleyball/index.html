@@ -2,15 +2,14 @@
 <html lang="en" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
-  <meta name="description" content="table tennis scorer">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#1a1a2e">
-  <title>Ping Pong Score</title>
+  <meta name="theme-color" content="#264653">
+  <title>Beach Volley Score</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
   <link rel="stylesheet" href="css/app.css">
@@ -21,8 +20,8 @@
   <nav id="main-navbar" class="navbar navbar-expand-sm sticky-top bg-body-tertiary border-bottom">
     <div class="container-fluid">
       <a class="navbar-brand fw-bold" href="#home">
-        <i class="bi bi-dribbble me-1" style="color:var(--ps-primary)"></i>
-        <span data-i18n="app.title">Ping Pong Score</span>
+        <i class="bi bi-sun me-1" style="color:var(--bv-sand)"></i>
+        <span data-i18n="app.title">Beach Volley Score</span>
       </a>
       <div class="d-flex align-items-center gap-2">
         <button id="btn-lang" class="btn btn-sm btn-outline-secondary" title="Language">
@@ -39,9 +38,8 @@
   <section id="view-home" class="view-section">
     <div class="home-hero">
       <img src="icons/favicon.svg" alt="Logo" class="home-logo">
-      <h1 class="h3 fw-bold" data-i18n="home.subtitle">Table Tennis Scorer</h1>
+      <h1 class="h3 fw-bold" data-i18n="home.subtitle">Beach Volleyball Scorer</h1>
       <div id="resume-banner" class="resume-banner d-none w-100 px-3" style="max-width:400px">
-        <!-- filled by JS -->
       </div>
       <div class="d-grid gap-2 w-100 px-3" style="max-width:400px">
         <button class="btn btn-primary btn-lg" data-nav="#new-match">
@@ -72,60 +70,33 @@
         <h2 class="h5 mb-0" data-i18n="setup.title">New Match</h2>
       </div>
 
-      <div class="btn-group w-100 mb-3" role="group">
-        <input type="radio" class="btn-check" name="matchType" id="type-singles" value="singles" checked>
-        <label class="btn btn-outline-primary" for="type-singles" data-i18n="setup.singles">Singles</label>
-        <input type="radio" class="btn-check" name="matchType" id="type-doubles" value="doubles">
-        <label class="btn btn-outline-primary" for="type-doubles" data-i18n="setup.doubles">Doubles</label>
-      </div>
-
-      <!-- Singles players -->
-      <div id="singles-players">
-        <div class="mb-3">
-          <label class="form-label"><span data-i18n="setup.player">Player</span> 1</label>
-          <input type="text" class="form-control" id="p1-name" data-i18n-placeholder="setup.playerName" placeholder="Player name">
-        </div>
-        <div class="mb-3">
-          <label class="form-label"><span data-i18n="setup.player">Player</span> 2</label>
-          <input type="text" class="form-control" id="p2-name" data-i18n-placeholder="setup.playerName" placeholder="Player name">
+      <div class="card mb-3">
+        <div class="card-header fw-semibold" data-i18n="setup.team1">Team 1</div>
+        <div class="card-body">
+          <div class="mb-2">
+            <input type="text" class="form-control" id="t1-p1" data-i18n-placeholder="setup.playerName" placeholder="Player name">
+          </div>
+          <div>
+            <input type="text" class="form-control" id="t1-p2" data-i18n-placeholder="setup.playerName" placeholder="Player name">
+          </div>
         </div>
       </div>
 
-      <!-- Doubles teams -->
-      <div id="doubles-players" class="d-none">
-        <div class="mb-2">
-          <label class="form-label fw-semibold"><span data-i18n="setup.playersPerTeam">Players per Team</span></label>
-          <select id="team-size" class="form-select" style="max-width:120px">
-            <option value="2" selected>2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-          </select>
-        </div>
-        <div class="card mb-3">
-          <div class="card-header fw-semibold" data-i18n="setup.teamA">Team A</div>
-          <div class="card-body" id="team-a-players"></div>
-        </div>
-        <div class="card mb-3">
-          <div class="card-header fw-semibold" data-i18n="setup.teamB">Team B</div>
-          <div class="card-body" id="team-b-players"></div>
+      <div class="card mb-3">
+        <div class="card-header fw-semibold" data-i18n="setup.team2">Team 2</div>
+        <div class="card-body">
+          <div class="mb-2">
+            <input type="text" class="form-control" id="t2-p1" data-i18n-placeholder="setup.playerName" placeholder="Player name">
+          </div>
+          <div>
+            <input type="text" class="form-control" id="t2-p2" data-i18n-placeholder="setup.playerName" placeholder="Player name">
+          </div>
         </div>
       </div>
 
       <div class="mb-3">
-        <label class="form-label fw-semibold"><span data-i18n="setup.bestOf">Best of</span></label>
-        <div class="btn-group w-100" role="group">
-          <input type="radio" class="btn-check" name="bestOf" id="bo-3" value="3" checked>
-          <label class="btn btn-outline-secondary" for="bo-3">3</label>
-          <input type="radio" class="btn-check" name="bestOf" id="bo-5" value="5">
-          <label class="btn btn-outline-secondary" for="bo-5">5</label>
-          <input type="radio" class="btn-check" name="bestOf" id="bo-7" value="7">
-          <label class="btn btn-outline-secondary" for="bo-7">7</label>
-        </div>
-      </div>
-
-      <div class="mb-3" id="first-server-section">
-        <label class="form-label fw-semibold"><span data-i18n="setup.firstServer">First Server</span></label>
-        <div class="btn-group w-100" role="group" id="first-server-group">
+        <label class="form-label fw-semibold"><span data-i18n="setup.firstServe">First Serve</span></label>
+        <div class="btn-group w-100" role="group" id="first-serve-group">
           <!-- filled by JS -->
         </div>
       </div>
@@ -140,7 +111,7 @@
   <section id="view-scoring" class="view-section">
     <div class="scoring-view" id="scoring-container">
       <div class="scoring-header bg-body-tertiary text-body">
-        <span id="scoring-game-info"></span>
+        <span id="scoring-set-info"></span>
         <span id="scoring-status-badge"></span>
         <div class="d-flex gap-1">
           <button id="btn-fullscreen" class="btn btn-sm btn-outline-secondary py-0 px-1">
@@ -155,7 +126,7 @@
         <div class="score-side side-left" id="score-left">
           <div class="score-player-name" id="score-left-name"></div>
           <div class="score-number" id="score-left-num">0</div>
-          <div class="score-games" id="score-left-games"></div>
+          <div class="score-sets" id="score-left-sets"></div>
           <button class="score-decrement" id="btn-dec-left">
             <i class="bi bi-dash"></i>
           </button>
@@ -164,12 +135,12 @@
         <div class="score-side side-right" id="score-right">
           <div class="score-player-name" id="score-right-name"></div>
           <div class="score-number" id="score-right-num">0</div>
-          <div class="score-games" id="score-right-games"></div>
+          <div class="score-sets" id="score-right-sets"></div>
           <button class="score-decrement" id="btn-dec-right">
             <i class="bi bi-dash"></i>
           </button>
         </div>
-        <div class="scoring-progress" id="scoring-game-scores"></div>
+        <div class="scoring-progress" id="scoring-set-scores"></div>
         <div class="scoring-controls-overlay">
           <button id="btn-undo" class="btn btn-sm btn-outline-warning">
             <i class="bi bi-arrow-counterclockwise me-1"></i><span data-i18n="scoring.undo">Undo</span>
@@ -186,7 +157,6 @@
   <div id="match-complete-overlay" class="match-complete-overlay d-none">
     <div class="match-complete-card card bg-body border-0 shadow-lg">
       <div class="card-body p-4" id="match-complete-body">
-        <!-- filled by JS -->
       </div>
     </div>
   </div>
@@ -229,7 +199,7 @@
 
       <div class="mb-3">
         <label class="form-label" data-i18n="tournament.name">Tournament Name</label>
-        <input type="text" class="form-control" id="tournament-name" data-i18n-placeholder="tournament.namePlaceholder" placeholder="Friday Night Tournament">
+        <input type="text" class="form-control" id="tournament-name" data-i18n-placeholder="tournament.namePlaceholder" placeholder="Beach Tournament">
       </div>
 
       <div class="mb-3">
@@ -243,29 +213,16 @@
         </select>
       </div>
 
-      <!-- Format-specific options -->
       <div id="format-options"></div>
 
       <div class="mb-3">
-        <label class="form-label fw-semibold"><span data-i18n="tournament.matchBestOf">Match Best of</span></label>
-        <div class="btn-group w-100" role="group">
-          <input type="radio" class="btn-check" name="tBestOf" id="t-bo-3" value="3" checked>
-          <label class="btn btn-outline-secondary" for="t-bo-3">3</label>
-          <input type="radio" class="btn-check" name="tBestOf" id="t-bo-5" value="5">
-          <label class="btn btn-outline-secondary" for="t-bo-5">5</label>
-          <input type="radio" class="btn-check" name="tBestOf" id="t-bo-7" value="7">
-          <label class="btn btn-outline-secondary" for="t-bo-7">7</label>
-        </div>
-      </div>
-
-      <div class="mb-3">
         <div class="d-flex justify-content-between align-items-center mb-2">
-          <label class="form-label mb-0 fw-semibold" data-i18n="tournament.players">Players</label>
-          <button id="btn-add-tournament-player" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-plus-lg me-1"></i><span data-i18n="tournament.addPlayer">Add Player</span>
+          <label class="form-label mb-0 fw-semibold" data-i18n="tournament.teams">Teams</label>
+          <button id="btn-add-tournament-team" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg me-1"></i><span data-i18n="tournament.addTeam">Add Team</span>
           </button>
         </div>
-        <div id="tournament-player-list"></div>
+        <div id="tournament-team-list"></div>
       </div>
 
       <button id="btn-start-tournament" class="btn btn-primary btn-lg w-100 mt-2">

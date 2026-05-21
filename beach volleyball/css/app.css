@@ -1,23 +1,19 @@
 :root {
-  --ps-primary: #ff6b35;
-  --ps-primary-dark: #e55a2b;
-  --ps-secondary: #457b9d;
-  --ps-accent: #e63946;
-  --ps-bg-dark: #1a1a2e;
-  --ps-bg-light: #f8f9fa;
-  --ps-score-left: #2563eb;
-  --ps-score-right: #dc2626;
-  --ps-deuce: #f59e0b;
+  --bv-primary: #e76f51;
+  --bv-primary-dark: #c45a3f;
+  --bv-secondary: #2a9d8f;
+  --bv-accent: #e9c46a;
+  --bv-bg-dark: #264653;
+  --bv-bg-light: #f8f9fa;
+  --bv-score-left: #2a9d8f;
+  --bv-score-right: #e76f51;
+  --bv-sand: #f4a261;
+  --bv-deuce: #e9c46a;
 }
 
 * {
   -webkit-tap-highlight-color: transparent;
   touch-action: manipulation;
-}
-
-html {
-  touch-action: manipulation;
-  -webkit-text-size-adjust: 100%;
 }
 
 html, body {
@@ -72,7 +68,7 @@ body {
   padding: 1rem;
 }
 .match-setup input {
-  font-size: 16px; /* prevent iOS auto-zoom */
+  font-size: 16px;
 }
 
 /* ── Fullscreen Scoring View ── */
@@ -122,20 +118,12 @@ body {
   transform: scale(0.98);
 }
 .score-side.side-left {
-  background: var(--ps-score-left);
+  background: var(--bv-score-left);
   color: #fff;
 }
 .score-side.side-right {
-  background: var(--ps-score-right);
+  background: var(--bv-score-right);
   color: #fff;
-}
-.score-side.deuce {
-  animation: deucePulse 1.5s ease-in-out infinite;
-}
-
-@keyframes deucePulse {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.15); }
 }
 
 .score-player-name {
@@ -154,7 +142,7 @@ body {
   width: 10px;
   height: 10px;
   border-radius: 50%;
-  background: var(--ps-deuce);
+  background: var(--bv-deuce);
   margin-right: 4px;
   animation: serverPulse 1s ease-in-out infinite;
 }
@@ -171,18 +159,18 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.score-games {
+.score-sets {
   display: flex;
   gap: 6px;
   padding: 0.25rem 0;
 }
-.game-dot {
+.set-dot {
   width: 14px;
   height: 14px;
   border-radius: 50%;
   border: 2px solid rgba(255,255,255,0.6);
 }
-.game-dot.won {
+.set-dot.won {
   background: #fff;
   border-color: #fff;
 }
@@ -255,7 +243,18 @@ body {
   letter-spacing: 0.05em;
   padding: 2px 8px;
   border-radius: 4px;
-  background: var(--ps-deuce);
+  background: var(--bv-deuce);
+  color: #000;
+}
+
+.switch-sides-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: var(--bv-sand);
   color: #000;
 }
 
@@ -308,17 +307,6 @@ body {
 .bracket-player.loser {
   opacity: 0.5;
 }
-.bracket-connector {
-  position: relative;
-}
-.bracket-connector::after {
-  content: '';
-  position: absolute;
-  right: -12px;
-  top: 50%;
-  width: 12px;
-  border-top: 2px solid var(--bs-border-color);
-}
 
 /* ── Round Robin Table ── */
 .rr-table th, .rr-table td {
@@ -328,11 +316,6 @@ body {
 }
 .rr-table .rr-self {
   background: var(--bs-secondary-bg);
-}
-
-/* ── Swiss Standings ── */
-.swiss-pairings .card {
-  touch-action: manipulation;
 }
 
 /* ── History ── */
