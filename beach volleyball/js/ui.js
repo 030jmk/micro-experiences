@@ -18,23 +18,21 @@ window.BeachVolley = window.BeachVolley || {};
 
     var leftName = engine.getLeftName();
     var rightName = engine.getRightName();
-    var leftServerDot = serverSide === 0 ? '<span class="server-dot"></span>' : '';
-    var rightServerDot = serverSide === 1 ? '<span class="server-dot"></span>' : '';
+    var serveTag = '<span class="server-label">' + t('scoring.server') + '</span><span class="server-dot"></span>';
+    var leftServe = serverSide === 0 ? serveTag : '';
+    var rightServe = serverSide === 1 ? serveTag : '';
 
-    document.getElementById('score-left-name').innerHTML = leftServerDot + escHtml(leftName);
-    document.getElementById('score-right-name').innerHTML = rightServerDot + escHtml(rightName);
+    document.getElementById('score-left-name').innerHTML = leftServe + escHtml(leftName);
+    document.getElementById('score-right-name').innerHTML = rightServe + escHtml(rightName);
 
-    // Set dots
     document.getElementById('score-left-sets').innerHTML = setDots(engine.setsWon[0], 2);
     document.getElementById('score-right-sets').innerHTML = setDots(engine.setsWon[1], 2);
 
-    // Deuce highlight
     var leftSide = document.getElementById('score-left');
     var rightSide = document.getElementById('score-right');
-    leftSide.classList.toggle('deuce', engine.isDeuce());
-    rightSide.classList.toggle('deuce', engine.isDeuce());
+    leftSide.classList.toggle('serving', serverSide === 0);
+    rightSide.classList.toggle('serving', serverSide === 1);
 
-    // Status badges
     var badge = '';
     if (engine.isMatchPoint()) {
       badge = '<span class="match-point-badge">' + t('scoring.matchPoint') + '</span>';
@@ -50,11 +48,14 @@ window.BeachVolley = window.BeachVolley || {};
 
     document.getElementById('scoring-status-badge').innerHTML = badge;
 
-    // Set scores footer
-    var ss = engine.sets.map(function(s) {
-      return s.scores[0] + '-' + s.scores[1];
-    }).join('  ');
-    document.getElementById('scoring-set-scores').textContent = ss;
+    var setHistory = engine.sets.map(function(s) {
+      return s.scores[0] + '\u2013' + s.scores[1];
+    }).join('  \u00b7  ');
+    document.getElementById('scoring-set-history').textContent = setHistory;
+
+    var undoBtn = document.getElementById('btn-undo');
+    var canUndo = engine.actionLog && engine.actionLog.length > 0;
+    undoBtn.disabled = !canUndo;
   }
 
   function setDots(won, needed) {

@@ -50,22 +50,22 @@ window.PongScore = window.PongScore || {};
 
     var leftName = engine.getLeftName();
     var rightName = engine.getRightName();
-    var leftServerDot = serverSide === 0 ? '<span class="server-dot"></span>' : '';
-    var rightServerDot = serverSide === 1 ? '<span class="server-dot"></span>' : '';
+    var serveTag = '<span class="server-label">' + t('scoring.server') + '</span><span class="server-dot"></span>';
+    var leftServe = serverSide === 0 ? serveTag : '';
+    var rightServe = serverSide === 1 ? serveTag : '';
 
-    document.getElementById('score-left-name').innerHTML = leftServerDot + escHtml(leftName);
-    document.getElementById('score-right-name').innerHTML = rightServerDot + escHtml(rightName);
+    document.getElementById('score-left-name').innerHTML = leftServe + escHtml(leftName);
+    document.getElementById('score-right-name').innerHTML = rightServe + escHtml(rightName);
 
     // Game dots
     var needed = Math.ceil(engine.config.bestOf / 2);
     document.getElementById('score-left-games').innerHTML = gameDots(engine.gamesWon[0], needed);
     document.getElementById('score-right-games').innerHTML = gameDots(engine.gamesWon[1], needed);
 
-    // Deuce highlight
     var leftSide = document.getElementById('score-left');
     var rightSide = document.getElementById('score-right');
-    leftSide.classList.toggle('deuce', engine.isDeuce());
-    rightSide.classList.toggle('deuce', engine.isDeuce());
+    leftSide.classList.toggle('serving', serverSide === 0);
+    rightSide.classList.toggle('serving', serverSide === 1);
 
     // Status badge
     var badge = '';
@@ -78,11 +78,14 @@ window.PongScore = window.PongScore || {};
     }
     document.getElementById('scoring-status-badge').innerHTML = badge;
 
-    // Game scores footer
-    var gs = engine.games.map(function(g, i) {
-      return g.scores[0] + '-' + g.scores[1];
-    }).join('  ');
-    document.getElementById('scoring-game-scores').textContent = gs;
+    var setHistory = engine.games.map(function(g) {
+      return g.scores[0] + '\u2013' + g.scores[1];
+    }).join('  \u00b7  ');
+    document.getElementById('scoring-set-history').textContent = setHistory;
+
+    var undoBtn = document.getElementById('btn-undo');
+    var canUndo = engine.actionLog && engine.actionLog.length > 0;
+    undoBtn.disabled = !canUndo;
   }
 
   function gameDots(won, needed) {

@@ -2,7 +2,8 @@
 <html lang="en" data-bs-theme="dark">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+  <meta name="description" content="beach volleyball scorer">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#264653">
@@ -111,42 +112,37 @@
   <section id="view-scoring" class="view-section">
     <div class="scoring-view" id="scoring-container">
       <div class="scoring-header bg-body-tertiary text-body">
-        <span id="scoring-set-info"></span>
-        <span id="scoring-status-badge"></span>
-        <div class="d-flex gap-1">
-          <button id="btn-fullscreen" class="btn btn-sm btn-outline-secondary py-0 px-1">
-            <i class="bi bi-fullscreen"></i>
-          </button>
-          <button id="btn-scoring-menu" class="btn btn-sm btn-outline-secondary py-0 px-1">
-            <i class="bi bi-three-dots-vertical"></i>
-          </button>
+        <div class="scoring-header-main">
+          <div class="scoring-header-row">
+            <span id="scoring-set-info"></span>
+            <span id="scoring-status-badge"></span>
+          </div>
         </div>
+        <button type="button" id="btn-scoring-theme" class="btn btn-sm btn-outline-secondary scoring-header-btn" aria-label="Theme">
+          <i class="bi bi-moon-fill"></i>
+        </button>
       </div>
       <div class="scoring-main">
+        <div class="scoring-set-history-pill" id="scoring-set-history-pill">
+          <span id="scoring-set-history" class="scoring-set-history"></span>
+        </div>
         <div class="score-side side-left" id="score-left">
           <div class="score-player-name" id="score-left-name"></div>
           <div class="score-number" id="score-left-num">0</div>
           <div class="score-sets" id="score-left-sets"></div>
-          <button class="score-decrement" id="btn-dec-left">
-            <i class="bi bi-dash"></i>
-          </button>
         </div>
         <div class="score-divider"></div>
         <div class="score-side side-right" id="score-right">
           <div class="score-player-name" id="score-right-name"></div>
           <div class="score-number" id="score-right-num">0</div>
           <div class="score-sets" id="score-right-sets"></div>
-          <button class="score-decrement" id="btn-dec-right">
-            <i class="bi bi-dash"></i>
-          </button>
         </div>
-        <div class="scoring-progress" id="scoring-set-scores"></div>
         <div class="scoring-controls-overlay">
-          <button id="btn-undo" class="btn btn-sm btn-outline-warning">
+          <button id="btn-undo" class="btn btn-sm btn-outline-warning" disabled>
             <i class="bi bi-arrow-counterclockwise me-1"></i><span data-i18n="scoring.undo">Undo</span>
           </button>
           <button id="btn-end-match" class="btn btn-sm btn-outline-danger">
-            <i class="bi bi-x-circle me-1"></i><span data-i18n="scoring.endMatch">End</span>
+            <i class="bi bi-x-circle me-1"></i><span data-i18n="scoring.endMatch">End Match</span>
           </button>
         </div>
       </div>
@@ -257,18 +253,18 @@
     </div>
   </section>
 
-  <!-- ── Scoring Menu Modal ── -->
-  <div class="modal fade" id="scoring-menu-modal" tabindex="-1">
+  <!-- ── End Match Confirmation ── -->
+  <div class="modal fade" id="scoring-end-modal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered modal-sm">
       <div class="modal-content">
         <div class="modal-body text-center p-4">
-          <h5 class="mb-3" data-i18n="scoring.menu">Menu</h5>
+          <p class="mb-4" data-i18n="scoring.confirmEnd">Are you sure you want to end this match?</p>
           <div class="d-grid gap-2">
-            <button class="btn btn-outline-danger" id="btn-confirm-end">
-              <i class="bi bi-x-circle me-1"></i><span data-i18n="scoring.endMatch">End Match</span>
+            <button class="btn btn-danger" id="btn-confirm-end">
+              <span data-i18n="scoring.yes">Yes</span>
             </button>
             <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
-              <span data-i18n="general.cancel">Cancel</span>
+              <span data-i18n="scoring.no">No</span>
             </button>
           </div>
         </div>

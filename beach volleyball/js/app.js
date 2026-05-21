@@ -39,11 +39,17 @@ window.BeachVolley = window.BeachVolley || {};
     updateThemeBtn(next);
   }
 
-  function updateThemeBtn(theme) {
-    var btn = document.getElementById('btn-theme');
-    btn.innerHTML = theme === 'dark' ?
+  function themeIconHtml(theme) {
+    return theme === 'dark' ?
       '<i class="bi bi-sun-fill"></i>' :
       '<i class="bi bi-moon-fill"></i>';
+  }
+
+  function updateThemeBtn(theme) {
+    var html = themeIconHtml(theme);
+    document.getElementById('btn-theme').innerHTML = html;
+    var scoringBtn = document.getElementById('btn-scoring-theme');
+    if (scoringBtn) scoringBtn.innerHTML = html;
   }
 
   // ── Language ──
@@ -77,6 +83,10 @@ window.BeachVolley = window.BeachVolley || {};
     var navbar = document.getElementById('main-navbar');
     navbar.classList.remove('d-none');
     document.getElementById('match-complete-overlay').classList.add('d-none');
+
+    if (route !== '#scoring') {
+      BV.wakeLock.release();
+    }
 
     switch (route) {
       case '#home':
@@ -209,27 +219,70 @@ window.BeachVolley = window.BeachVolley || {};
     return config;
   }
 
+  var SCORE_DEBOUNCE_MS = 350;
+  var lastScoreAt = 0;
+  var scoringWakePrimed = false;
+
   function startMatch(config) {
     currentMatch = new BV.MatchEngine(config);
+    lastScoreAt = 0;
+    scoringWakePrimed = false;
     BV.Storage.saveCurrentMatch(currentMatch.toJSON());
     BV.wakeLock.request();
     navigate('#scoring');
   }
 
+  function flashScoreSide(side) {
+    var el = document.getElementById(side === 0 ? 'score-left' : 'score-right');
+    el.classList.remove('score-flash');
+    void el.offsetWidth;
+    el.classList.add('score-flash');
+    window.setTimeout(function() {
+      el.classList.remove('score-flash');
+    }, 220);
+  }
+
+  function hapticScoring(kind) {
+    if (!navigator.vibrate) return;
+    if (kind === 'match') navigator.vibrate([50, 40, 50, 40, 90]);
+    else if (kind === 'set') navigator.vibrate([35, 50, 35]);
+    else navigator.vibrate(15);
+  }
+
+  function tryScorePoint(side) {
+    if (!currentMatch || currentMatch.status !== 'in_progress') return;
+    var now = Date.now();
+    if (now - lastScoreAt < SCORE_DEBOUNCE_MS) return;
+    lastScoreAt = now;
+    if (!scoringWakePrimed) {
+      scoringWakePrimed = true;
+      BV.wakeLock.request();
+    }
+    scorePoint(side);
+  }
+
   // ── Scoring ──
   function scorePoint(side) {
     if (!currentMatch || currentMatch.status !== 'in_progress') return;
+    var setsBefore = currentMatch.sets.length;
     currentMatch.pointFor(side);
     BV.Storage.saveCurrentMatch(currentMatch.toJSON());
     BV.UI.updateScoringView(currentMatch);
+    flashScoreSide(side);
 
     if (currentMatch.status === 'completed') {
+      hapticScoring('match');
       onMatchComplete();
+    } else if (currentMatch.sets.length > setsBefore) {
+      hapticScoring('set');
+    } else {
+      hapticScoring('point');
     }
   }
 
   function undoPoint() {
     if (!currentMatch) return;
+    lastScoreAt = 0;
     currentMatch.undo();
     BV.Storage.saveCurrentMatch(currentMatch.toJSON());
     BV.UI.updateScoringView(currentMatch);
@@ -237,7 +290,6 @@ window.BeachVolley = window.BeachVolley || {};
   }
 
   function onMatchComplete() {
-    BV.wakeLock.release();
     var isTournament = !!currentTournamentMatchId;
     var body = document.getElementById('match-complete-body');
     body.innerHTML = BV.UI.renderMatchComplete(currentMatch, isTournament);
@@ -385,16 +437,17 @@ window.BeachVolley = window.BeachVolley || {};
     });
   }
 
-  // ── Fullscreen ──
-  function toggleFullscreen() {
-    var el = document.getElementById('scoring-container');
-    if (!document.fullscreenElement) {
-      if (el.requestFullscreen) el.requestFullscreen();
-      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
-    } else {
-      if (document.exitFullscreen) document.exitFullscreen();
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-    }
+  var endMatchModal = null;
+
+  function showEndMatchConfirm() {
+    var el = document.getElementById('scoring-end-modal');
+    if (!endMatchModal) endMatchModal = new bootstrap.Modal(el);
+    endMatchModal.show();
+  }
+
+  function hideEndMatchConfirm() {
+    var inst = bootstrap.Modal.getInstance(document.getElementById('scoring-end-modal'));
+    if (inst) inst.hide();
   }
 
   // ── Event Binding ──
@@ -402,7 +455,18 @@ window.BeachVolley = window.BeachVolley || {};
     window.addEventListener('hashchange', handleRoute);
 
     document.getElementById('btn-theme').addEventListener('click', toggleTheme);
+    document.getElementById('btn-scoring-theme').addEventListener('click', toggleTheme);
     document.getElementById('btn-lang').addEventListener('click', toggleLang);
+
+    function bindScoreSide(el, side) {
+      el.addEventListener('pointerup', function(e) {
+        if (e.pointerType === 'mouse' && e.button !== 0) return;
+        if (e.target.closest('.scoring-controls-overlay')) return;
+        tryScorePoint(side);
+      });
+    }
+    bindScoreSide(document.getElementById('score-left'), 0);
+    bindScoreSide(document.getElementById('score-right'), 1);
 
     document.addEventListener('click', function(e) {
       var navBtn = e.target.closest('[data-nav]');
@@ -420,20 +484,6 @@ window.BeachVolley = window.BeachVolley || {};
         if (currentTournament) navigate('#tournament/' + currentTournament.id);
         return;
       }
-
-      var leftSide = e.target.closest('#score-left');
-      var rightSide = e.target.closest('#score-right');
-      if (leftSide && !e.target.closest('.score-decrement')) {
-        scorePoint(0);
-        return;
-      }
-      if (rightSide && !e.target.closest('.score-decrement')) {
-        scorePoint(1);
-        return;
-      }
-
-      if (e.target.closest('#btn-dec-left')) { undoPoint(); return; }
-      if (e.target.closest('#btn-dec-right')) { undoPoint(); return; }
 
       if (e.target.closest('#btn-back-tournament')) {
         document.getElementById('match-complete-overlay').classList.add('d-none');
@@ -467,23 +517,21 @@ window.BeachVolley = window.BeachVolley || {};
       startMatch(getMatchConfigFromUI());
     });
 
-    // Scoring controls
-    document.getElementById('btn-undo').addEventListener('click', undoPoint);
-    document.getElementById('btn-fullscreen').addEventListener('click', toggleFullscreen);
-
-    document.getElementById('btn-scoring-menu').addEventListener('click', function() {
-      var modal = new bootstrap.Modal(document.getElementById('scoring-menu-modal'));
-      modal.show();
+    document.getElementById('btn-undo').addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (e.currentTarget.disabled) return;
+      undoPoint();
     });
-
+    document.getElementById('btn-end-match').addEventListener('click', function(e) {
+      e.stopPropagation();
+      showEndMatchConfirm();
+    });
     document.getElementById('btn-confirm-end').addEventListener('click', function() {
-      bootstrap.Modal.getInstance(document.getElementById('scoring-menu-modal')).hide();
+      hideEndMatchConfirm();
       endMatchEarly();
     });
-
-    document.getElementById('btn-end-match').addEventListener('click', function() {
-      var modal = new bootstrap.Modal(document.getElementById('scoring-menu-modal'));
-      modal.show();
+    document.querySelector('.scoring-controls-overlay').addEventListener('click', function(e) {
+      e.stopPropagation();
     });
 
     // Tournament setup
