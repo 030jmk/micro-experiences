@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="description" content="table tennis scorer">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#1a1a2e">
+  <title>Ping Pong Score</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-180.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+  <!-- ── Navbar ── -->
+  <nav id="main-navbar" class="navbar navbar-expand-sm sticky-top bg-body-tertiary border-bottom">
+    <div class="container-fluid">
+      <a class="navbar-brand fw-bold" href="#home">
+        <i class="bi bi-dribbble me-1" style="color:var(--ps-primary)"></i>
+        <span data-i18n="app.title">Ping Pong Score</span>
+      </a>
+      <div class="d-flex align-items-center gap-2">
+        <button id="btn-lang" class="btn btn-sm btn-outline-secondary" title="Language">
+          EN
+        </button>
+        <button id="btn-theme" class="btn btn-sm btn-outline-secondary" title="Theme">
+          <i class="bi bi-moon-fill"></i>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ── Home ── -->
+  <section id="view-home" class="view-section">
+    <div class="home-hero">
+      <img src="icons/favicon.svg" alt="Logo" class="home-logo">
+      <h1 class="h3 fw-bold" data-i18n="home.subtitle">Table Tennis Scorer</h1>
+      <div id="resume-banner" class="resume-banner d-none w-100 px-3" style="max-width:400px">
+        <!-- filled by JS -->
+      </div>
+      <div class="d-grid gap-2 w-100 px-3" style="max-width:400px">
+        <button class="btn btn-primary btn-lg" data-nav="#new-match">
+          <i class="bi bi-play-circle me-2"></i><span data-i18n="home.newMatch">New Match</span>
+        </button>
+        <button class="btn btn-outline-primary btn-lg" data-nav="#new-tournament">
+          <i class="bi bi-trophy me-2"></i><span data-i18n="home.newTournament">New Tournament</span>
+        </button>
+        <div class="d-flex gap-2">
+          <button class="btn btn-outline-secondary flex-fill" data-nav="#match-history">
+            <i class="bi bi-clock-history me-1"></i><span data-i18n="home.matchHistory">Match History</span>
+          </button>
+          <button class="btn btn-outline-secondary flex-fill" data-nav="#tournament-history">
+            <i class="bi bi-list-ol me-1"></i><span data-i18n="home.tournamentHistory">Tournament History</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Match Setup ── -->
+  <section id="view-new-match" class="view-section">
+    <div class="match-setup py-3">
+      <div class="d-flex align-items-center mb-3">
+        <button class="btn btn-sm btn-outline-secondary me-2" data-nav="#home">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <h2 class="h5 mb-0" data-i18n="setup.title">New Match</h2>
+      </div>
+
+      <div class="btn-group w-100 mb-3" role="group">
+        <input type="radio" class="btn-check" name="matchType" id="type-singles" value="singles" checked>
+        <label class="btn btn-outline-primary" for="type-singles" data-i18n="setup.singles">Singles</label>
+        <input type="radio" class="btn-check" name="matchType" id="type-doubles" value="doubles">
+        <label class="btn btn-outline-primary" for="type-doubles" data-i18n="setup.doubles">Doubles</label>
+      </div>
+
+      <!-- Singles players -->
+      <div id="singles-players">
+        <div class="mb-3">
+          <label class="form-label"><span data-i18n="setup.player">Player</span> 1</label>
+          <input type="text" class="form-control" id="p1-name" data-i18n-placeholder="setup.playerName" placeholder="Player name">
+        </div>
+        <div class="mb-3">
+          <label class="form-label"><span data-i18n="setup.player">Player</span> 2</label>
+          <input type="text" class="form-control" id="p2-name" data-i18n-placeholder="setup.playerName" placeholder="Player name">
+        </div>
+      </div>
+
+      <!-- Doubles teams -->
+      <div id="doubles-players" class="d-none">
+        <div class="mb-2">
+          <label class="form-label fw-semibold"><span data-i18n="setup.playersPerTeam">Players per Team</span></label>
+          <select id="team-size" class="form-select" style="max-width:120px">
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+          </select>
+        </div>
+        <div class="card mb-3">
+          <div class="card-header fw-semibold" data-i18n="setup.teamA">Team A</div>
+          <div class="card-body" id="team-a-players"></div>
+        </div>
+        <div class="card mb-3">
+          <div class="card-header fw-semibold" data-i18n="setup.teamB">Team B</div>
+          <div class="card-body" id="team-b-players"></div>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold"><span data-i18n="setup.bestOf">Best of</span></label>
+        <div class="btn-group w-100" role="group">
+          <input type="radio" class="btn-check" name="bestOf" id="bo-3" value="3" checked>
+          <label class="btn btn-outline-secondary" for="bo-3">3</label>
+          <input type="radio" class="btn-check" name="bestOf" id="bo-5" value="5">
+          <label class="btn btn-outline-secondary" for="bo-5">5</label>
+          <input type="radio" class="btn-check" name="bestOf" id="bo-7" value="7">
+          <label class="btn btn-outline-secondary" for="bo-7">7</label>
+        </div>
+      </div>
+
+      <div class="mb-3" id="first-server-section">
+        <label class="form-label fw-semibold"><span data-i18n="setup.firstServer">First Server</span></label>
+        <div class="btn-group w-100" role="group" id="first-server-group">
+          <!-- filled by JS -->
+        </div>
+      </div>
+
+      <button id="btn-start-match" class="btn btn-primary btn-lg w-100 mt-2">
+        <i class="bi bi-play-fill me-1"></i><span data-i18n="setup.start">Start Match</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ── Scoring View (fullscreen overlay) ── -->
+  <section id="view-scoring" class="view-section">
+    <div class="scoring-view" id="scoring-container">
+      <div class="scoring-header bg-body-tertiary text-body">
+        <span id="scoring-game-info"></span>
+        <span id="scoring-status-badge"></span>
+        <div class="d-flex gap-1">
+          <button id="btn-fullscreen" class="btn btn-sm btn-outline-secondary py-0 px-1">
+            <i class="bi bi-fullscreen"></i>
+          </button>
+          <button id="btn-scoring-menu" class="btn btn-sm btn-outline-secondary py-0 px-1">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+        </div>
+      </div>
+      <div class="scoring-main">
+        <div class="score-side side-left" id="score-left">
+          <div class="score-player-name" id="score-left-name"></div>
+          <div class="score-number" id="score-left-num">0</div>
+          <div class="score-games" id="score-left-games"></div>
+          <button class="score-decrement" id="btn-dec-left">
+            <i class="bi bi-dash"></i>
+          </button>
+        </div>
+        <div class="score-divider"></div>
+        <div class="score-side side-right" id="score-right">
+          <div class="score-player-name" id="score-right-name"></div>
+          <div class="score-number" id="score-right-num">0</div>
+          <div class="score-games" id="score-right-games"></div>
+          <button class="score-decrement" id="btn-dec-right">
+            <i class="bi bi-dash"></i>
+          </button>
+        </div>
+      </div>
+      <div class="scoring-footer bg-body-tertiary text-body">
+        <button id="btn-undo" class="btn btn-sm btn-outline-warning">
+          <i class="bi bi-arrow-counterclockwise me-1"></i><span data-i18n="scoring.undo">Undo</span>
+        </button>
+        <span id="scoring-game-scores" class="small text-center flex-fill"></span>
+        <button id="btn-end-match" class="btn btn-sm btn-outline-danger">
+          <i class="bi bi-x-circle me-1"></i><span data-i18n="scoring.endMatch">End</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Match Complete Overlay ── -->
+  <div id="match-complete-overlay" class="match-complete-overlay d-none">
+    <div class="match-complete-card card bg-body border-0 shadow-lg">
+      <div class="card-body p-4" id="match-complete-body">
+        <!-- filled by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Match History ── -->
+  <section id="view-match-history" class="view-section">
+    <div class="container-fluid py-3" style="max-width:600px">
+      <div class="d-flex align-items-center mb-3">
+        <button class="btn btn-sm btn-outline-secondary me-2" data-nav="#home">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <h2 class="h5 mb-0" data-i18n="history.matches">Match History</h2>
+      </div>
+      <div id="match-history-list"></div>
+    </div>
+  </section>
+
+  <!-- ── Match Detail ── -->
+  <section id="view-match-detail" class="view-section">
+    <div class="container-fluid py-3" style="max-width:600px">
+      <div class="d-flex align-items-center mb-3">
+        <button class="btn btn-sm btn-outline-secondary me-2" data-nav="#match-history">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <h2 class="h5 mb-0" data-i18n="detail.title">Match Detail</h2>
+      </div>
+      <div id="match-detail-content"></div>
+    </div>
+  </section>
+
+  <!-- ── Tournament Setup ── -->
+  <section id="view-new-tournament" class="view-section">
+    <div class="match-setup py-3">
+      <div class="d-flex align-items-center mb-3">
+        <button class="btn btn-sm btn-outline-secondary me-2" data-nav="#home">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <h2 class="h5 mb-0" data-i18n="tournament.setup">New Tournament</h2>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" data-i18n="tournament.name">Tournament Name</label>
+        <input type="text" class="form-control" id="tournament-name" data-i18n-placeholder="tournament.namePlaceholder" placeholder="Friday Night Tournament">
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" data-i18n="tournament.format">Format</label>
+        <select id="tournament-format" class="form-select">
+          <option value="single_elim" data-i18n="tournament.singleElim">Single Elimination</option>
+          <option value="double_elim" data-i18n="tournament.doubleElim">Double Elimination</option>
+          <option value="round_robin" data-i18n="tournament.roundRobin">Round Robin</option>
+          <option value="group_knockout" data-i18n="tournament.groupKnockout">Group Stage + Knockout</option>
+          <option value="swiss" data-i18n="tournament.swiss">Swiss System</option>
+        </select>
+      </div>
+
+      <!-- Format-specific options -->
+      <div id="format-options"></div>
+
+      <div class="mb-3">
+        <label class="form-label fw-semibold"><span data-i18n="tournament.matchBestOf">Match Best of</span></label>
+        <div class="btn-group w-100" role="group">
+          <input type="radio" class="btn-check" name="tBestOf" id="t-bo-3" value="3" checked>
+          <label class="btn btn-outline-secondary" for="t-bo-3">3</label>
+          <input type="radio" class="btn-check" name="tBestOf" id="t-bo-5" value="5">
+          <label class="btn btn-outline-secondary" for="t-bo-5">5</label>
+          <input type="radio" class="btn-check" name="tBestOf" id="t-bo-7" value="7">
+          <label class="btn btn-outline-secondary" for="t-bo-7">7</label>
+        </div>
+      </div>
+
+      <div class="mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <label class="form-label mb-0 fw-semibold" data-i18n="tournament.players">Players</label>
+          <button id="btn-add-tournament-player" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus-lg me-1"></i><span data-i18n="tournament.addPlayer">Add Player</span>
+          </button>
+        </div>
+        <div id="tournament-player-list"></div>
+      </div>
+
+      <button id="btn-start-tournament" class="btn btn-primary btn-lg w-100 mt-2">
+        <i class="bi bi-trophy me-1"></i><span data-i18n="tournament.start">Start Tournament</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ── Tournament View ── -->
+  <section id="view-tournament" class="view-section">
+    <div class="container-fluid py-3">
+      <div class="d-flex align-items-center mb-3">
+        <button class="btn btn-sm btn-outline-secondary me-2" data-nav="#home">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <h2 class="h5 mb-0" id="tournament-view-title"></h2>
+      </div>
+      <div id="tournament-view-content"></div>
+    </div>
+  </section>
+
+  <!-- ── Tournament History ── -->
+  <section id="view-tournament-history" class="view-section">
+    <div class="container-fluid py-3" style="max-width:600px">
+      <div class="d-flex align-items-center mb-3">
+        <button class="btn btn-sm btn-outline-secondary me-2" data-nav="#home">
+          <i class="bi bi-arrow-left"></i>
+        </button>
+        <h2 class="h5 mb-0" data-i18n="history.tournaments">Tournament History</h2>
+      </div>
+      <div id="tournament-history-list"></div>
+    </div>
+  </section>
+
+  <!-- ── Scoring Menu Modal ── -->
+  <div class="modal fade" id="scoring-menu-modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+      <div class="modal-content">
+        <div class="modal-body text-center p-4">
+          <h5 class="mb-3" data-i18n="scoring.menu">Menu</h5>
+          <div class="d-grid gap-2">
+            <button class="btn btn-outline-danger" id="btn-confirm-end">
+              <i class="bi bi-x-circle me-1"></i><span data-i18n="scoring.endMatch">End Match</span>
+            </button>
+            <button class="btn btn-outline-secondary" data-bs-dismiss="modal">
+              <span data-i18n="general.cancel">Cancel</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/i18n.js"></script>
+  <script src="js/wakelock.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/match.js"></script>
+  <script src="js/tournament.js"></script>
+  <script src="js/ui.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
