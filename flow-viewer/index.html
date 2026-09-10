@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Simple tool to view and analyze Power Automate flows offline">
+  <meta name="theme-color" content="#212529">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Flow Viewer">
+  <title>Power Automate Flow Viewer</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <style>
+    body { background: #f8f9fa; }
+    .dropzone {
+      border: 2px dashed #adb5bd;
+      border-radius: .75rem;
+      background: #fff;
+      min-height: 220px;
+      transition: border-color .15s, background .15s;
+    }
+    .dropzone.dragover { border-color: #0d6efd; background: #e7f1ff; }
+    .flow-arrow { color: #adb5bd; font-size: .8rem; line-height: 1; }
+    .node-card { cursor: pointer; border-left-width: 4px !important; }
+    .node-card.active { box-shadow: 0 0 0 .2rem rgba(13, 110, 253, .25); }
+    .node-card.dim { opacity: .28; }
+    .node-trigger { border-left-color: #0d6efd; }
+    .node-connector { border-left-color: #0dcaf0; }
+    .node-control { border-left-color: #ffc107; }
+    .node-data { border-left-color: #6c757d; }
+    .node-variable { border-left-color: #198754; }
+    .node-http { border-left-color: #212529; }
+    .node-terminate { border-left-color: #dc3545; }
+    .nest { border-left: 3px solid #dee2e6; padding-left: .75rem; margin-left: .25rem; }
+    .expr-chip {
+      font-family: SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: .75rem;
+      word-break: break-all;
+    }
+    #inspector pre, #rawJson {
+      font-size: .75rem;
+      max-height: 420px;
+      overflow: auto;
+      background: #212529;
+      color: #f8f9fa;
+      border-radius: .5rem;
+      padding: .75rem;
+    }
+    .sticky-panel { position: sticky; top: 1rem; }
+    .inventory-item { cursor: pointer; }
+    .inventory-item:hover { background: #e9ecef; }
+    @media (max-width: 991.98px) {
+      .sticky-panel { position: static; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+      <span class="navbar-brand mb-0 h1">
+        <i class="bi bi-diagram-3"></i> Flow Viewer
+      </span>
+      <div class="d-flex gap-2 flex-wrap">
+        <button class="btn btn-outline-light btn-sm" type="button" id="btnSample">Load sample</button>
+        <button class="btn btn-outline-light btn-sm" type="button" id="btnPaste">Paste JSON</button>
+        <label class="btn btn-primary btn-sm mb-0" for="fileInput">Open file</label>
+        <input id="fileInput" type="file" class="d-none" accept=".json,.zip,application/json,application/zip">
+      </div>
+    </div>
+  </nav>
+
+  <main class="container-fluid py-3">
+    <section id="landing">
+      <div class="row justify-content-center">
+        <div class="col-lg-8">
+          <div id="dropzone" class="dropzone p-4 p-md-5 text-center">
+            <i class="bi bi-cloud-arrow-up display-4 text-secondary"></i>
+            <h1 class="h4 mt-3">Explore a Power Automate flow</h1>
+            <p class="text-muted mb-3">
+              Drag and drop <code>definition.json</code> from an exported flow zip, drop the zip itself, or paste the JSON.
+              Everything stays in your browser.
+            </p>
+            <p class="small text-muted mb-0">
+              Use the inventory to see connectors, operations, controls, and expressions so you can rebuild the workflow in a new flow.
+            </p>
+          </div>
+          <div id="loadError" class="alert alert-danger mt-3 d-none" role="alert"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="viewer" class="d-none">
+      <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+        <div>
+          <h1 class="h4 mb-1" id="flowTitle">Flow</h1>
+          <div class="text-muted small" id="flowMeta"></div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+          <input id="search" class="form-control form-control-sm" type="search" placeholder="Search steps…" style="min-width: 12rem;">
+          <button class="btn btn-outline-secondary btn-sm" type="button" id="btnExpand">Expand all</button>
+          <button class="btn btn-outline-secondary btn-sm" type="button" id="btnCollapse">Collapse all</button>
+          <button class="btn btn-outline-danger btn-sm" type="button" id="btnClear">Clear</button>
+        </div>
+      </div>
+
+      <div class="row g-2 mb-3" id="statCards"></div>
+
+      <ul class="nav nav-tabs" role="tablist">
+        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tabFlow" type="button">Flow map</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabRecipe" type="button">Copy recipe</button></li>
+        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tabRaw" type="button">Raw JSON</button></li>
+      </ul>
+
+      <div class="tab-content border border-top-0 bg-white rounded-bottom p-3">
+        <div class="tab-pane fade show active" id="tabFlow">
+          <div class="row g-3">
+            <div class="col-lg-3">
+              <h2 class="h6">Building blocks</h2>
+              <p class="small text-muted">Click an item to highlight matching steps. Copy names you need in the designer.</p>
+              <div id="inventory"></div>
+            </div>
+            <div class="col-lg-5">
+              <h2 class="h6">Execution order</h2>
+              <div id="flowTree"></div>
+            </div>
+            <div class="col-lg-4">
+              <div class="sticky-panel">
+                <h2 class="h6">Step details</h2>
+                <div id="inspector" class="text-muted small">Select a trigger or action to inspect inputs, run-after rules, and copyable JSON.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="tab-pane fade" id="tabRecipe">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <p class="small text-muted mb-0">A rebuild checklist: connections, variables, designer names, and operations.</p>
+            <button class="btn btn-sm btn-outline-primary" type="button" id="btnCopyRecipe">Copy recipe</button>
+          </div>
+          <pre id="recipeText" class="mb-0" style="white-space: pre-wrap; font-size: .85rem;"></pre>
+        </div>
+        <div class="tab-pane fade" id="tabRaw">
+          <pre id="rawJson"></pre>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="modal fade" id="pasteModal" tabindex="-1" aria-labelledby="pasteLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2 class="modal-title fs-5" id="pasteLabel">Paste definition.json</h2>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <textarea id="pasteArea" class="form-control font-monospace" rows="14" placeholder="{ ... }"></textarea>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-primary" id="btnParsePaste">Parse</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+  <script>
+(function () {
+  const TYPE_LABELS = {
+    Request: "Instant / HTTP request",
+    Recurrence: "Recurrence (schedule)",
+    SlidingWindow: "Sliding window",
+    ApiConnection: "Connector (legacy)",
+    ApiConnectionWebhook: "Connector webhook (legacy)",
+    OpenApiConnection: "Connector action",
+    OpenApiConnectionWebhook: "Connector trigger",
+    Http: "HTTP",
+    HttpWebhook: "HTTP webhook",
+    HttpRequest: "HTTP request",
+    If: "Condition",
+    Switch: "Switch",
+    Foreach: "Apply to each",
+    Until: "Do until",
+    Scope: "Scope",
+    Compose: "Compose",
+    ParseJson: "Parse JSON",
+    Query: "Filter array",
+    Select: "Select",
+    Join: "Join",
+    Table: "Create table",
+    InitializeVariable: "Initialize variable",
+    SetVariable: "Set variable",
+    AppendToArrayVariable: "Append to array variable",
+    AppendToStringVariable: "Append to string variable",
+    IncrementVariable: "Increment variable",
+    DecrementVariable: "Decrement variable",
+    Terminate: "Terminate",
+    Response: "Response",
+    Wait: "Delay / Delay until",
+    Workflow: "Run a child flow",
+    FlatFileEncoding: "Flat file encoding",
+    FlatFileDecoding: "Flat file decoding",
+    XmlValidation: "XML validation",
+    Xslt: "Transform XML",
+    Liquid: "Transform with Liquid",
+    Changeset: "Changeset",
+    ApiManagement: "API Management",
+    Function: "Azure Function",
+    SendToBatch: "Send to batch"
+  };
+
+  const CONNECTOR_LABELS = {
+    shared_sharepointonline: "SharePoint",
+    shared_office365: "Office 365 Outlook",
+    shared_office365users: "Office 365 Users",
+    shared_office365groups: "Office 365 Groups",
+    shared_teams: "Microsoft Teams",
+    shared_excelonlinebusiness: "Excel Online (Business)",
+    shared_onedriveforbusiness: "OneDrive for Business",
+    shared_onedrive: "OneDrive",
+    shared_approvals: "Approvals",
+    shared_commondataserviceforapps: "Dataverse",
+    shared_commondataservice: "Dataverse (legacy)",
+    shared_planner: "Planner",
+    shared_rss: "RSS",
+    shared_dropbox: "Dropbox",
+    shared_gmail: "Gmail",
+    shared_googlecalendar: "Google Calendar",
+    shared_googledrive: "Google Drive",
+    shared_sql: "SQL Server",
+    shared_azureblob: "Azure Blob Storage",
+    shared_keyvault: "Key Vault",
+    shared_flowpush: "Notifications",
+    shared_sendmail: "Mail",
+    shared_webcontents: "HTTP with Microsoft Entra ID",
+    shared_http: "HTTP",
+    shared_powerappsforappmakers: "Power Apps for Makers",
+    shared_powerplatformforadmins: "Power Platform for Admins",
+    shared_azuread: "Microsoft Entra ID",
+    shared_microsoftforms: "Microsoft Forms",
+    shared_todo: "Microsoft To Do",
+    shared_wordonlinebusiness: "Word Online",
+    shared_contentconversion: "Content Conversion",
+    shared_conversionservice: "Content Conversion"
+  };
+
+  const SAMPLE = {
+    name: "sample-weekly-digest",
+    properties: {
+      displayName: "Weekly SharePoint digest (sample)",
+      connectionReferences: {
+        shared_sharepointonline: {
+          source: "Embedded",
+          api: { name: "shared_sharepointonline" }
+        },
+        shared_office365: {
+          source: "Embedded",
+          api: { name: "shared_office365" }
+        }
+      },
+      definition: {
+        $schema: "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        contentVersion: "10.0.0.1",
+        parameters: {},
+        triggers: {
+          Recurrence: {
+            type: "Recurrence",
+            recurrence: { frequency: "Week", interval: 1, schedule: { weekDays: ["Monday"], hours: ["8"] } }
+          }
+        },
+        actions: {
+          Initialize_digest: {
+            type: "InitializeVariable",
+            inputs: { variables: [{ name: "digestLines", type: "array", value: [] }] }
+          },
+          Get_list_items: {
+            type: "OpenApiConnection",
+            runAfter: { Initialize_digest: ["Succeeded"] },
+            inputs: {
+              host: {
+                connectionName: "shared_sharepointonline",
+                operationId: "GetItems",
+                apiId: "/providers/Microsoft.PowerApps/apis/shared_sharepointonline"
+              },
+              parameters: {
+                dataset: "https://contoso.sharepoint.com/sites/ops",
+                table: "Tasks",
+                $filter: "Status ne 'Done'"
+              }
+            }
+          },
+          Parse_items: {
+            type: "ParseJson",
+            runAfter: { Get_list_items: ["Succeeded"] },
+            inputs: {
+              content: "@body('Get_list_items')",
+              schema: { type: "object" }
+            }
+          },
+          Apply_to_each_item: {
+            type: "Foreach",
+            foreach: "@body('Get_list_items')?['value']",
+            runAfter: { Parse_items: ["Succeeded"] },
+            actions: {
+              If_active: {
+                type: "If",
+                expression: {
+                  and: [{ equals: ["@items('Apply_to_each_item')?['Status']", "Active"] }]
+                },
+                actions: {
+                  Append_line: {
+                    type: "AppendToArrayVariable",
+                    inputs: {
+                      name: "digestLines",
+                      value: "@{items('Apply_to_each_item')?['Title']}"
+                    }
+                  }
+                },
+                else: {
+                  actions: {
+                    Skip_note: {
+                      type: "Compose",
+                      inputs: "@concat('Skipped: ', items('Apply_to_each_item')?['Title'])"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          Build_html: {
+            type: "Compose",
+            runAfter: { Apply_to_each_item: ["Succeeded"] },
+            inputs: "@join(variables('digestLines'), '<br/>')"
+          },
+          Check_empty: {
+            type: "If",
+            runAfter: { Build_html: ["Succeeded"] },
+            expression: { empty: ["@variables('digestLines')"] },
+            actions: {
+              Terminate_empty: {
+                type: "Terminate",
+                inputs: { runStatus: "Cancelled" }
+              }
+            },
+            else: {
+              actions: {
+                Send_digest: {
+                  type: "OpenApiConnection",
+                  inputs: {
+                    host: {
+                      connectionName: "shared_office365",
+                      operationId: "SendEmailV2",
+                      apiId: "/providers/Microsoft.PowerApps/apis/shared_office365"
+                    },
+                    parameters: {
+                      emailMessage: {
+                        To: "ops@contoso.com",
+                        Subject: "Weekly open tasks",
+                        Body: "@outputs('Build_html')"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  let state = { nodes: [], definition: null, raw: null, meta: null, recipe: "" };
+
+  const els = {
+    landing: document.getElementById("landing"),
+    viewer: document.getElementById("viewer"),
+    dropzone: document.getElementById("dropzone"),
+    fileInput: document.getElementById("fileInput"),
+    loadError: document.getElementById("loadError"),
+    flowTitle: document.getElementById("flowTitle"),
+    flowMeta: document.getElementById("flowMeta"),
+    statCards: document.getElementById("statCards"),
+    inventory: document.getElementById("inventory"),
+    flowTree: document.getElementById("flowTree"),
+    inspector: document.getElementById("inspector"),
+    search: document.getElementById("search"),
+    recipeText: document.getElementById("recipeText"),
+    rawJson: document.getElementById("rawJson")
+  };
+
+  const pasteModal = new bootstrap.Modal(document.getElementById("pasteModal"));
+
+  function esc(s) {
+    return String(s ?? "").replace(/[&<>"']/g, (c) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
+  }
+
+  function prettyName(name) {
+    return String(name || "").replace(/_/g, " ");
+  }
+
+  function typeLabel(type) {
+    return TYPE_LABELS[type] || type || "Unknown";
+  }
+
+  function apiKeyFromId(apiId, connectionName) {
+    if (connectionName && CONNECTOR_LABELS[connectionName]) return connectionName;
+    const raw = String(apiId || connectionName || "");
+    const m = raw.match(/shared_[a-z0-9]+/i);
+    return m ? m[0].toLowerCase() : raw.split("/").pop() || "";
+  }
+
+  function connectorLabel(apiId, connectionName) {
+    const key = apiKeyFromId(apiId, connectionName);
+    if (CONNECTOR_LABELS[key]) return CONNECTOR_LABELS[key];
+    if (!key) return "";
+    return key.replace(/^shared_/, "").replace(/([a-z])([A-Z])/g, "$1 $2").replace(/_/g, " ");
+  }
+
+  function category(type) {
+    if (!type) return "data";
+    if (["Request", "Recurrence", "SlidingWindow", "ApiConnectionWebhook", "OpenApiConnectionWebhook", "HttpWebhook"].includes(type)) return "trigger";
+    if (["If", "Switch", "Foreach", "Until", "Scope"].includes(type)) return "control";
+    if (type.indexOf("Variable") !== -1) return "variable";
+    if (type === "Terminate") return "terminate";
+    if (type === "Http" || type === "HttpRequest") return "http";
+    if (type.indexOf("Connection") !== -1 || type === "Workflow") return "connector";
+    return "data";
+  }
+
+  function badgeClass(cat) {
+    return {
+      trigger: "text-bg-primary",
+      connector: "text-bg-info",
+      control: "text-bg-warning",
+      variable: "text-bg-success",
+      http: "text-bg-dark",
+      terminate: "text-bg-danger",
+      data: "text-bg-secondary"
+    }[cat] || "text-bg-secondary";
+  }
+
+  function unwrap(raw) {
+    if (typeof raw === "string") raw = JSON.parse(raw);
+    const meta = {
+      displayName: raw.properties?.displayName || raw.name || "Untitled flow",
+      connectionReferences: raw.properties?.connectionReferences || raw.connectionReferences || {},
+      parameters: raw.properties?.parameters || {}
+    };
+    let def = raw;
+    if (raw.properties?.definition) {
+      def = typeof raw.properties.definition === "string"
+        ? JSON.parse(raw.properties.definition)
+        : raw.properties.definition;
+    }
+    if (def.definition?.triggers || def.definition?.actions) def = def.definition;
+    if (!def.triggers && !def.actions) {
+      throw new Error("No triggers or actions found. This does not look like a Power Automate definition.json.");
+    }
+    return { def, meta, raw };
+  }
+
+  function actionWaves(actions) {
+    const names = Object.keys(actions || {});
+    const indeg = Object.fromEntries(names.map((n) => [n, 0]));
+    const adj = Object.fromEntries(names.map((n) => [n, []]));
+    names.forEach((n) => {
+      Object.keys(actions[n].runAfter || {}).forEach((dep) => {
+        if (actions[dep]) {
+          adj[dep].push(n);
+          indeg[n] += 1;
+        }
+      });
+    });
+    const waves = [];
+    const seen = new Set();
+    let layer = names.filter((n) => indeg[n] === 0);
+    while (layer.length) {
+      waves.push(layer);
+      const next = [];
+      layer.forEach((n) => {
+        seen.add(n);
+        adj[n].forEach((m) => {
+          indeg[m] -= 1;
+          if (indeg[m] === 0) next.push(m);
+        });
+      });
+      layer = next;
+    }
+    const leftover = names.filter((n) => !seen.has(n));
+    if (leftover.length) waves.push(leftover);
+    return waves;
+  }
+
+  function hostInfo(node) {
+    const host = node.inputs?.host || {};
+    return {
+      connectionName: host.connectionName || "",
+      operationId: host.operationId || "",
+      apiId: host.apiId || ""
+    };
+  }
+
+  function walkStrings(obj, fn) {
+    if (typeof obj === "string") fn(obj);
+    else if (Array.isArray(obj)) obj.forEach((x) => walkStrings(x, fn));
+    else if (obj && typeof obj === "object") Object.values(obj).forEach((v) => walkStrings(v, fn));
+  }
+
+  function extractExpressions(node) {
+    const found = [];
+    walkStrings(node, (s) => {
+      if (s.includes("@")) found.push(s);
+    });
+    return found;
+  }
+
+  function extractFunctions(exprList) {
+    const set = new Set();
+    exprList.forEach((s) => {
+      const re = /@([A-Za-z_][A-Za-z0-9_]*)\(/g;
+      let m;
+      while ((m = re.exec(s))) set.add(m[1]);
+      const re2 = /@{([A-Za-z_][A-Za-z0-9_]*)\(/g;
+      while ((m = re2.exec(s))) set.add(m[1]);
+    });
+    return [...set].sort();
+  }
+
+  let nodeSeq = 0;
+  function collectNodes(kind, name, action, path) {
+    const id = "n" + (++nodeSeq);
+    const host = hostInfo(action);
+    const exprs = extractExpressions(action);
+    const node = {
+      id,
+      kind,
+      name,
+      path,
+      type: action.type,
+      description: action.description || "",
+      action,
+      host,
+      connector: connectorLabel(host.apiId, host.connectionName),
+      expressions: exprs,
+      functions: extractFunctions(exprs),
+      children: []
+    };
+    const nested = [];
+    if (action.actions) nested.push({ label: action.type === "If" ? "If yes" : "Actions", actions: action.actions });
+    if (action.else?.actions) nested.push({ label: "If no", actions: action.else.actions });
+    if (action.default?.actions) nested.push({ label: "Default", actions: action.default.actions });
+    if (action.cases) {
+      Object.keys(action.cases).forEach((c) => {
+        nested.push({
+          label: "Case: " + (action.cases[c].case ?? c),
+          actions: action.cases[c].actions || {}
+        });
+      });
+    }
+    node.branches = nested.map((b) => ({
+      label: b.label,
+      waves: actionWaves(b.actions),
+      actions: b.actions,
+      children: flattenWaves(b.actions, path.concat(name))
+    }));
+    return node;
+  }
+
+  function flattenWaves(actions, path) {
+    return actionWaves(actions).map((wave) =>
+      wave.map((name) => collectNodes("action", name, actions[name], path))
+    );
+  }
+
+  function flattenNodes(waves) {
+    const out = [];
+    function walk(w) {
+      w.forEach((wave) => {
+        wave.forEach((n) => {
+          out.push(n);
+          (n.branches || []).forEach((b) => walk(b.children));
+        });
+      });
+    }
+    walk(waves);
+    return out;
+  }
+
+  function countActions(actions) {
+    let n = 0;
+    Object.keys(actions || {}).forEach((k) => {
+      n += 1;
+      const a = actions[k];
+      n += countActions(a.actions);
+      n += countActions(a.else?.actions);
+      n += countActions(a.default?.actions);
+      Object.values(a.cases || {}).forEach((c) => { n += countActions(c.actions); });
+    });
+    return n;
+  }
+
+  function showError(msg) {
+    els.loadError.textContent = msg;
+    els.loadError.classList.remove("d-none");
+  }
+
+  function hideError() {
+    els.loadError.classList.add("d-none");
+  }
+
+  function loadRaw(raw, sourceName) {
+    hideError();
+    nodeSeq = 0;
+    const { def, meta, raw: original } = unwrap(raw);
+    const triggerName = Object.keys(def.triggers || {})[0] || "Trigger";
+    const trigger = (def.triggers || {})[triggerName] || { type: "Unknown" };
+    const triggerNode = collectNodes("trigger", triggerName, trigger, []);
+    const actionW = flattenWaves(def.actions || {}, []);
+    const all = [triggerNode].concat(flattenNodes(actionW));
+    state = {
+      nodes: all,
+      definition: def,
+      raw: original,
+      meta,
+      sourceName,
+      triggerWaves: [[triggerNode]],
+      actionWaves: actionW,
+      recipe: ""
+    };
+    renderAll();
+  }
+
+  function renderAll() {
+    els.landing.classList.add("d-none");
+    els.viewer.classList.remove("d-none");
+    const def = state.definition;
+    const meta = state.meta;
+    const actionCount = countActions(def.actions);
+    const triggerCount = Object.keys(def.triggers || {}).length;
+    const connectors = uniqueConnectors(state.nodes);
+    els.flowTitle.textContent = meta.displayName;
+    els.flowMeta.textContent = (state.sourceName || "definition.json") +
+      " · " + triggerCount + " trigger" + (triggerCount === 1 ? "" : "s") +
+      " · " + actionCount + " action" + (actionCount === 1 ? "" : "s");
+    els.statCards.innerHTML = [
+      stat("Triggers", triggerCount, "bi-play-circle"),
+      stat("Actions", actionCount, "bi-list-task"),
+      stat("Connectors", connectors.length, "bi-plug"),
+      stat("Controls", state.nodes.filter((n) => category(n.type) === "control").length, "bi-signpost-split")
+    ].join("");
+    renderInventory();
+    els.flowTree.innerHTML = renderWaves(state.triggerWaves) +
+      '<div class="text-center flow-arrow my-1"><i class="bi bi-arrow-down"></i></div>' +
+      renderWaves(state.actionWaves);
+    bindNodeClicks();
+    els.rawJson.textContent = JSON.stringify(state.raw, null, 2);
+    state.recipe = buildRecipe();
+    els.recipeText.textContent = state.recipe;
+    els.inspector.innerHTML = '<p class="mb-0">Select a trigger or action to inspect inputs, run-after rules, and copyable JSON.</p>';
+    applySearch();
+  }
+
+  function stat(label, value, icon) {
+    return '<div class="col-6 col-md-3"><div class="card shadow-sm"><div class="card-body py-2">' +
+      '<div class="text-muted small"><i class="bi ' + icon + '"></i> ' + esc(label) + "</div>" +
+      '<div class="fs-4 fw-semibold">' + esc(value) + "</div></div></div></div>";
+  }
+
+  function uniqueConnectors(nodes) {
+    const map = new Map();
+    nodes.forEach((n) => {
+      const key = apiKeyFromId(n.host.apiId, n.host.connectionName);
+      if (!key) return;
+      if (!map.has(key)) map.set(key, { key, label: n.connector || key, operations: new Set() });
+      if (n.host.operationId) map.get(key).operations.add(n.host.operationId);
+    });
+    Object.keys(state.meta.connectionReferences || {}).forEach((k) => {
+      const api = state.meta.connectionReferences[k]?.api?.name || k;
+      const key = apiKeyFromId("", api);
+      if (!map.has(key)) map.set(key, { key, label: connectorLabel("", api), operations: new Set() });
+    });
+    return [...map.values()];
+  }
+
+  function renderInventory() {
+    const nodes = state.nodes;
+    const connectors = uniqueConnectors(nodes);
+    const controls = tally(nodes.filter((n) => n.kind === "action"), (n) => typeLabel(n.type));
+    const operations = nodes.filter((n) => n.host.operationId).map((n) => ({
+      op: n.host.operationId,
+      connector: n.connector,
+      name: n.name
+    }));
+    const variables = [];
+    nodes.forEach((n) => {
+      const vars = n.action.inputs?.variables;
+      if (Array.isArray(vars)) vars.forEach((v) => variables.push(v));
+      if (n.action.inputs?.name && n.type && n.type.indexOf("Variable") !== -1) {
+        variables.push({ name: n.action.inputs.name, via: n.type });
+      }
+    });
+    const funcs = new Set();
+    nodes.forEach((n) => n.functions.forEach((f) => funcs.add(f)));
+
+    els.inventory.innerHTML =
+      section("Connectors", connectors.map((c) =>
+        row(c.label, [...c.operations].join(", ") || "connection only", "connector:" + c.key)
+      )) +
+      section("Designer elements", controls.map((c) =>
+        row(c.key, c.count + "×", "type:" + c.key)
+      )) +
+      section("Operations to recreate", operations.map((o) =>
+        row(o.op, o.connector + " · " + prettyName(o.name), "op:" + o.op)
+      )) +
+      section("Variables", (variables.length ? variables.map((v) =>
+        row(v.name || "(unnamed)", (v.type || v.via || "variable"), "var:" + (v.name || ""))
+      ) : ["<div class='small text-muted px-2'>None declared</div>"])) +
+      section("Expression functions", ([...funcs].length ? [...funcs].sort().map((f) =>
+        row(f + "()", "used in expressions", "fn:" + f)
+      ) : ["<div class='small text-muted px-2'>No @ expressions found</div>"]));
+    els.inventory.querySelectorAll("[data-filter]").forEach((el) => {
+      el.addEventListener("click", () => highlightFilter(el.getAttribute("data-filter")));
+    });
+  }
+
+  function tally(nodes, keyFn) {
+    const map = new Map();
+    nodes.forEach((n) => {
+      const k = keyFn(n);
+      map.set(k, (map.get(k) || 0) + 1);
+    });
+    return [...map.entries()].sort((a, b) => b[1] - a[1]).map(([key, count]) => ({ key, count }));
+  }
+
+  function section(title, rows) {
+    return '<div class="mb-3"><div class="fw-semibold small mb-1">' + esc(title) + "</div>" +
+      '<div class="list-group list-group-flush border rounded">' + rows.join("") + "</div></div>";
+  }
+
+  function row(title, sub, filter) {
+    return '<div class="list-group-item inventory-item py-2" data-filter="' + esc(filter) + '">' +
+      '<div class="d-flex justify-content-between gap-2"><span class="small fw-semibold">' + esc(title) +
+      '</span><button type="button" class="btn btn-link btn-sm p-0 copy-btn" data-copy="' + esc(title) + '">copy</button></div>' +
+      '<div class="small text-muted">' + esc(sub) + "</div></div>";
+  }
+
+  function renderWaves(waves) {
+    return (waves || []).map((wave, i) => {
+      const wrap = wave.length > 1
+        ? '<div class="small text-muted mb-1">Parallel</div><div class="row g-2">' +
+          wave.map((n) => '<div class="col-md">' + renderNode(n) + "</div>").join("") + "</div>"
+        : wave.map(renderNode).join("");
+      const arrow = i ? '<div class="text-center flow-arrow my-1"><i class="bi bi-arrow-down"></i></div>' : "";
+      return arrow + wrap;
+    }).join("");
+  }
+
+  function renderNode(node) {
+    const cat = category(node.type);
+    const hostLine = node.host.operationId
+      ? esc(node.connector || "Connector") + " · " + esc(node.host.operationId)
+      : esc(typeLabel(node.type));
+    let branches = "";
+    (node.branches || []).forEach((b, idx) => {
+      const cid = node.id + "b" + idx;
+      branches +=
+        '<div class="mt-2"><button class="btn btn-sm btn-outline-secondary w-100 text-start" type="button" data-bs-toggle="collapse" data-bs-target="#' + cid + '">' +
+        esc(b.label) + " (" + Object.keys(b.actions || {}).length + ")</button>" +
+        '<div id="' + cid + '" class="collapse show nest mt-2">' + renderWaves(b.children) + "</div></div>";
+    });
+    const extra = [];
+    if (node.type === "Foreach") extra.push("on " + String(node.action.foreach || "").slice(0, 80));
+    if (node.type === "Until") extra.push("until expression");
+    if (node.action.recurrence) extra.push(node.action.recurrence.frequency + " / " + node.action.recurrence.interval);
+    return '<div class="card node-card node-' + cat + ' mb-1" data-id="' + node.id + '">' +
+      '<div class="card-body py-2 px-3">' +
+      '<div class="d-flex justify-content-between gap-2 align-items-start">' +
+      '<div><div class="fw-semibold">' + esc(prettyName(node.name)) + "</div>" +
+      '<div class="small text-muted">' + hostLine + (extra.length ? " · " + esc(extra.join(" · ")) : "") + "</div></div>" +
+      '<span class="badge ' + badgeClass(cat) + '">' + esc(node.kind === "trigger" ? "Trigger" : typeLabel(node.type)) + "</span></div>" +
+      branches + "</div></div>";
+  }
+
+  function bindNodeClicks() {
+    els.flowTree.querySelectorAll(".node-card").forEach((card) => {
+      card.addEventListener("click", (e) => {
+        if (e.target.closest("[data-bs-toggle], .btn")) return;
+        e.stopPropagation();
+        selectNode(card.getAttribute("data-id"));
+      });
+    });
+    document.querySelectorAll(".copy-btn").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        copyText(btn.getAttribute("data-copy"));
+        btn.textContent = "copied";
+        setTimeout(() => { btn.textContent = "copy"; }, 1200);
+      });
+    });
+  }
+
+  function selectNode(id) {
+    const node = state.nodes.find((n) => n.id === id);
+    if (!node) return;
+    els.flowTree.querySelectorAll(".node-card").forEach((c) => c.classList.toggle("active", c.getAttribute("data-id") === id));
+    const ra = node.action.runAfter || {};
+    const raText = Object.keys(ra).length
+      ? Object.entries(ra).map(([k, v]) => prettyName(k) + " → " + (Array.isArray(v) ? v.join(", ") : v)).join("; ")
+      : (node.kind === "trigger" ? "Starts the flow" : "No run-after (may be first in scope)");
+    const inputs = node.action.inputs !== undefined ? node.action.inputs : omitRuntime(node.action);
+    els.inspector.innerHTML =
+      "<h3 class='h6'>" + esc(prettyName(node.name)) + "</h3>" +
+      '<p class="mb-2"><span class="badge ' + badgeClass(category(node.type)) + '">' + esc(typeLabel(node.type)) + "</span> " +
+      "<code>" + esc(node.type) + "</code></p>" +
+      (node.connector ? "<p class='mb-1'><strong>Connector:</strong> " + esc(node.connector) + "</p>" : "") +
+      (node.host.operationId ? "<p class='mb-1'><strong>Operation:</strong> <code>" + esc(node.host.operationId) + "</code> <button class='btn btn-link btn-sm p-0 copy-btn' data-copy='" + esc(node.host.operationId) + "'>copy</button></p>" : "") +
+      (node.host.connectionName ? "<p class='mb-1'><strong>Connection:</strong> <code>" + esc(node.host.connectionName) + "</code></p>" : "") +
+      "<p class='mb-1'><strong>Run after:</strong> " + esc(raText) + "</p>" +
+      (node.description ? "<p class='mb-1'>" + esc(node.description) + "</p>" : "") +
+      (node.expressions.length ? "<p class='mb-1'><strong>Expressions</strong></p>" + node.expressions.slice(0, 12).map((x) =>
+        '<div class="expr-chip bg-light border rounded p-1 mb-1">' + esc(x) + "</div>").join("") : "") +
+      "<p class='mt-2 mb-1'><strong>Inputs JSON</strong> <button class='btn btn-link btn-sm p-0' id='copyInputs'>copy</button></p>" +
+      "<pre id='inputsJson'></pre>";
+    const pre = document.getElementById("inputsJson");
+    const json = JSON.stringify(inputs, null, 2);
+    pre.textContent = json;
+    document.getElementById("copyInputs").addEventListener("click", () => copyText(json));
+    els.inspector.querySelectorAll(".copy-btn").forEach((btn) => {
+      btn.addEventListener("click", () => copyText(btn.getAttribute("data-copy")));
+    });
+  }
+
+  function omitRuntime(action) {
+    const copy = { ...action };
+    delete copy.actions;
+    delete copy.else;
+    delete copy.cases;
+    delete copy.default;
+    delete copy.runAfter;
+    return copy;
+  }
+
+  function highlightFilter(filter) {
+    const [kind, value] = filter.split(":");
+    els.flowTree.querySelectorAll(".node-card").forEach((card) => {
+      const node = state.nodes.find((n) => n.id === card.getAttribute("data-id"));
+      let match = false;
+      if (!node) return;
+      if (kind === "connector") match = apiKeyFromId(node.host.apiId, node.host.connectionName) === value;
+      if (kind === "type") match = typeLabel(node.type) === value;
+      if (kind === "op") match = node.host.operationId === value;
+      if (kind === "var") match = JSON.stringify(node.action).indexOf(value) !== -1;
+      if (kind === "fn") match = node.functions.indexOf(value) !== -1;
+      card.classList.toggle("dim", !match);
+    });
+  }
+
+  function applySearch() {
+    const q = (els.search.value || "").trim().toLowerCase();
+    els.flowTree.querySelectorAll(".node-card").forEach((card) => {
+      if (!q) { card.classList.remove("dim"); return; }
+      const node = state.nodes.find((n) => n.id === card.getAttribute("data-id"));
+      const hay = [node.name, node.type, typeLabel(node.type), node.connector, node.host.operationId, node.description, ...(node.expressions || [])].join(" ").toLowerCase();
+      card.classList.toggle("dim", hay.indexOf(q) === -1);
+    });
+  }
+
+  function buildRecipe() {
+    const lines = [];
+    lines.push("# " + state.meta.displayName);
+    lines.push("");
+    lines.push("Rebuild this flow in Power Automate using the designer elements below.");
+    lines.push("");
+    lines.push("## 1. Connections");
+    const connectors = uniqueConnectors(state.nodes);
+    if (!connectors.length) lines.push("- None (built-in actions only)");
+    connectors.forEach((c) => {
+      lines.push("- " + c.label + " (" + c.key + ")" + ([...c.operations].length ? " — operations: " + [...c.operations].join(", ") : ""));
+    });
+    lines.push("");
+    lines.push("## 2. Trigger");
+    const t = state.nodes.find((n) => n.kind === "trigger");
+    if (t) {
+      lines.push("- " + prettyName(t.name) + " → " + typeLabel(t.type) + (t.host.operationId ? " / " + t.host.operationId : ""));
+      if (t.action.recurrence) lines.push("  Schedule: " + JSON.stringify(t.action.recurrence));
+      if (t.action.kind) lines.push("  Kind: " + t.action.kind);
+    }
+    lines.push("");
+    lines.push("## 3. Variables");
+    const varNodes = state.nodes.filter((n) => n.type === "InitializeVariable");
+    if (!varNodes.length) lines.push("- None");
+    varNodes.forEach((n) => {
+      (n.action.inputs?.variables || []).forEach((v) => {
+        lines.push("- " + v.name + " (" + v.type + ")" + (v.value !== undefined ? " initial: " + JSON.stringify(v.value) : ""));
+      });
+    });
+    lines.push("");
+    lines.push("## 4. Steps (designer name → element → operation)");
+    function walkWaves(waves, indent) {
+      (waves || []).forEach((wave) => {
+        const prefix = wave.length > 1 ? indent + "(parallel) " : indent;
+        wave.forEach((n) => {
+          if (n.kind === "trigger") return;
+          const op = n.host.operationId ? " · " + n.host.operationId : "";
+          const conn = n.connector ? " · " + n.connector : "";
+          lines.push(prefix + "- " + prettyName(n.name) + " → " + typeLabel(n.type) + conn + op);
+          (n.branches || []).forEach((b) => {
+            lines.push(indent + "  [" + b.label + "]");
+            walkWaves(b.children, indent + "    ");
+          });
+        });
+      });
+    }
+    walkWaves(state.actionWaves, "");
+    lines.push("");
+    lines.push("## 5. Expression functions used");
+    const funcs = new Set();
+    state.nodes.forEach((n) => n.functions.forEach((f) => funcs.add(f)));
+    lines.push([...funcs].length ? [...funcs].sort().map((f) => "- " + f + "()").join("\n") : "- None");
+    return lines.join("\n");
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text);
+    else {
+      const t = document.createElement("textarea");
+      t.value = text;
+      document.body.appendChild(t);
+      t.select();
+      document.execCommand("copy");
+      t.remove();
+    }
+  }
+
+  async function handleFile(file) {
+    try {
+      const name = (file.name || "").toLowerCase();
+      if (name.endsWith(".zip") || file.type === "application/zip") {
+        const zip = await JSZip.loadAsync(file);
+        const candidates = [];
+        zip.forEach((path, entry) => {
+          if (!entry.dir && /definition\.json$/i.test(path)) candidates.push(path);
+        });
+        if (!candidates.length) throw new Error("No definition.json found inside the zip.");
+        const preferred = candidates.find((p) => /Microsoft\.Flow\/flows\//i.test(p)) || candidates[0];
+        const text = await zip.file(preferred).async("string");
+        loadRaw(JSON.parse(text), preferred);
+      } else {
+        const text = await file.text();
+        loadRaw(JSON.parse(text), file.name);
+      }
+    } catch (err) {
+      showError(err.message || String(err));
+    }
+  }
+
+  function setCollapse(show) {
+    els.flowTree.querySelectorAll(".collapse").forEach((c) => {
+      bootstrap.Collapse.getOrCreateInstance(c, { toggle: false })[show ? "show" : "hide"]();
+    });
+  }
+
+  ["dragenter", "dragover"].forEach((ev) => {
+    els.dropzone.addEventListener(ev, (e) => { e.preventDefault(); els.dropzone.classList.add("dragover"); });
+    document.body.addEventListener(ev, (e) => e.preventDefault());
+  });
+  ["dragleave", "drop"].forEach((ev) => {
+    els.dropzone.addEventListener(ev, () => els.dropzone.classList.remove("dragover"));
+  });
+  els.dropzone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files[0];
+    if (file) handleFile(file);
+  });
+  document.body.addEventListener("drop", (e) => {
+    e.preventDefault();
+    if (e.target.closest("#dropzone")) return;
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFile(file);
+  });
+  els.fileInput.addEventListener("change", () => {
+    const file = els.fileInput.files[0];
+    if (file) handleFile(file);
+    els.fileInput.value = "";
+  });
+  document.getElementById("btnSample").addEventListener("click", () => loadRaw(SAMPLE, "sample"));
+  document.getElementById("btnPaste").addEventListener("click", () => pasteModal.show());
+  document.getElementById("btnParsePaste").addEventListener("click", () => {
+    try {
+      loadRaw(JSON.parse(document.getElementById("pasteArea").value), "pasted JSON");
+      pasteModal.hide();
+    } catch (err) {
+      showError(err.message || String(err));
+      pasteModal.hide();
+    }
+  });
+  document.getElementById("btnClear").addEventListener("click", () => {
+    state = { nodes: [], definition: null, raw: null, meta: null, recipe: "" };
+    els.viewer.classList.add("d-none");
+    els.landing.classList.remove("d-none");
+    hideError();
+  });
+  document.getElementById("btnExpand").addEventListener("click", () => setCollapse(true));
+  document.getElementById("btnCollapse").addEventListener("click", () => setCollapse(false));
+  document.getElementById("btnCopyRecipe").addEventListener("click", () => copyText(state.recipe));
+  els.search.addEventListener("input", applySearch);
+
+  if (/[?&]sample=1(?:&|$)/.test(location.search)) loadRaw(SAMPLE, "sample");
+  if ("serviceWorker" in navigator) {
+    navigator.serviceWorker.register("./sw.js");
+  }
+})();
+  </script>
+</body>
+</html>
