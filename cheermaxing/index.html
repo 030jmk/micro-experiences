@@ -13,7 +13,10 @@
 <title>Cheer Planner</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://unpkg.com/maplibre-gl@5.6.2/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.0.22/leaflet-maplibre-gl.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <style>
   :root {
@@ -25,6 +28,7 @@
   }
   *{box-sizing:border-box;margin:0;padding:0;}
   html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;}
+  body{display:flex;flex-direction:column;}
 
   /* ── HEADER ── */
   header{
@@ -54,14 +58,17 @@
   .save-indicator{font-family:'DM Mono',monospace;font-size:9px;color:var(--green);opacity:0;transition:opacity .3s;}
 
   /* ── LAYOUT ── */
-  .app{display:flex;height:calc(100vh - 50px);}
+  .app{display:flex;flex:1;min-height:0;}
   .map-wrap{position:relative;flex:1;display:flex;min-height:0;}
   #map{flex:1;min-height:0;background:#0a0a0a;cursor:crosshair;position:relative;}
 
-  /* Tile filters */
-  .tiles-dark       .leaflet-tile-pane{filter:none;}
+  /* Tile filters — Positron and Fiord Color are shown as designed.
+     OSM and Topo stay darkened so they sit in the dark UI. */
+  .leaflet-gl-layer{pointer-events:none;}
+  .maplibregl-ctrl-logo,.maplibregl-ctrl-attrib{display:none!important;}
+  .tiles-fiord      .leaflet-tile-pane{filter:none;}
+  .tiles-positron   .leaflet-tile-pane{filter:none;}
   .tiles-osm        .leaflet-tile-pane{filter:saturate(.12) brightness(.38) contrast(1.15);}
-  .tiles-voyager    .leaflet-tile-pane{filter:saturate(.15) brightness(.4) contrast(1.15);}
   .tiles-topo       .leaflet-tile-pane{filter:saturate(.18) brightness(.42) contrast(1.15);}
 
   .leaflet-control-zoom a{background:var(--surface)!important;color:var(--text)!important;border-color:var(--border)!important;font-family:'DM Mono',monospace!important;}
@@ -112,7 +119,7 @@
   input[type=range]::-moz-range-track{height:3px;background:var(--border);border-radius:2px;border:none;}
 
   /* Mode + speed */
-  .mode-row{display:flex;gap:6px;align-items:center;}
+  .mode-row{display:flex;gap:6px;align-items:center;flex-wrap:wrap;}
   .mode-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;flex-shrink:0;}
   .mode-btn{font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border-radius:99px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;}
   .mode-btn.aw{background:rgba(96,165,250,.12);color:var(--walk);border-color:var(--walk);}
@@ -128,7 +135,8 @@
 
   /* Timeline */
   .timeline-wrap{flex:1;overflow-y:auto;padding:.85rem 1rem;scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
-  .tl-hrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .tl-hrow{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;}
+  .tl-actions{display:flex;gap:6px;flex-shrink:0;}
   .tl-title{font-family:'DM Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
   .clear-btn{font-family:'DM Mono',monospace;font-size:9px;padding:2px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;}
   .clear-btn:hover{border-color:var(--red);color:var(--red);}
@@ -161,7 +169,7 @@
   .buf.ok{background:rgba(74,222,128,.1);color:var(--green);border:1px solid rgba(74,222,128,.18);}
   .buf.warn{background:rgba(251,191,36,.1);color:var(--amber);border:1px solid rgba(251,191,36,.18);}
   .buf.bad{background:rgba(248,113,113,.1);color:var(--red);border:1px solid rgba(248,113,113,.18);}
-  .seg-info{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);margin-top:2px;display:flex;align-items:center;gap:5px;}
+  .seg-info{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted2);margin-top:2px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
   .seg-pip{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
   .del-btn{font-family:'DM Mono',monospace;font-size:9px;padding:1px 6px;border-radius:3px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;margin-top:3px;transition:all .15s;}
   .del-btn:hover{border-color:var(--red);color:var(--red);}
@@ -195,7 +203,14 @@
   .mbtn{font-family:'DM Mono',monospace;font-size:11px;padding:7px 16px;border-radius:6px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;}
   .mbtn.primary{background:var(--route);color:#0e0e0e;border-color:var(--route);font-weight:500;}
   .mbtn.primary:hover{background:#d4eb3f;}
+  .mbtn.danger{background:transparent;color:var(--red);border-color:var(--red);}
+  .mbtn.danger:hover{background:rgba(248,113,113,.12);}
   .mbtn.cancel:hover{color:var(--red);border-color:var(--red);}
+  .dlg-copy{font-size:13px;color:var(--text);line-height:1.5;margin-bottom:12px;}
+  .dlg-field{display:flex;flex-direction:column;gap:4px;margin-bottom:10px;}
+  .dlg-field span{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+  .dlg-field input{font-family:'DM Sans',sans-serif;font-size:14px;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:var(--surface2);color:var(--text);outline:none;}
+  .dlg-field input:focus{border-color:var(--route);}
 
   /* Print sheet (hidden on screen) */
   #printSheet{display:none;}
@@ -230,7 +245,9 @@
     #map{height:100%;min-height:0;}
     .sidebar{width:100%;flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;}
     .controls{flex-shrink:1;overflow-y:auto;max-height:none;}
-    .sub{display:none;}
+    .sidebar{display:flex;flex-direction:column;}
+    .timeline-wrap{order:-1;}
+    .runner-summary{display:flex;}
     input[type=range]{height:6px;}
     input[type=range]::-webkit-slider-thumb{width:22px;height:22px;}
     input[type=range]::-moz-range-thumb{width:22px;height:22px;}
@@ -240,7 +257,7 @@
     .speed-panel{flex-direction:column;}
     .tl-name-input{font-size:14px;width:100%;}
     .del-btn{padding:4px 10px;font-size:11px;}
-    .route-select{max-width:120px;font-size:9px;}
+    .route-select{max-width:none;font-size:11px;}
   }
 
   /* PWA install toast */
@@ -256,8 +273,8 @@
   .install-dismiss{font-family:'DM Mono',monospace;font-size:10px;padding:4px 8px;border-radius:4px;border:1px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;}
 
   /* Route picker */
-  .route-picker{display:flex;align-items:center;gap:6px;flex-shrink:0;}
-  .route-select{font-family:'DM Mono',monospace;font-size:10px;padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;outline:none;max-width:180px;}
+  .route-picker{display:flex;align-items:center;gap:6px;flex:1;min-width:160px;}
+  .route-select{font-family:'DM Mono',monospace;font-size:10px;padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer;outline:none;flex:1;min-width:0;max-width:none;width:100%;}
   .route-select:focus{border-color:var(--route);}
   .gpx-import-btn{font-family:'DM Mono',monospace;font-size:10px;padding:4px 10px;border-radius:5px;border:1px dashed var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
   .gpx-import-btn:hover{color:var(--route);border-color:var(--route);}
@@ -300,7 +317,49 @@
   .opacity-row input[type=range]{flex:1;height:4px;}
   .opacity-row-val{font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);min-width:28px;text-align:right;}
   .map-picker-settings{display:flex;gap:4px;flex-wrap:wrap;}
-  .map-picker-settings .mp-btn{flex:1;min-width:0;text-align:center;}
+  .map-picker-settings .mp-btn{flex:1 1 auto;text-align:center;}
+
+  .runner-details{border-bottom:1px solid var(--border);}
+  .runner-summary{
+    display:none;align-items:center;justify-content:space-between;
+    padding:.7rem 1rem;cursor:pointer;list-style:none;
+    font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);
+    text-transform:uppercase;letter-spacing:.1em;
+  }
+  .runner-summary::-webkit-details-marker{display:none;}
+  .runner-summary:after{content:'▸';color:var(--muted);}
+  .runner-details[open]>.runner-summary:after{content:'▾';}
+  @media (min-width:801px){
+    .runner-details{border-bottom:none;}
+    .runner-summary{display:none!important;}
+  }
+  @media (max-width:800px){
+    .runner-summary{display:flex;}
+    .runner-details>.controls{border-bottom:none;}
+  }
+
+  .place-search{
+    position:absolute;top:10px;left:48px;right:12px;z-index:500;
+    display:flex;gap:6px;align-items:center;
+  }
+  .place-search input{
+    flex:1;min-width:0;font-family:'DM Sans',sans-serif;font-size:13px;
+    padding:7px 10px;border-radius:6px;border:1px solid var(--border);
+    background:rgba(14,14,14,.92);color:var(--text);outline:none;
+  }
+  .place-search input:focus{border-color:var(--route);}
+  .place-search button{
+    font-family:'DM Mono',monospace;font-size:10px;padding:7px 10px;border-radius:6px;
+    border:1px solid var(--route);background:rgba(232,255,71,.1);color:var(--route);cursor:pointer;
+  }
+  .place-msg{
+    position:absolute;top:46px;left:48px;right:12px;z-index:500;
+    font-family:'DM Mono',monospace;font-size:10px;color:var(--muted);
+    background:rgba(14,14,14,.92);border:1px solid var(--border);border-radius:6px;
+    padding:6px 10px;display:none;
+  }
+  .place-msg.show{display:block;}
+  .place-msg.err{color:var(--red);border-color:rgba(248,113,113,.4);}
 </style>
 </head>
 <body>
@@ -321,7 +380,6 @@
 
   <div class="header-actions">
     <span class="save-indicator" id="saveIndicator">✓ saved</span>
-    <button class="hbtn save-btn" onclick="saveToStorage()">💾 Save</button>
     <button class="settings-gear" onclick="openSettings()" title="Settings">⚙</button>
   </div>
 </header>
@@ -336,9 +394,9 @@
       <div>
         <div class="settings-section-title">Map Style</div>
         <div class="map-picker-settings" id="mapPickerSettings">
-          <button class="mp-btn active" id="mp-dark" onclick="setMapStyle('dark')">Dark</button>
+          <button class="mp-btn active" id="mp-fiord" onclick="setMapStyle('fiord')">Fiord Color</button>
+          <button class="mp-btn" id="mp-positron" onclick="setMapStyle('positron')">Positron</button>
           <button class="mp-btn" id="mp-osm" onclick="setMapStyle('osm')">OSM</button>
-          <button class="mp-btn" id="mp-voyager" onclick="setMapStyle('voyager')">Voyager</button>
           <button class="mp-btn" id="mp-topo" onclick="setMapStyle('topo')">Topo</button>
         </div>
       </div>
@@ -349,7 +407,7 @@
             <div class="settings-row-label">Street-level routing</div>
             <div class="settings-row-desc">Use OSRM to calculate real walking/cycling routes between cheer spots instead of straight lines. Requires internet.</div>
           </div>
-          <div class="toggle-track" id="osrmToggle" role="switch" tabindex="0"
+          <div class="toggle-track" id="osrmToggle" data-osrm-toggle role="switch" tabindex="0"
             onclick="toggleOSRM()"
             onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleOSRM()}">
             <div class="toggle-knob"></div>
@@ -441,7 +499,7 @@
           <p><a href="https://leafletjs.com" target="_blank" style="color:var(--muted);text-decoration:none;">Leaflet 1.9.4</a> · Interactive maps</p>
           <p><a href="https://html2canvas.hertzen.com" target="_blank" style="color:var(--muted);text-decoration:none;">html2canvas 1.4.1</a> · Map screenshots for export</p>
           <p><a href="https://fonts.google.com" target="_blank" style="color:var(--muted);text-decoration:none;">Google Fonts</a> · Bebas Neue, DM Mono, DM Sans</p>
-          <p><a href="https://carto.com/basemaps" target="_blank" style="color:var(--muted);text-decoration:none;">CARTO</a> · Dark and Voyager map tiles</p>
+          <p><a href="https://openfreemap.org" target="_blank" style="color:var(--muted);text-decoration:none;">OpenFreeMap</a> · Positron and Fiord Color map styles</p>
           <p><a href="https://www.openstreetmap.org" target="_blank" style="color:var(--muted);text-decoration:none;">OpenStreetMap</a> · OSM map tiles and data</p>
           <p><a href="https://opentopomap.org" target="_blank" style="color:var(--muted);text-decoration:none;">OpenTopoMap</a> · Topographic map tiles</p>
           <p><a href="https://nominatim.org" target="_blank" style="color:var(--muted);text-decoration:none;">Nominatim</a> · Reverse geocoding / address lookup (opt-in)</p>
@@ -455,10 +513,17 @@
 <div class="app">
   <div class="map-wrap">
     <div id="map"></div>
+    <form class="place-search" id="placeSearch" onsubmit="searchPlace(event)">
+      <input id="placeQuery" type="search" placeholder="Find a place" autocomplete="off" aria-label="Find a place">
+      <button type="submit">Drop</button>
+    </form>
+    <div class="place-msg" id="placeMsg"></div>
     <div id="mapHint">Click the map to drop a cheer spot · Drag to reposition</div>
   </div>
 
   <div class="sidebar">
+    <details class="runner-details" id="runnerDetails">
+    <summary class="runner-summary">Runner</summary>
     <div class="controls">
       <div class="stats-row">
         <div class="stat-card"><div class="stat-label">Finish</div><div class="stat-val" id="mFinish">-</div></div>
@@ -466,7 +531,7 @@
         <div class="stat-card"><div class="stat-label">Sightings</div><div class="stat-val" id="mSight">0</div></div>
       </div>
       <div class="ctrl-row">
-        <div class="ctrl-label"><span>Finish time</span><span class="ctrl-val" id="finishVal">2:00 h</span></div>
+        <div class="ctrl-label"><span>Time on course</span><span class="ctrl-val" id="finishVal">2:00 h</span></div>
         <input type="range" id="finishSlider" min="30" max="360" value="120" step="1">
       </div>
       <div class="ctrl-row">
@@ -477,6 +542,13 @@
         <span class="mode-lbl">Travel</span>
         <button class="mode-btn aw" id="btnWalk" onclick="setMode('walk')">🚶 Walk</button>
         <button class="mode-btn" id="btnBike"   onclick="setMode('bike')">🚲 Cycle</button>
+        <span class="mode-lbl">Streets</span>
+        <div class="toggle-track" id="osrmToggleInline" data-osrm-toggle role="switch" aria-checked="false" tabindex="0"
+          title="Use street routing instead of straight lines"
+          onclick="toggleOSRM()"
+          onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleOSRM()}">
+          <div class="toggle-knob"></div>
+        </div>
       </div>
       <div class="speed-panel">
         <div class="speed-block ctrl-row" id="walkSpeedBlock">
@@ -489,6 +561,15 @@
         </div>
       </div>
     </div>
+    </details>
+    <script>
+    (function(){
+      var d=document.getElementById('runnerDetails');
+      var mq=window.matchMedia('(max-width:800px)');
+      if(!mq.matches) d.open=true;
+      mq.addEventListener('change',function(e){ if(!e.matches) d.open=true; });
+    })();
+    </script>
 
     <div class="legend-strip">
       <div class="leg"><div class="leg-line" style="background:var(--route)"></div> Race route</div>
@@ -500,7 +581,10 @@
     <div class="timeline-wrap">
       <div class="tl-hrow">
         <div class="tl-title">Your schedule</div>
-        <button class="clear-btn" onclick="clearAll()">Clear all</button>
+        <div class="tl-actions">
+          <button class="clear-btn" onclick="openExport()">Export</button>
+          <button class="clear-btn" onclick="confirmClearAll()">Clear all</button>
+        </div>
       </div>
       <div id="timeline">
         <div class="empty-state">📍 Click the map to drop a cheer spot.<br>Drag markers to reposition.<br>Your plan saves automatically.</div>
@@ -527,6 +611,11 @@
           <div class="export-opt-name">Calendar</div>
           <div class="export-opt-desc">.ics · add to Google/Apple</div>
         </div>
+        <div class="export-opt" id="opt-print" onclick="selectExport('print')">
+          <div class="export-opt-icon">🖨</div>
+          <div class="export-opt-name">Print</div>
+          <div class="export-opt-desc">Map and schedule</div>
+        </div>
       </div>
     </div>
 
@@ -544,7 +633,7 @@
     </div>
 
     <div class="modal-actions">
-      <button class="mbtn primary" onclick="doExport()">Download</button>
+      <button class="mbtn primary" id="exportAction" onclick="doExport()">Download</button>
       <button class="mbtn cancel"  onclick="closeExport()">Close</button>
     </div>
   </div>
@@ -552,6 +641,17 @@
 
 <!-- Print sheet (hidden on screen, shown in print) -->
 <div id="printSheet"></div>
+
+<div class="modal-overlay" id="appDialog" onclick="if(event.target===this)finishDialog(null)">
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <div class="modal-title" id="dlgTitle"></div>
+    <div id="dlgBody"></div>
+    <div class="modal-actions">
+      <button class="mbtn primary" id="dlgConfirm" type="button">OK</button>
+      <button class="mbtn cancel" id="dlgCancel" type="button">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <!-- PWA install banner -->
 <div id="installBanner">
@@ -575,11 +675,16 @@ const osrmCache = new Map();
 function openSettings() { document.getElementById('settingsOverlay').classList.add('open'); }
 function closeSettings() { document.getElementById('settingsOverlay').classList.remove('open'); }
 
+function syncOsrmToggles() {
+  document.querySelectorAll('[data-osrm-toggle]').forEach(toggle => {
+    toggle.classList.toggle('on', osrmEnabled);
+    toggle.setAttribute('aria-checked', osrmEnabled);
+  });
+}
+
 function toggleOSRM() {
   osrmEnabled = !osrmEnabled;
-  const toggle = document.getElementById('osrmToggle');
-  toggle.classList.toggle('on', osrmEnabled);
-  toggle.setAttribute('aria-checked', osrmEnabled);
+  syncOsrmToggles();
   try { localStorage.setItem('cheer_osrm_enabled', osrmEnabled ? '1' : '0'); } catch(e) {}
   const status = document.getElementById('osrmStatus');
   if (osrmEnabled) {
@@ -596,14 +701,20 @@ function toggleOSRM() {
           status.className = 'settings-status err';
           status.textContent = '✕ OSRM responded with an error - falling back to straight lines';
           osrmEnabled = false;
-          toggle.classList.remove('on');
+          try { localStorage.setItem('cheer_osrm_enabled', '0'); } catch(e) {}
+          syncOsrmToggles();
+          renderTravelLines();
+          renderTimeline();
         }
       })
       .catch(() => {
         status.className = 'settings-status err';
         status.textContent = '✕ Cannot reach OSRM - check your internet connection';
         osrmEnabled = false;
-        toggle.classList.remove('on');
+        try { localStorage.setItem('cheer_osrm_enabled', '0'); } catch(e) {}
+        syncOsrmToggles();
+        renderTravelLines();
+        renderTimeline();
       });
   } else {
     status.style.display = 'none';
@@ -616,9 +727,7 @@ function toggleOSRM() {
 function restoreOSRMSetting() {
   try {
     osrmEnabled = localStorage.getItem('cheer_osrm_enabled') === '1';
-    const toggle = document.getElementById('osrmToggle');
-    toggle.classList.toggle('on', osrmEnabled);
-    toggle.setAttribute('aria-checked', osrmEnabled);
+    syncOsrmToggles();
     if (osrmEnabled) {
       const status = document.getElementById('osrmStatus');
       status.style.display = '';
@@ -807,6 +916,40 @@ function geocodeSpot(spot) {
     spot.marker.setPopupContent(buildPopupHtml(spot));
   });
 }
+
+window.searchPlace = async function(ev) {
+  if (ev) ev.preventDefault();
+  const q = document.getElementById('placeQuery').value.trim();
+  const msg = document.getElementById('placeMsg');
+  if (!q) return false;
+  if (!nominatimEnabled) toggleNominatim();
+  msg.className = 'place-msg show';
+  msg.textContent = 'Searching…';
+  try {
+    const b = map.getBounds();
+    const viewbox = [b.getWest(), b.getNorth(), b.getEast(), b.getSouth()].join(',');
+    const url = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(q)}&viewbox=${encodeURIComponent(viewbox)}&bounded=0`;
+    const resp = await fetch(url, { headers: { 'Accept-Language': 'en', 'User-Agent': 'CheerPlanner/1.0' } });
+    const data = await resp.json();
+    if (!data.length) {
+      msg.className = 'place-msg show err';
+      msg.textContent = 'No place found';
+      return false;
+    }
+    const hit = data[0];
+    const lat = parseFloat(hit.lat), lon = parseFloat(hit.lon);
+    const label = (hit.display_name || q).split(',')[0];
+    addSpot(lat, lon, label);
+    map.flyTo([lat, lon], Math.max(map.getZoom(), 16));
+    msg.className = 'place-msg';
+    msg.textContent = '';
+    document.getElementById('placeQuery').value = '';
+  } catch (e) {
+    msg.className = 'place-msg show err';
+    msg.textContent = 'Search failed';
+  }
+  return false;
+};
 
 function mapLinkHtml(lat, lon, address) {
   const url = mapLinkUrl(lat, lon);
@@ -999,33 +1142,49 @@ window.dismissInstall = function() {
 
 // ── MAP TILES ─────────────────────────────────────────────────────────────
 const OA = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors';
-const CA = OA + ' &copy; <a href="https://carto.com/" target="_blank">CARTO</a>';
+const FA = OA + ' &copy; <a href="https://openfreemap.org" target="_blank">OpenFreeMap</a>';
 const TA = OA + ' &copy; <a href="https://opentopomap.org" target="_blank">OpenTopoMap</a>';
+const STYLE_ALIASES = { dark: 'fiord', voyager: 'positron' };
 const TILES = {
-  dark:    {url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',    attr:CA, cls:'tiles-dark'},
-  osm:     {url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',               attr:OA, cls:'tiles-osm'},
-  voyager: {url:'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', attr:CA, cls:'tiles-voyager'},
-  topo:    {url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',                 attr:TA, cls:'tiles-topo'},
+  fiord:    {style:'https://tiles.openfreemap.org/styles/fiord',    attr:FA, cls:'tiles-fiord'},
+  positron: {style:'https://tiles.openfreemap.org/styles/positron', attr:FA, cls:'tiles-positron'},
+  osm:      {url:'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', attr:OA, cls:'tiles-osm'},
+  topo:     {url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',   attr:TA, cls:'tiles-topo'},
 };
 
 const map = L.map('map',{center:[52.507,13.362],zoom:13});
 new ResizeObserver(()=>map.invalidateSize()).observe(document.getElementById('map'));
-let curTile = null, curStyleKey = 'dark';
+let curTile = null, curStyleKey = 'fiord', curVectorAttr = null;
 
 function setMapStyle(k) {
+  k = STYLE_ALIASES[k] || k;
   const t=TILES[k]; if(!t) return;
   if(curTile) map.removeLayer(curTile);
-  curTile = L.tileLayer(t.url,{attribution:t.attr,maxZoom:19}).addTo(map);
+  if(curVectorAttr){
+    map.attributionControl.removeAttribution(curVectorAttr);
+    curVectorAttr = null;
+  }
+  if(t.style){
+    curTile = L.maplibreGL({
+      style: t.style,
+      canvasContextAttributes: { preserveDrawingBuffer: true }
+    }).addTo(map);
+    curVectorAttr = t.attr;
+    map.attributionControl.addAttribution(curVectorAttr);
+  } else {
+    curTile = L.tileLayer(t.url,{attribution:t.attr,maxZoom:19}).addTo(map);
+  }
   const el=document.getElementById('map');
   Object.values(TILES).forEach(d=>el.classList.remove(d.cls));
   el.classList.add(t.cls);
-  document.querySelectorAll('.mp-btn').forEach(b=>b.classList.remove('active'));
-  document.getElementById('mp-'+k).classList.add('active');
+  document.querySelectorAll('#mapPickerSettings .mp-btn').forEach(b=>b.classList.remove('active'));
+  const btn=document.getElementById('mp-'+k);
+  if(btn) btn.classList.add('active');
   curStyleKey=k;
   autoSave();
 }
 window.setMapStyle=setMapStyle;
-setMapStyle('dark');
+setMapStyle('fiord');
 
 // ── ROUTE SYSTEM ─────────────────────────────────────────────────────────
 const BERLIN_HM = {
@@ -1092,6 +1251,8 @@ const BUNDLED_GPX = [
   { file: 'gpx/2025_Frankfurt_Halb_Marathon.gpx',      name: 'Frankfurt Half Marathon 2025',      date: '2025-10-26' },
   { file: 'gpx/2025_Spreewaldhalbmarathon.gpx',        name: 'Spreewald Half Marathon 2025',      date: '2025-04-12' },
   { file: 'gpx/2025_Spreewaldmarathon.gpx',            name: 'Spreewald Marathon 2025',           date: '2025-04-12' },
+  { file: 'gpx/2027_Boston_Marathon.gpx',              name: 'Boston Marathon 2027',              date: '2027-04-19' },
+  { file: 'gpx/2027_Vienna_City_Marathon.gpx',         name: 'Vienna City Marathon 2027',         date: '2027-04-18' },
 ];
 
 async function loadBundledRoutes() {
@@ -1191,6 +1352,68 @@ function parseGPX(xmlString) {
 
 const mkLbl = (t,c) => L.divIcon({html:`<div style="background:${c};color:#0e0e0e;font-family:'Bebas Neue',sans-serif;font-size:11px;padding:3px 8px;border-radius:4px;letter-spacing:.05em;box-shadow:0 2px 10px rgba(0,0,0,.6);white-space:nowrap;">${t}</div>`,className:'',iconSize:null,iconAnchor:[20,10]});
 
+function formatRouteSub(cfg) {
+  if (!cfg) return '';
+  if (!cfg.date) return cfg.name;
+  const d = new Date(cfg.date + 'T12:00:00');
+  if (isNaN(d.getTime())) return cfg.name;
+  const pretty = d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  return cfg.name + ' · ' + pretty;
+}
+
+function defaultFinishMins(cfg) {
+  return cfg && cfg.distance < 30 ? 120 : 240;
+}
+
+function applyDefaultFinish(cfg) {
+  let hasFinish = false;
+  try {
+    const saved = localStorage.getItem(getStorageKey());
+    if (saved && JSON.parse(saved).finishMins) hasFinish = true;
+  } catch (e) {}
+  if (!hasFinish) document.getElementById('finishSlider').value = defaultFinishMins(cfg);
+}
+
+function escapeHtml(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+  }[c]));
+}
+
+let dialogResolve = null;
+function openAppDialog({ title, html, confirmLabel, danger, collect }) {
+  return new Promise(resolve => {
+    dialogResolve = resolve;
+    document.getElementById('dlgTitle').textContent = title;
+    document.getElementById('dlgBody').innerHTML = html;
+    const btn = document.getElementById('dlgConfirm');
+    btn.textContent = confirmLabel || 'OK';
+    btn.className = 'mbtn ' + (danger ? 'danger' : 'primary');
+    document.getElementById('appDialog').classList.add('open');
+    const first = document.querySelector('#dlgBody input');
+    if (first) first.focus();
+    btn.onclick = () => {
+      const value = collect ? collect() : true;
+      if (collect && !value) return;
+      finishDialog(value);
+    };
+  });
+}
+function finishDialog(value) {
+  document.getElementById('appDialog').classList.remove('open');
+  const resolve = dialogResolve;
+  dialogResolve = null;
+  if (resolve) resolve(value);
+}
+document.getElementById('dlgCancel').onclick = () => finishDialog(null);
+document.getElementById('appDialog').addEventListener('keydown', e => {
+  if (e.key === 'Escape') finishDialog(null);
+  if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+    e.preventDefault();
+    document.getElementById('dlgConfirm').click();
+  }
+});
+
 function drawRoute(cfg) {
   routeLayers.forEach(l => map.removeLayer(l));
   routeLayers = [];
@@ -1226,7 +1449,7 @@ function drawRoute(cfg) {
   document.getElementById('startSlider').value = defaultStart;
   document.getElementById('startVal').textContent = m2t(defaultStart);
 
-  document.querySelector('.sub').textContent = cfg.name;
+  document.querySelector('.sub').textContent = formatRouteSub(cfg);
   document.title = cfg.name + ' - Cheer Planner';
   updateRouteRemoveBtn();
 }
@@ -1267,9 +1490,14 @@ function updateRouteRemoveBtn() {
   document.getElementById('routeRenameBtn').style.display = isCustom ? '' : 'none';
 }
 
-window.renameRoute = function() {
+window.renameRoute = async function() {
   if (!activeRoute || activeRoute.id === BERLIN_HM.id || activeRoute.bundled) return;
-  const newName = prompt('Rename route:', activeRoute.name);
+  const newName = await openAppDialog({
+    title: 'Rename route',
+    html: `<label class="dlg-field"><span>Name</span><input id="dlgName" value="${escapeHtml(activeRoute.name)}"></label>`,
+    confirmLabel: 'Rename',
+    collect: () => document.getElementById('dlgName').value.trim()
+  });
   if (!newName || newName === activeRoute.name) return;
   activeRoute.name = newName;
   const cr = customRoutes.find(r => r.id === activeRoute.id);
@@ -1277,7 +1505,7 @@ window.renameRoute = function() {
   saveCustomRoutes();
   populateRouteSelect();
   document.getElementById('routeSelect').value = activeRoute.id;
-  document.querySelector('.sub').textContent = newName;
+  document.querySelector('.sub').textContent = formatRouteSub(activeRoute);
   document.title = newName + ' - Cheer Planner';
   autoSave();
 };
@@ -1290,6 +1518,7 @@ window.switchRoute = function(id) {
     const r = bundledRoutes.find(r => r.id === id) || customRoutes.find(r => r.id === id);
     if (r) drawRoute(r);
   }
+  applyDefaultFinish(activeRoute);
   try {
     const saved = localStorage.getItem(getStorageKey());
     if (saved) restoreState(JSON.parse(saved));
@@ -1302,21 +1531,31 @@ window.handleGPXImport = function(input) {
   const file = input.files[0];
   if (!file) return;
   const reader = new FileReader();
-  reader.onload = function(e) {
+  reader.onload = async function(e) {
     try {
       const {polyline: rawPoly, name: gpxName, desc, type} = parseGPX(e.target.result);
       const simplified = simplifyPolyline(rawPoly, 0.0001);
       const {markers, totalDistance} = deriveKmMarkers(simplified);
       const autoName = gpxName || file.name.replace(/\.gpx$/i, '');
-      const userMsg = `Route: ${autoName}` + (desc ? `\nDescription: ${desc}` : '') + (type ? `\nType: ${type}` : '') + `\nDistance: ${totalDistance} km\n\nEnter a name for this route:`;
-      const routeName = prompt(userMsg, autoName);
-      if (routeName === null) return;
+      const detail = `${autoName} · ${totalDistance} km` + (desc ? ` · ${desc}` : '') + (type ? ` · ${type}` : '');
+      const result = await openAppDialog({
+        title: 'Add route',
+        html: `<p class="dlg-copy">${escapeHtml(detail)}</p>
+          <label class="dlg-field"><span>Name</span><input id="dlgName" value="${escapeHtml(autoName)}"></label>
+          <label class="dlg-field"><span>Date</span><input id="dlgDate" type="date"></label>`,
+        confirmLabel: 'Add route',
+        collect: () => ({
+          name: document.getElementById('dlgName').value.trim() || autoName,
+          date: document.getElementById('dlgDate').value || null
+        })
+      });
+      if (!result) return;
       const routeId = 'custom-' + Date.now();
       const cfg = {
         id: routeId,
-        name: routeName || autoName,
+        name: result.name,
         desc: desc || '',
-        date: null,
+        date: result.date,
         startHour: 9, startMin: 0,
         distance: totalDistance,
         finishLabel: 'Finish',
@@ -1331,6 +1570,7 @@ window.handleGPXImport = function(input) {
       populateRouteSelect();
       document.getElementById('routeSelect').value = routeId;
       drawRoute(cfg);
+      applyDefaultFinish(cfg);
       renderTimeline();
       autoSave();
     } catch(err) {
@@ -1341,14 +1581,22 @@ window.handleGPXImport = function(input) {
   input.value = '';
 };
 
-window.removeCustomRoute = function() {
+window.removeCustomRoute = async function() {
   if (!activeRoute || activeRoute.id === BERLIN_HM.id || activeRoute.bundled) return;
+  const ok = await openAppDialog({
+    title: 'Remove route',
+    html: `<p class="dlg-copy">Remove ${escapeHtml(activeRoute.name)} and its cheer spots from this browser?</p>`,
+    confirmLabel: 'Remove',
+    danger: true
+  });
+  if (!ok) return;
   customRoutes = customRoutes.filter(r => r.id !== activeRoute.id);
   try { localStorage.removeItem('cheer_' + activeRoute.id); } catch(e) {}
   saveCustomRoutes();
   clearAll();
   populateRouteSelect();
   drawRoute(BERLIN_HM);
+  applyDefaultFinish(BERLIN_HM);
   renderTimeline();
   autoSave();
 };
@@ -1373,6 +1621,7 @@ loadBundledRoutes().then(() => {
     if (br) {
       clearAll();
       drawRoute(br);
+      applyDefaultFinish(br);
       document.getElementById('routeSelect').value = lastRouteId;
       try {
         const raw = localStorage.getItem(getStorageKey());
@@ -1439,10 +1688,12 @@ function addSpot(lat,lon,name,id) {
     spot.address=null;
     marker.setPopupContent(buildPopupHtml(spot));
     geocodeSpot(spot);
+    renumberSpots();
     renderTravelLines(); renderSpotConnectors(); renderTimeline(); autoSave();
   });
 
   document.getElementById('mapHint').style.opacity='0';
+  renumberSpots();
   renderTravelLines(); renderSpotConnectors(); renderTimeline(); autoSave();
   return spot;
 }
@@ -1481,16 +1732,22 @@ async function renderOSRMTravelLines(sorted, col) {
 }
 
 // ── DELETE / CLEAR ────────────────────────────────────────────────────────
+function renumberSpots() {
+  const ordered = [...cheerSpots].sort((a, b) => a.km - b.km || a.id - b.id);
+  ordered.forEach((s, i) => {
+    const num = i + 1;
+    if (s.name === 'Spot ' + s.num) s.name = 'Spot ' + num;
+    s.num = num;
+    s.marker.setIcon(mkCheerIcon(num));
+    s.marker.setPopupContent(buildPopupHtml(s));
+  });
+}
+
 function deleteSpot(id) {
   const idx=cheerSpots.findIndex(s=>s.id===id); if(idx===-1)return;
   map.removeLayer(cheerSpots[idx].marker);
   cheerSpots.splice(idx,1);
-  cheerSpots.forEach((s,i)=>{
-    const oldNum=s.num; s.num=i+1;
-    s.marker.setIcon(mkCheerIcon(i+1));
-    if(s.name===`Spot ${oldNum}`) s.name=`Spot ${s.num}`;
-    s.marker.setPopupContent(buildPopupHtml(s));
-  });
+  renumberSpots();
   renderTravelLines(); renderSpotConnectors(); renderTimeline(); autoSave();
   if(!cheerSpots.length) document.getElementById('mapHint').style.opacity='1';
 }
@@ -1505,8 +1762,21 @@ function clearAll() {
   document.getElementById('mapHint').style.opacity='1';
   renderTimeline(); autoSave();
 }
-window.deleteSpot=deleteSpot;
-window.clearAll=clearAll;
+window.confirmClearAll = async function() {
+  if (!cheerSpots.length) return;
+  const ok = await openAppDialog({
+    title: 'Clear all spots',
+    html: '<p class="dlg-copy">Remove every cheer spot from this route?</p>',
+    confirmLabel: 'Clear all',
+    danger: true
+  });
+  if (ok) clearAll();
+};
+
+function travelSegmentLabel(tt, km, street) {
+  const kind = street ? 'street route' : 'straight line';
+  return `~${tt} min · ${km.toFixed(1)} km · ${kind} · includes 2 min at the spot`;
+}
 
 // ── RENDER TIMELINE ───────────────────────────────────────────────────────
 let timelineRenderVersion = 0;
@@ -1520,9 +1790,9 @@ function renderTimeline() {
   const fh=Math.floor(total/60),fm=total%60;
   document.getElementById('finishVal').textContent=fh+':'+(fm<10?'0':'')+fm+' h';
   document.getElementById('startVal').textContent=m2t(rs);
-  document.getElementById('mPace').textContent=cheerSpots.length?fmtPace(pace):'-';
+  document.getElementById('mPace').textContent=fmtPace(pace);
   document.getElementById('mSight').textContent=cheerSpots.length;
-  document.getElementById('mFinish').textContent=cheerSpots.length?m2t(rs+total):'-';
+  document.getElementById('mFinish').textContent=m2t(rs+total);
 
   const tl=document.getElementById('timeline');
   if(!cheerSpots.length){
@@ -1548,7 +1818,7 @@ function renderTimeline() {
           :buf>=0?`<span class="buf warn">Tight! ${buf} min</span>`
           :`<span class="buf bad">Miss by ${Math.abs(buf)} min</span>`;
       const src = cached ? '📍' : mi;
-      segH=`<div class="seg-info" id="seg-${i}"><div class="seg-pip" style="background:${mc}"></div>${src} ~${tt} min · ${d.toFixed(1)} km</div>`;
+      segH=`<div class="seg-info" id="seg-${i}"><div class="seg-pip" style="background:${mc}"></div>${src} ${travelSegmentLabel(tt, d, !!cached)}</div>`;
       bufH=`<span class="buf-wrap" id="buf-${i}">${bufH}</span>`;
     }
     const row=document.createElement('div');
@@ -1584,7 +1854,7 @@ function renderTimeline() {
         <span style="font-size:12px;font-weight:500;color:var(--text)">${finLabel}</span>
         <span class="tl-time">${m2t(rs+total)}</span>
       </div>
-      <div class="seg-info" id="seg-fin"><div class="seg-pip" style="background:${mc}"></div>${cachedFin?'📍':mi} ~${tt2f} min from last spot</div>
+      <div class="seg-info" id="seg-fin"><div class="seg-pip" style="background:${mc}"></div>${cachedFin?'📍':mi} ~${tt2f} min from last spot · ${cachedFin?'street route':'straight line'}</div>
     </div>`;
   tl.appendChild(fr);
 
@@ -1604,7 +1874,7 @@ async function updateTimelineWithOSRM(sorted, version, rs, pace, mc, mi) {
     const buf = at - (prevAt + 2 + tt);
     const segEl = document.getElementById(`seg-${i}`);
     const bufEl = document.getElementById(`buf-${i}`);
-    if (segEl) segEl.innerHTML = `<div class="seg-pip" style="background:${mc}"></div>📍 ~${tt} min · ${route.distance.toFixed(1)} km`;
+    if (segEl) segEl.innerHTML = `<div class="seg-pip" style="background:${mc}"></div>📍 ${travelSegmentLabel(tt, route.distance, true)}`;
     if (bufEl) {
       bufEl.innerHTML = buf >= 8 ? `<span class="buf ok">~${buf} min spare ✓</span>`
         : buf >= 0 ? `<span class="buf warn">Tight! ${buf} min</span>`
@@ -1617,7 +1887,7 @@ async function updateTimelineWithOSRM(sorted, version, rs, pace, mc, mi) {
   const route = await fetchOSRMRoute(last, fin);
   if (version !== timelineRenderVersion || !route) return;
   const segFin = document.getElementById('seg-fin');
-  if (segFin) segFin.innerHTML = `<div class="seg-pip" style="background:${mc}"></div>📍 ~${osrmDuration(route.distance)} min from last spot`;
+  if (segFin) segFin.innerHTML = `<div class="seg-pip" style="background:${mc}"></div>📍 ~${osrmDuration(route.distance)} min from last spot · street route`;
 }
 
 function flyTo(id){const s=cheerSpots.find(s=>s.id===id);if(s)map.flyTo([s.lat,s.lon],Math.max(map.getZoom(),15),{duration:.8});}
@@ -1695,6 +1965,7 @@ try {
       document.getElementById('routeSelect').value = lastRouteId;
     }
   }
+  applyDefaultFinish(activeRoute);
   const raw = localStorage.getItem(getStorageKey());
   if (raw) restoreState(JSON.parse(raw));
 } catch(e){}
@@ -1715,6 +1986,7 @@ window.selectExport=function(fmt){
   document.querySelectorAll('.export-opt').forEach(el=>el.classList.remove('sel'));
   document.getElementById('opt-'+fmt).classList.add('sel');
   document.getElementById('importSection').style.display=fmt==='json'?'':'none';
+  document.getElementById('exportAction').textContent=fmt==='print'?'Print':'Download';
   updatePreview();
 };
 
